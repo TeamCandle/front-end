@@ -5,9 +5,9 @@
 https://velog.io/@jaybon/%ED%94%8C%EB%9F%AC%ED%84%B0-%EA%B4%80%EB%A0%A8-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B6%94%EC%B2%9C
 
 
-화면 이동 : go_router
-상태 관리 :provider. 안드로이드의 viewmodel이라고 생각하면 됨.
-백그라운드 서비스 : flutter_background_service 패키지
+화면 이동 : go_router  
+상태 관리 :provider. 안드로이드의 viewmodel이라고 생각하면 됨.  
+백그라운드 서비스 : flutter_background_service 패키지  
 
 (_)의 의미
 함수나 메서드의 매개변수로 _를 사용하면 해당 매개변수를 사용하지 않는다는 것을 나타냅니다
