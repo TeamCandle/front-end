@@ -9,6 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  go_router: ^13.2.2
+  kakao_flutter_sdk: ^1.9.1+2
+  provider: ^6.1.2
+  webview_flutter: ^4.7.0
 
 dev_dependencies:
   flutter_test:
