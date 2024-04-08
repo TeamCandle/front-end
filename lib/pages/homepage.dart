@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,12 +18,15 @@ class _HomePageState extends State<HomePage> {
       body: Center(
         child: Column(children: [
           ElevatedButton(
-            onPressed: () => context.go('/match'),
+            onPressed: () => context.go('/home/match'),
             child: const Text('match'),
           ),
           ElevatedButton(onPressed: nothing, child: const Text("community")),
           ElevatedButton(onPressed: nothing, child: const Text("premium")),
-          ElevatedButton(onPressed: nothing, child: const Text("profile")),
+          ElevatedButton(
+            onPressed: () => context.go("/home/user_profile"),
+            child: const Text("profile"),
+          ),
         ]),
       ),
     );

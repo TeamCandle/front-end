@@ -4,7 +4,7 @@ import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:provider/provider.dart';
 //files
 import 'router.dart';
-import 'provider_class.dart';
+import 'providers.dart';
 
 void main() {
   // 웹 환경에서 카카오 로그인을 정상적으로 완료하려면 runApp() 호출 전 아래 메서드 호출 필요
@@ -27,7 +27,7 @@ class MainApp extends StatelessWidget {
     //router.dart파일의 화면 트리로 이동.
     return MultiProvider(
       providers: [
-        Provider<UserInfo>(create: (_) => UserInfo()),
+        ChangeNotifierProvider<UserInfo>(create: (_) => UserInfo()),
       ],
       child: MaterialApp.router(routerConfig: router),
     );

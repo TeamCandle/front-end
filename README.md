@@ -1,11 +1,22 @@
 # flutter_doguber_v1
 
+### 질문
+
+
 ### 참고 링크
-1. 플러터 참고 자료 모음
+- 플러터 참고 자료 모음
 https://velog.io/@jaybon/%ED%94%8C%EB%9F%AC%ED%84%B0-%EA%B4%80%EB%A0%A8-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B6%94%EC%B2%9C
+
+https://velog.io/@ximya_hf/howtowirtutilclasslikepro
+
+
+- ui 템플릿들
+https://flutterawesome.com/tag/ui/
 
 
 화면 이동 : go_router  
+장점 : 화면 이동 코드가 한줄이 됨  
+단점 : 기본 뒤로가기 기능이 안먹힘 -> navigator pop이 안되므로. 경로 일일히 지정해야댐
 상태 관리 :provider. 안드로이드의 viewmodel이라고 생각하면 됨.  
 백그라운드 서비스 : flutter_background_service 패키지  
 
@@ -53,8 +64,27 @@ my-spring-boot-project/
 └── ...                              # 기타 프로젝트 파일 및 리소스  
 
 
+{"accessToken":"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY2Nlc3N0b2tlbiIsImV4cCI6MTcxMjA2Mzg0NCwidXNlcm5hbWUiOiJrYWthb18zNDE5MDcxMzE5In0.WICUOeZyZjouyqoGH_jCRbdKMsEI8Mxmaf9ovDTrBAFRkKh_FwKofJRH74Uw19fGQ5k3294hvobvLM4WkQUS5w",
 
-### 오류들
-The plugin kakao_flutter_sdk_common requires a higher Android SDK version.  
-=> android/app/build.gradle  
-=> defaultConfig{minSdkVersion 21}  
+"refreshToken":"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJyZWZyZXNodG9rZW4iLCJleHAiOjE3MTIwNjY1NDQsInVzZXJuYW1lIjoia2FrYW9fMzQxOTA3MTMxOSJ9.Fr_BemtQcHjU_4BoAF_TbOUeLObpo3GI96NI_K3b2woEnnKFgA6sD_jc5MfMrc6-o37LPy6UlnjjICYwfvowmA"}
+
+### android 오류
+- net::ERR_CLEARTEXT_NOT_PERMITTED
+https://peterica.tistory.com/560  
+androidmanifest.xml파일에 추가하여 해결
+
+### 플러터 오류
+- 이미지 추가
+pubspec.yaml 추가 작성
+flutter:
+  assets:
+    - assets/images
+
+- The plugin kakao_flutter_sdk_common requires a higher Android SDK version.  
+android/app/build.gradle에  
+defaultConfig{minSdkVersion 21}  
+을 적음으로서 해결  
+
+- flutter buildcontext async
+https://medium.com/nerd-for-tech/do-not-use-buildcontext-in-async-gaps-why-and-how-to-handle-flutter-context-correctly-870b924eb42e
+await ~ then ~ 
