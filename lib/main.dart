@@ -15,11 +15,11 @@ void main() {
     nativeAppKey: '8826eec5f744658162616455cf5361ad',
     javaScriptAppKey: '529540eb153fa80c33ac0fea3a763257',
   );
-  runApp(const MainApp());
+  runApp(const DogUberApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class DogUberApp extends StatelessWidget {
+  const DogUberApp({super.key});
 
   @override
   Widget build(BuildContext context) {
