@@ -9,14 +9,14 @@ https://velog.io/@jaybon/%ED%94%8C%EB%9F%AC%ED%84%B0-%EA%B4%80%EB%A0%A8-%EC%82%A
 
 https://velog.io/@ximya_hf/howtowirtutilclasslikepro
 
+https://medium.com/@gunseliunsal/stateless-vs-stateful-widgets-in-flutter-852741b6046e
 
 - ui 템플릿들
 https://flutterawesome.com/tag/ui/
 
 
 화면 이동 : go_router  
-장점 : 화면 이동 코드가 한줄이 됨  
-단점 : 기본 뒤로가기 기능이 안먹힘 -> navigator pop이 안되므로. 경로 일일히 지정해야댐
+장점 : 화면 이동 코드가 한줄이 됨
 상태 관리 :provider. 안드로이드의 viewmodel이라고 생각하면 됨.  
 백그라운드 서비스 : flutter_background_service 패키지  
 
