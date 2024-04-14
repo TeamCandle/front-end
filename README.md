@@ -1,30 +1,33 @@
 # flutter_doguber_v1
 
 ### 질문
-
+백엔드 명세서에 유저 프로필 변경 == 내 프로필 변경이 맞지?  
 
 ### 참고 링크
 - 플러터 참고 자료 모음
-https://velog.io/@jaybon/%ED%94%8C%EB%9F%AC%ED%84%B0-%EA%B4%80%EB%A0%A8-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B6%94%EC%B2%9C
+https://velog.io/@jaybon/%ED%94%8C%EB%9F%AC%ED%84%B0-%EA%B4%80%EB%A0%A8-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B6%94%EC%B2%9C  
 
-https://velog.io/@ximya_hf/howtowirtutilclasslikepro
+https://velog.io/@ximya_hf/howtowirtutilclasslikepro  
 
-https://medium.com/@gunseliunsal/stateless-vs-stateful-widgets-in-flutter-852741b6046e
+https://medium.com/@gunseliunsal/stateless-vs-stateful-widgets-in-flutter-852741b6046e  
 
 - ui 템플릿들
-https://flutterawesome.com/tag/ui/
+https://flutterawesome.com/tag/ui/  
 
-
+### 사용 패키지 및 API
 화면 이동 : go_router  
-장점 : 화면 이동 코드가 한줄이 됨
 상태 관리 :provider. 안드로이드의 viewmodel이라고 생각하면 됨.  
 백그라운드 서비스 : flutter_background_service 패키지  
+지도 : google API. tracking기능은 직접 만들어야 할듯?  
 
-(_)의 의미  
-함수나 메서드의 매개변수로 _를 사용하면 해당 매개변수를 사용하지 않는다는 것을 나타냅니다  
+### 파일 구성
+- api.dart : 통신 모듈
+- constants.dart : 상수 파일. 링크, 텍스트스타일 등의 const변수 저장  
+- providers.dart : 데이터 파일. viewmodel역할
+- router.dart : 화면 이동 경로 지정
 
-### provider
-- 값을 읽는 가장 쉬운 방법은 BuildContext의 확장 메소드를 활용하는 것입니다.
+### provider 사용법
+- 값을 읽는 가장 쉬운 방법은 BuildContext의 확장 메소드를 활용하는 것입니다.  
 context.watch<T>() : 위젯이 T의 변화를 감지할 수 있도록 합니다.  
 context.read<T>() : T를 변화 감지 없이 return 합니다.  
 context.select<T, R>(R cb(T value)) : T의 일부 작은 영역에 대해서만 위젯이 변화를 감지할 수 있도록 합니다.  
@@ -39,7 +42,8 @@ MultiProvider(
   child: someWidget,  
 )  
 
-스프링부트 파일 구조  
+### 기타 정보
+- 스프링부트 파일 구조  
 my-spring-boot-project/  
 ├── src/  
 │   ├── main/  
@@ -63,28 +67,26 @@ my-spring-boot-project/
 ├── pom.xml (또는 build.gradle)       # Maven 또는 Gradle 빌드 파일  
 └── ...                              # 기타 프로젝트 파일 및 리소스  
 
-
-{"accessToken":"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY2Nlc3N0b2tlbiIsImV4cCI6MTcxMjA2Mzg0NCwidXNlcm5hbWUiOiJrYWthb18zNDE5MDcxMzE5In0.WICUOeZyZjouyqoGH_jCRbdKMsEI8Mxmaf9ovDTrBAFRkKh_FwKofJRH74Uw19fGQ5k3294hvobvLM4WkQUS5w",
-
-"refreshToken":"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJyZWZyZXNodG9rZW4iLCJleHAiOjE3MTIwNjY1NDQsInVzZXJuYW1lIjoia2FrYW9fMzQxOTA3MTMxOSJ9.Fr_BemtQcHjU_4BoAF_TbOUeLObpo3GI96NI_K3b2woEnnKFgA6sD_jc5MfMrc6-o37LPy6UlnjjICYwfvowmA"}
+- (_)의 의미  
+함수나 메서드의 매개변수로 _를 사용하면 해당 매개변수를 사용하지 않는다는 것을 나타냅니다  
 
 ### android 오류
 - net::ERR_CLEARTEXT_NOT_PERMITTED
 https://peterica.tistory.com/560  
-androidmanifest.xml파일에 추가하여 해결
+androidmanifest.xml파일에 추가하여 해결  
 
 ### 플러터 오류
 - 이미지 추가
-pubspec.yaml 추가 작성
-flutter:
-  assets:
-    - assets/images
+pubspec.yaml 추가 작성  
+flutter:  
+  assets:  
+    - assets/images  
 
 - The plugin kakao_flutter_sdk_common requires a higher Android SDK version.  
 android/app/build.gradle에  
 defaultConfig{minSdkVersion 21}  
 을 적음으로서 해결  
 
-- flutter buildcontext async
+- flutter buildcontext async  
 https://medium.com/nerd-for-tech/do-not-use-buildcontext-in-async-gaps-why-and-how-to-handle-flutter-context-correctly-870b924eb42e
-await ~ then ~ 
+await ~ then ~  
