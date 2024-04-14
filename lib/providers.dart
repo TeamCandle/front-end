@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 //files
 import 'constants.dart';
+import 'api.dart';
 
 class UserInfo extends ChangeNotifier {
   bool _isLogined = false;
@@ -62,29 +63,17 @@ class UserInfo extends ChangeNotifier {
   }
 
   //profile functions
-  Future<void> getUserInfo() async {
-    var url = Uri.parse(ServerUrl.userProfileUrl);
-    var header = {'Authorization': 'Bearer $_accessToken'};
-
-    try {
-      var response = await http.get(url, headers: header);
-      if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        _name = data['name'];
-        _gender = data['gender'];
-        _age = data['age'];
-        _description = data['description'];
-        _image = data['image'];
-        ownDogList = jsonDecode(data['dogList']).cast<Map<String, dynamic>>();
-
-        debugPrint("[log] get profile success");
-      } else {
-        debugPrint(
-            "[log] get profile fail, code : ${response.statusCode}, ${response.body}");
-      }
-    } catch (e) {
-      debugPrint('[log] get profile error : $e');
-    }
+  Future<void> getMyProfile() async {
+    var response =
+        await DogUberApi.getMyProfileFromServer(accessToken: _accessToken!);
+    if (response == null) return;
+    var data = jsonDecode(response.body);
+    _name = data['name'];
+    _gender = data['gender'];
+    _age = data['age'];
+    _description = data['description'];
+    _image = data['image'];
+    ownDogList = jsonDecode(data['dogList']).cast<Map<String, dynamic>>();
   }
 
   Future<void> changeUserInfo() async {

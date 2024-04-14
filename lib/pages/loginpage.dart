@@ -70,20 +70,21 @@ class _WebViewPageState extends State<WebViewPage> {
     _webViewController.loadRequest(Uri.parse(ServerUrl.loginUrl));
     _webViewController.addJavaScriptChannel(
       'tokenHandler',
-      onMessageReceived: (JavaScriptMessage message) async {
-        var token = jsonDecode(message.message);
-        context.read<UserInfo>().logIn(
-            accessToken: token['accessToken'],
-            refreshToken: token['refreshToken']);
-        await context.read<UserInfo>().getUserInfo().then((_) {
-          context.go('/home');
-        });
-      },
+      onMessageReceived: logInMethod,
     );
     AndroidWebViewController.enableDebugging(true);
     (_webViewController.platform as AndroidWebViewController)
         .setMediaPlaybackRequiresUserGesture(false);
     super.initState();
+  }
+
+  void logInMethod(JavaScriptMessage message) async {
+    var token = jsonDecode(message.message);
+    context.read<UserInfo>().logIn(
+        accessToken: token['accessToken'], refreshToken: token['refreshToken']);
+    await context.read<UserInfo>().getMyProfile().then((_) {
+      context.go('/home');
+    });
   }
 
   @override
