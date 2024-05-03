@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
           ElevatedButton(onPressed: nothing, child: const Text("community")),
           ElevatedButton(onPressed: nothing, child: const Text("premium")),
           ElevatedButton(
-            onPressed: () => context.go("/home/user_profile"),
+            onPressed: () => context.go("/home/my_profile"),
             child: const Text("profile"),
           ),
         ]),

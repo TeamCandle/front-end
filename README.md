@@ -14,11 +14,15 @@ https://medium.com/@gunseliunsal/stateless-vs-stateful-widgets-in-flutter-852741
 - ui 템플릿들
 https://flutterawesome.com/tag/ui/  
 
+https://iqonic.design/product-category/mobile/page/3/
+
+
 ### 사용 패키지 및 API
 화면 이동 : go_router  
 상태 관리 :provider. 안드로이드의 viewmodel이라고 생각하면 됨.  
 백그라운드 서비스 : flutter_background_service 패키지  
 지도 : google API. tracking기능은 직접 만들어야 할듯?  
+로컬 스토리지 : localstorage
 
 ### 파일 구성
 - api.dart : 통신 모듈
@@ -41,6 +45,12 @@ MultiProvider(
   ],  
   child: someWidget,  
 )  
+
+### localstorage package
+main -> await initLocalStorage()
+localStorage.getItem('key')
+localStorage.setItem('key', 'value')
+key - value 형태로 간단한 정보만 저장
 
 ### 기타 정보
 - 스프링부트 파일 구조  

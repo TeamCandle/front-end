@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_doguber_frontend/providers.dart';
 
+import '../router.dart';
+
 class UserProfilePage extends StatelessWidget {
   const UserProfilePage({super.key});
 
@@ -27,7 +29,7 @@ class UserProfilePage extends StatelessWidget {
                   children: [
                     Text(
                       '${context.read<UserInfo>().name}',
-                      style: TextStyle(fontSize: 30),
+                      style: const TextStyle(fontSize: 30),
                     ),
                     Text('${context.read<UserInfo>().gender}'),
                     Text('${context.read<UserInfo>().age}'),
@@ -43,10 +45,10 @@ class UserProfilePage extends StatelessWidget {
                   height: 60,
                   child: Image.asset('assets/images/rank_test.png')),
               const Spacer(),
-              Text("normal rank"),
+              const Text("normal rank"),
               const Spacer(),
               ElevatedButton(
-                onPressed: () => context.go('/home/user_profile/my_review'),
+                onPressed: () => context.go(RouterPath.myReview),
                 child: const Text("view my reivew"),
               ),
               const Spacer(),
@@ -67,7 +69,7 @@ class UserProfilePage extends StatelessWidget {
                       ElevatedButton(
                         // 등록된 프로필 확인
                         onPressed: () {
-                          context.go("/home/user_profile/dog_profile");
+                          context.go(RouterPath.myDogProfile);
                         },
                         child: const Text('상세 정보'),
                       ),
@@ -86,7 +88,7 @@ class UserProfilePage extends StatelessWidget {
           const Spacer(),
           ElevatedButton(
               onPressed: () {
-                context.go("/home/user_profile/dog_registration");
+                context.go(RouterPath.myDogRegistraion);
               },
               child: const Text("regist dog")),
         ]),

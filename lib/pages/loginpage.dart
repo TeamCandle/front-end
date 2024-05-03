@@ -56,6 +56,8 @@ class _WebViewPageState extends State<WebViewPage> {
   @override
   void initState() {
     late final PlatformWebViewControllerCreationParams params;
+
+    //platform check
     if (WebViewPlatform.instance is WebKitWebViewPlatform) {
       params = WebKitWebViewControllerCreationParams(
         allowsInlineMediaPlayback: true,
@@ -65,26 +67,26 @@ class _WebViewPageState extends State<WebViewPage> {
       params = const PlatformWebViewControllerCreationParams();
     }
 
+    //setup webview controller
     _webViewController = WebViewController.fromPlatformCreationParams(params);
     _webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
     _webViewController.loadRequest(Uri.parse(ServerUrl.loginUrl));
     _webViewController.addJavaScriptChannel(
       'tokenHandler',
-      onMessageReceived: logInMethod,
+      onMessageReceived: (JavaScriptMessage message) async {
+        Map<String, dynamic> token = jsonDecode(message.message);
+        await context.read<UserInfo>().logIn(token).then((_) {
+          context.go('/home');
+        });
+      },
     );
+
+    //setup webview on android
     AndroidWebViewController.enableDebugging(true);
     (_webViewController.platform as AndroidWebViewController)
         .setMediaPlaybackRequiresUserGesture(false);
-    super.initState();
-  }
 
-  void logInMethod(JavaScriptMessage message) async {
-    var token = jsonDecode(message.message);
-    context.read<UserInfo>().logIn(
-        accessToken: token['accessToken'], refreshToken: token['refreshToken']);
-    await context.read<UserInfo>().getMyProfile().then((_) {
-      context.go('/home');
-    });
+    super.initState();
   }
 
   @override

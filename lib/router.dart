@@ -11,11 +11,32 @@ import 'pages/loginpage.dart';
 //생략 항목(무시해도 됨)
 //routes: <RouteBase>[...
 
+class RouterPath {
+  static String home = '/home';
+
+  //profile tree
+  static String myProfile = '/home/my_profile';
+  static String myReview = '/home/my_profile/my_review';
+  static String myDogProfile = '/home/my_profile/dog_profile';
+  static String myDogRegistraion = '/home/my_profile/dog_registration';
+
+  //match tree
+  static String match = '/home/match';
+  static String requestRegistration = '/home/match/request_registration';
+  static String requestRegistrationForm =
+      '/home/match/request_registration/form';
+  static String requestSearch = '/home/match/request_search';
+  static String matchLog = '/home/match/match_log';
+  static String chatting = '/home/match/chatting';
+}
+
 final GoRouter router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (BuildContext context, GoRouterState state) => const LogInPage(),
+      builder: (BuildContext context, GoRouterState state) {
+        return const LogInPage();
+      },
       routes: [
         GoRoute(
             path: 'home',
@@ -24,7 +45,7 @@ final GoRouter router = GoRouter(
             },
             routes: [
               GoRoute(
-                path: 'user_profile',
+                path: 'my_profile',
                 builder: (BuildContext context, GoRouterState state) {
                   return const UserProfilePage();
                 },
@@ -47,11 +68,44 @@ final GoRouter router = GoRouter(
                 ],
               ),
               GoRoute(
-                path: 'match',
-                builder: (BuildContext context, GoRouterState state) {
-                  return const MatchPage();
-                },
-              )
+                  path: 'match',
+                  builder: (BuildContext context, GoRouterState state) {
+                    return const MatchPage();
+                  },
+                  routes: [
+                    GoRoute(
+                        path: 'request_registration',
+                        builder: (BuildContext context, GoRouterState state) {
+                          return const RequestRegistrationPage();
+                        },
+                        routes: [
+                          GoRoute(
+                            path: 'form',
+                            builder:
+                                (BuildContext context, GoRouterState state) {
+                              return const RequestRegistrationFormPage();
+                            },
+                          ),
+                        ]),
+                    GoRoute(
+                      path: 'request_search',
+                      builder: (BuildContext context, GoRouterState state) {
+                        return const RequestSearchPage();
+                      },
+                    ),
+                    GoRoute(
+                      path: 'match_log',
+                      builder: (BuildContext context, GoRouterState state) {
+                        return const MatchLogPage();
+                      },
+                    ),
+                    GoRoute(
+                      path: 'chatting',
+                      builder: (BuildContext context, GoRouterState state) {
+                        return const ChattingPage();
+                      },
+                    ),
+                  ])
             ]),
       ],
     ),

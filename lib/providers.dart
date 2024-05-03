@@ -1,5 +1,4 @@
 //dependencies
-import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -7,11 +6,17 @@ import 'dart:convert';
 import 'constants.dart';
 import 'api.dart';
 
+class DogInfo {
+  final String dogId;
+  final String dogName;
+  final String dogGender;
+  final dynamic dogImage;
+
+  DogInfo(this.dogId, this.dogName, this.dogGender, this.dogImage);
+}
+
 class UserInfo extends ChangeNotifier {
   bool _isLogined = false;
-  String? _accessToken;
-  String? _refreshToken;
-
   String _name = '_name';
   String _gender = '_gender';
   String _age = '_age';
@@ -39,33 +44,22 @@ class UserInfo extends ChangeNotifier {
 
   //getter
   bool get isLogined => _isLogined;
-  String? get accessToken => _accessToken;
-  String? get refreshToken => _refreshToken;
   String? get name => _name;
   String? get gender => _gender;
   String? get age => _age;
   String? get description => _description;
 
   //login functions
-  void logIn({required String accessToken, required String refreshToken}) {
+  Future<void> logIn(Map<String, dynamic> token) async {
     _isLogined = true;
-    _accessToken = accessToken;
-    _refreshToken = refreshToken;
-    debugPrint("[log] accessToken : $_accessToken");
-    debugPrint("[log] refreshToken : $_refreshToken");
-    notifyListeners();
-  }
-
-  void logOut() {
-    _isLogined = false;
-    _accessToken = null;
-    _refreshToken = null;
+    DogUberApi.updateAccessToken(accessToken: token['accessToken']);
+    DogUberApi.updateRefreshToken(refreshToken: token['refreshToken']);
+    await getMyProfile();
   }
 
   //profile functions
   Future<void> getMyProfile() async {
-    var response =
-        await DogUberApi.getMyProfileFromServer(accessToken: _accessToken!);
+    var response = await DogUberApi.getMyProfileFromServer();
     if (response == null) return;
     var data = jsonDecode(response.body);
     _name = data['name'];
@@ -76,15 +70,5 @@ class UserInfo extends ChangeNotifier {
     ownDogList = jsonDecode(data['dogList']).cast<Map<String, dynamic>>();
   }
 
-  Future<void> changeUserInfo() async {
-    //유저 프로필 설명 변경 대신 아예 통째로 없애고 다시 갱신하는건 어떨까
-    //유저 설명 말고도 다른 요소를 수정할 필요가 있을 수 있으니
-    //이미지는 분리해도 상관없을것같긴하고
-  }
-}
-
-class DogInfo extends ChangeNotifier {
-  //생각해볼 필요가 있겠어
-  //map(편의상 object) list냐 그때그때 서버에서 받아올거냐
-  //
+  void infoInit() {}
 }
