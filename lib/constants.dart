@@ -1,57 +1,75 @@
-//상수 관리 페이지
+//constant
+
+class RouterPath {
+  static const String home = '/home';
+
+  //profile tree
+  static const String myProfile = '/home/my_profile';
+  static const String myReview = '/home/my_profile/my_review';
+  static const String myDogProfile = '/home/my_profile/dog_profile';
+  static const String myDogRegistraion = '/home/my_profile/dog_registration';
+
+  //match tree
+  static const String matching = '/home/matching';
+  static const String requestDetail = '/home/matching/request_detail';
+  static const String applySuccess =
+      '/home/matching/request_detail/apply_success';
+  static const String myRequestList = '/home/matching/my_request_list';
+  static const String requestRegistrationForm =
+      '/home/matching/my_request_list/form';
+  static const String myApplicationList = "/home/matching/my_application_list";
+  static const String matchLog = '/home/matching/match_log';
+  static const String chatting = '/home/matching/chatting';
+  static const String requestSearch = '/home/matching/request_search';
+}
 
 class CareType {
-  static String walking = "WALKING";
-  static String boarding = "BOARDING";
-  static String grooming = "GROOMING";
-  static String playtime = "PLAYTIME";
-  static String etc = "ETC";
+  static const String walking = "WALKING";
+  static const String boarding = "BOARDING";
+  static const String grooming = "GROOMING";
+  static const String playtime = "PLAYTIME";
+  static const String etc = "ETC";
 }
-// 케어타입
-// "WALKING"-산책
-// "BOARDING"-돌봄
-// "GROOMING"-외견 케어
-// "PLAYTIME"-놀아주기
-// "ETC"-기타
 
 class RequirementStatus {
-  static String matched = 'MATCHED';
-  static String recruiting = 'RECRUITING';
-  static String cancelled = 'CANCELLED';
-  static String expired = 'EXPIRED';
+  static const String matched = 'MATCHED';
+  static const String recruiting = 'RECRUITING';
+  static const String cancelled = 'CANCELLED';
+  static const String expired = 'EXPIRED';
 }
 
 class ApplicationStatus {
-  static String matched = 'MATCHED';
-  static String waiting = 'WAITING';
-  static String rejected = 'REJECTED';
-  static String cancelled = 'CANCELLED';
+  static const String matched = 'MATCHED';
+  static const String waiting = 'WAITING';
+  static const String rejected = 'REJECTED';
+  static const String cancelled = 'CANCELLED';
 }
 
 class MatchingStatus {
-  static String completed = 'COMPLETED';
-  static String inProgress = 'IN_PROGRESS';
-  static String cancelled = 'CANCELLED';
+  static const String completed = 'COMPLETED';
+  static const String inProgress = 'IN_PROGRESS';
+  static const String cancelled = 'CANCELLED';
 }
 
 class ServerUrl {
-  static String serverUrl = 'http://13.209.220.187';
+  static const String serverUrl = 'http://13.209.220.187';
 
   //log in/out
-  static String loginUrl = '$serverUrl/user/login/kakao'; //get
-  static String logoutUrl = '$serverUrl/user/logout'; //DELETE
+  static const String loginUrl = '$serverUrl/user/login/kakao'; //get
+  static const String logoutUrl = '$serverUrl/user/logout'; //DELETE
 
   //reissue
-  static String accessTokenUrl = '$serverUrl/user/accessToken'; //post
+  static const String accessTokenUrl = '$serverUrl/user/accessToken'; //post
 
   //profile
-  static String myProfileUrl = '$serverUrl/profile/user/me';
-  static String userProfileUrl = '$serverUrl/profile/user'; //get
+  static const String myProfileUrl = '$serverUrl/profile/user/me';
+  static const String userProfileUrl = '$serverUrl/profile/user'; //get
 
-  static String dogProfileUrl = '$serverUrl/profile/dog'; //get, ?id=${애견 id}
-  static String dogRegistrationUrl = '$serverUrl/profile/dog'; //post
+  static const String dogProfileUrl =
+      '$serverUrl/profile/dog'; //get, ?id=${애견 id}
+  static const String dogRegistrationUrl = '$serverUrl/profile/dog'; //post
 
-  static String requirementUrl = '$serverUrl/requirement'; //+me
-  static String requirementListUrl = '$serverUrl/requirement/list'; //+me
-  static String requirementCancelUrl = '$serverUrl/requirement/cancel';
+  static const String requirementUrl = '$serverUrl/requirement'; //+me
+  static const String requirementListUrl = '$serverUrl/requirement/list'; //+me
+  static const String requirementCancelUrl = '$serverUrl/requirement/cancel';
 }

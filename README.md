@@ -80,6 +80,24 @@ my-spring-boot-project/
 - (_)의 의미  
 함수나 메서드의 매개변수로 _를 사용하면 해당 매개변수를 사용하지 않는다는 것을 나타냅니다  
 
+### 변수 선언 종류
+String, int ... : classic variable type
+
+- type free variable
+var : compile time variable -> must be init
+dynamic : run time variable
+
+- constants
+const : compile time constants
+final : run time constants(assign only one time)
+
+- scope
+static : global variable(class에 사용)
+
+- init time
+late : late init variable
+
+
 ### android 오류
 - net::ERR_CLEARTEXT_NOT_PERMITTED
 https://peterica.tistory.com/560  

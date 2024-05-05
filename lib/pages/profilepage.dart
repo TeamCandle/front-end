@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_doguber_frontend/providers.dart';
 
-import '../router.dart';
+import '../constants.dart';
 
 class UserProfilePage extends StatelessWidget {
   const UserProfilePage({super.key});

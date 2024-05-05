@@ -2,52 +2,126 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 //files
-import '../router.dart';
+import '../constants.dart';
 
-class MatchPage extends StatelessWidget {
-  const MatchPage({super.key});
+class MatchingPage extends StatelessWidget {
+  const MatchingPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('match page')),
-      body: Center(
-          child: Column(
-        children: [
-          ElevatedButton(
-              onPressed: () {
-                context.go(RouterPath.requestRegistration);
-              },
-              child: const Text("regist")),
+      appBar: AppBar(
+        title: const Text('match page'),
+        actions: [
           ElevatedButton(
               onPressed: () {
                 context.go(RouterPath.requestSearch);
               },
-              child: const Text("search")),
+              child: const Icon(Icons.search)),
+          ElevatedButton(onPressed: () {}, child: const Icon(Icons.filter_list))
+        ],
+      ),
+      body: Center(
+          child: ElevatedButton(
+              onPressed: () {
+                context.go(RouterPath.requestDetail);
+              },
+              child: const Text("all request list, if clicked, go detail"))),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.abc), label: 'match log'),
+          BottomNavigationBarItem(icon: Icon(Icons.abc), label: 'my apply'),
+          BottomNavigationBarItem(icon: Icon(Icons.abc), label: 'my request'),
+        ],
+        onTap: (int index) {
+          switch (index) {
+            case 0:
+              context.go(RouterPath.matchLog);
+              break;
+            case 1:
+              context.go(RouterPath.myApplicationList);
+              break;
+            case 2:
+              context.go(RouterPath.myRequestList);
+              break;
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.go(RouterPath.chatting);
+        },
+        child: const Icon(Icons.chat),
+      ),
+    );
+  }
+}
+
+class RequestDetailPage extends StatelessWidget {
+  const RequestDetailPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("request detail page")),
+      body: Center(
+          child: Column(
+        children: [
+          const Text("map in background"),
+          const Spacer(),
+          const Text("detail card"),
           ElevatedButton(
               onPressed: () {
-                context.go(RouterPath.matchLog);
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('check'),
+                        content: const Text('are you sure?'),
+                        actions: [
+                          ElevatedButton(
+                            onPressed: () {
+                              context.go(RouterPath.applySuccess);
+                            },
+                            child: const Text("ok"),
+                          )
+                        ],
+                      );
+                    });
               },
-              child: const Text("match log")),
-          ElevatedButton(
-              onPressed: () {
-                context.go(RouterPath.chatting);
-              },
-              child: const Text("chat")),
+              child: const Text('apply')),
         ],
       )),
     );
   }
 }
 
-class RequestRegistrationPage extends StatelessWidget {
-  const RequestRegistrationPage({super.key});
+class ApplySuccessPage extends StatelessWidget {
+  const ApplySuccessPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("registraion page")),
-      body: const Center(child: Text("request regist")),
+      appBar: AppBar(title: const Text("success page")),
+      body: Center(
+          child: ElevatedButton(
+        onPressed: () {
+          context.go(RouterPath.matching);
+        },
+        child: const Text('success'),
+      )),
+    );
+  }
+}
+
+class MyRequestListPage extends StatelessWidget {
+  const MyRequestListPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("my request list")),
+      body: const Center(child: Text("my request list")),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           context.go(RouterPath.requestRegistrationForm);
@@ -65,19 +139,21 @@ class RequestRegistrationFormPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("request registration form page")),
-      body: const Center(child: Text("equest registration form")),
+      body: const Center(child: Text("request registration form")),
     );
   }
 }
 
-class RequestSearchPage extends StatelessWidget {
-  const RequestSearchPage({super.key});
+class MyApplicationListPage extends StatelessWidget {
+  const MyApplicationListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("request search page")),
-      body: const Center(child: Text("request search")),
+      appBar: AppBar(title: const Text("my application")),
+      body: const Center(
+        child: Text("my application list"),
+      ),
     );
   }
 }
@@ -102,6 +178,18 @@ class ChattingPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("chatting page")),
       body: const Center(child: Text("chatting")),
+    );
+  }
+}
+
+class RequestSearchPage extends StatelessWidget {
+  const RequestSearchPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("request search page")),
+      body: const Center(child: Text("request list")),
     );
   }
 }

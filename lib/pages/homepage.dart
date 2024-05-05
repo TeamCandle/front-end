@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../constants.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -18,13 +20,13 @@ class _HomePageState extends State<HomePage> {
       body: Center(
         child: Column(children: [
           ElevatedButton(
-            onPressed: () => context.go('/home/match'),
+            onPressed: () => context.go(RouterPath.matching),
             child: const Text('match'),
           ),
           ElevatedButton(onPressed: nothing, child: const Text("community")),
           ElevatedButton(onPressed: nothing, child: const Text("premium")),
           ElevatedButton(
-            onPressed: () => context.go("/home/my_profile"),
+            onPressed: () => context.go(RouterPath.myProfile),
             child: const Text("profile"),
           ),
         ]),

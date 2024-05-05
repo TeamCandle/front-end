@@ -1,34 +1,14 @@
 //dependencies
 import 'package:flutter/material.dart';
-import 'package:flutter_doguber_frontend/pages/profilepage.dart';
 import 'package:go_router/go_router.dart';
 //files
 import 'pages/homepage.dart';
 import 'pages/matchpage.dart';
 import 'pages/loginpage.dart';
+import 'pages/profilepage.dart';
 
 //화면이동 담당 파일.
-//생략 항목(무시해도 됨)
-//routes: <RouteBase>[...
-
-class RouterPath {
-  static String home = '/home';
-
-  //profile tree
-  static String myProfile = '/home/my_profile';
-  static String myReview = '/home/my_profile/my_review';
-  static String myDogProfile = '/home/my_profile/dog_profile';
-  static String myDogRegistraion = '/home/my_profile/dog_registration';
-
-  //match tree
-  static String match = '/home/match';
-  static String requestRegistration = '/home/match/request_registration';
-  static String requestRegistrationForm =
-      '/home/match/request_registration/form';
-  static String requestSearch = '/home/match/request_search';
-  static String matchLog = '/home/match/match_log';
-  static String chatting = '/home/match/chatting';
-}
+//생략 항목(무시해도 됨) routes: <RouteBase>[...
 
 final GoRouter router = GoRouter(
   routes: [
@@ -68,15 +48,29 @@ final GoRouter router = GoRouter(
                 ],
               ),
               GoRoute(
-                  path: 'match',
+                  path: 'matching',
                   builder: (BuildContext context, GoRouterState state) {
-                    return const MatchPage();
+                    return const MatchingPage();
                   },
                   routes: [
                     GoRoute(
-                        path: 'request_registration',
+                      path: 'request_detail',
+                      builder: (BuildContext context, GoRouterState state) {
+                        return const RequestDetailPage();
+                      },
+                      routes: [
+                        GoRoute(
+                          path: 'apply_success',
+                          builder: (BuildContext context, GoRouterState state) {
+                            return const ApplySuccessPage();
+                          },
+                        ),
+                      ],
+                    ),
+                    GoRoute(
+                        path: 'my_request_list',
                         builder: (BuildContext context, GoRouterState state) {
-                          return const RequestRegistrationPage();
+                          return const MyRequestListPage();
                         },
                         routes: [
                           GoRoute(
@@ -88,9 +82,9 @@ final GoRouter router = GoRouter(
                           ),
                         ]),
                     GoRoute(
-                      path: 'request_search',
+                      path: 'my_application_list',
                       builder: (BuildContext context, GoRouterState state) {
-                        return const RequestSearchPage();
+                        return const MyApplicationListPage();
                       },
                     ),
                     GoRoute(
@@ -103,6 +97,12 @@ final GoRouter router = GoRouter(
                       path: 'chatting',
                       builder: (BuildContext context, GoRouterState state) {
                         return const ChattingPage();
+                      },
+                    ),
+                    GoRoute(
+                      path: 'request_search',
+                      builder: (BuildContext context, GoRouterState state) {
+                        return const RequestSearchPage();
                       },
                     ),
                   ])
