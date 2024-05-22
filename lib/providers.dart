@@ -26,21 +26,8 @@ class UserInfo extends ChangeNotifier {
     {'id': 'a', 'name': 'dog1', 'gender': 'boy', 'image': 'else'},
     {'id': 'b', 'name': 'dog2', 'gender': 'girl', 'image': 'else'},
     {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-    {'id': 'c', 'name': 'dog3', 'gender': 'boy', 'image': 'else'},
-  ]; //표면정보만 가져와서 리스트뷰로 출력. 상세 정보는 클릭 시 출력
+  ];
+  //표면정보만 가져와서 리스트뷰로 출력. 상세 정보는 클릭 시 출력
 
   //getter
   bool get isLogined => _isLogined;

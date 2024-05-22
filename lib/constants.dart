@@ -1,5 +1,12 @@
 //constant
 
+class ApiKeys {
+  static const String kakaoNativeAppKey = '8826eec5f744658162616455cf5361ad';
+  static const String kakaoJavaScriptAppKey =
+      '529540eb153fa80c33ac0fea3a763257';
+  static const String googleApiKey = 'AIzaSyBTk9blgdCa4T8fARQha7o-AuF8WkK3byI';
+}
+
 class RouterPath {
   static const String home = '/home';
 

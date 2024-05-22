@@ -21,23 +21,28 @@ class LogInPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("login test")),
       body: Center(
         child: Column(
           children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const WebViewPage()));
-              },
-              child: const Text("log in"),
-            ),
-            ElevatedButton(
-              onPressed: () => {context.go('/home')},
-              child: const Text('home'),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.all(20),
+              width: double.infinity,
+              child: InkWell(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const WebViewPage()));
+                },
+                child: Image.asset('assets/images/icon_kakao_login.png'),
+              ),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => {context.go('/home')},
+        child: const Text('dev\nhome'),
       ),
     );
   }

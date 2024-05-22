@@ -57,39 +57,25 @@ class UserProfilePage extends StatelessWidget {
           const Text("description"),
           Expanded(
             flex: 100,
-            child: ListView.builder(
-              itemCount: context.read<UserInfo>().ownDogList.length,
-              itemBuilder: (context, index) {
-                var dogs = context.read<UserInfo>().ownDogList;
-                return ListTile(
-                  title: Text(dogs[index]["name"]),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ElevatedButton(
-                        // 등록된 프로필 확인
-                        onPressed: () {
-                          context.go(RouterPath.myDogProfile);
-                        },
-                        child: const Text('상세 정보'),
-                      ),
-                      const SizedBox(width: 8.0),
-                      ElevatedButton(
-                        // 등록된 프로필 삭제
-                        onPressed: () {},
-                        child: const Text('삭제'),
-                      ),
-                    ],
+            child: context.read<UserInfo>().ownDogList.isEmpty
+                ? const Center(child: Text('no dogs'))
+                : ListView.builder(
+                    itemCount: context.read<UserInfo>().ownDogList.length,
+                    itemBuilder: (context, index) {
+                      var dogs = context.read<UserInfo>().ownDogList;
+                      return ListTile(
+                        title: Text(dogs[index]["name"]),
+                        trailing: ElevatedButton(
+                          onPressed: () => context.go(RouterPath.myDogProfile),
+                          child: const Text('detail'),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           const Spacer(),
           ElevatedButton(
-              onPressed: () {
-                context.go(RouterPath.myDogRegistraion);
-              },
+              onPressed: () => context.go(RouterPath.myDogRegistraion),
               child: const Text("regist dog")),
         ]),
       ),
@@ -158,6 +144,26 @@ class DogProfilePage extends StatelessWidget {
                 ),
               ),
             ),
+            ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text("remove dog profile"),
+                          content: const Text("are you sure?"),
+                          actions: [
+                            ElevatedButton(
+                                onPressed: () {
+                                  //TODO: 기능추가
+                                  context.go(RouterPath.myProfile);
+                                },
+                                child: const Text('yes'))
+                          ],
+                        );
+                      });
+                },
+                child: const Text('remove')),
           ],
         ),
       ),

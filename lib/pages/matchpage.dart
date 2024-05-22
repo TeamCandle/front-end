@@ -3,10 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 //files
 import '../constants.dart';
+import '../testdata.dart';
 
-class MatchingPage extends StatelessWidget {
+class MatchingPage extends StatefulWidget {
   const MatchingPage({super.key});
 
+  @override
+  State<MatchingPage> createState() => _MatchingPageState();
+}
+
+class _MatchingPageState extends State<MatchingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,19 +20,22 @@ class MatchingPage extends StatelessWidget {
         title: const Text('match page'),
         actions: [
           ElevatedButton(
-              onPressed: () {
-                context.go(RouterPath.requestSearch);
-              },
+              onPressed: () => context.go(RouterPath.requestSearch),
               child: const Icon(Icons.search)),
           ElevatedButton(onPressed: () {}, child: const Icon(Icons.filter_list))
         ],
       ),
-      body: Center(
-          child: ElevatedButton(
-              onPressed: () {
-                context.go(RouterPath.requestDetail);
-              },
-              child: const Text("all request list, if clicked, go detail"))),
+      body: ListView.builder(
+        itemCount: testAllRequireList.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(testAllRequireList[index]["careType"]),
+            onTap: () {
+              context.go(RouterPath.requestDetail);
+            },
+          );
+        },
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.abc), label: 'match log'),
@@ -64,34 +73,36 @@ class RequestDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("request detail page")),
-      body: Center(
-          child: Column(
-        children: [
-          const Text("map in background"),
-          const Spacer(),
-          const Text("detail card"),
-          ElevatedButton(
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('check'),
-                        content: const Text('are you sure?'),
-                        actions: [
-                          ElevatedButton(
-                            onPressed: () {
-                              context.go(RouterPath.applySuccess);
-                            },
-                            child: const Text("ok"),
-                          )
-                        ],
-                      );
-                    });
-              },
-              child: const Text('apply')),
-        ],
-      )),
+      body: Stack(children: [
+        Center(
+            child: Column(
+          children: [
+            const Text("map in background"),
+            const Spacer(),
+            const Text("detail card"),
+            ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('check'),
+                          content: const Text('are you sure?'),
+                          actions: [
+                            ElevatedButton(
+                              onPressed: () {
+                                context.go(RouterPath.applySuccess);
+                              },
+                              child: const Text("ok"),
+                            )
+                          ],
+                        );
+                      });
+                },
+                child: const Text('apply')),
+          ],
+        )),
+      ]),
     );
   }
 }

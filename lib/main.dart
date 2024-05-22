@@ -35,7 +35,22 @@ class DogUberApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<UserInfo>(create: (_) => UserInfo()),
       ],
-      child: MaterialApp.router(routerConfig: router),
+      child: MaterialApp.router(
+        routerConfig: router,
+        theme: ThemeData(
+          scaffoldBackgroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(backgroundColor: Colors.white),
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            backgroundColor: Colors.white,
+            selectedItemColor: Color(0xFF77D970),
+            //unselectedItemColor: Colors.grey,
+          ),
+          buttonTheme: const ButtonThemeData(buttonColor: Colors.white),
+          floatingActionButtonTheme: const FloatingActionButtonThemeData(
+              backgroundColor: Color(0xFF77D970)),
+          dialogTheme: const DialogTheme(backgroundColor: Colors.white),
+        ),
+      ),
     );
   }
 }

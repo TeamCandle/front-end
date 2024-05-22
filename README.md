@@ -1,7 +1,9 @@
 # flutter_doguber_v1
 
-### 질문
-백엔드 명세서에 유저 프로필 변경 == 내 프로필 변경이 맞지?  
+### 할거
+결제플로우
+예외플로우
+
 
 ### 참고 링크
 - 플러터 참고 자료 모음
@@ -16,6 +18,7 @@ https://flutterawesome.com/tag/ui/
 
 https://iqonic.design/product-category/mobile/page/3/
 
+ThemeData 클래스의 공식 문서 -> 디자인
 
 ### 사용 패키지 및 API
 화면 이동 : go_router  
@@ -23,6 +26,10 @@ https://iqonic.design/product-category/mobile/page/3/
 백그라운드 서비스 : flutter_background_service 패키지  
 지도 : google API. tracking기능은 직접 만들어야 할듯?  
 로컬 스토리지 : localstorage
+스케줄링 : Timer
+푸쉬 알림 : FCM, local_notification
+채팅 : stomp
+
 
 ### 파일 구성
 - api.dart : 통신 모듈
