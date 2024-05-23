@@ -1,9 +1,11 @@
 //dependency
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 //files
 import '../constants.dart';
 import '../testdata.dart';
+import '../mymap.dart';
 
 class MatchingPage extends StatefulWidget {
   const MatchingPage({super.key});
@@ -66,40 +68,73 @@ class _MatchingPageState extends State<MatchingPage> {
   }
 }
 
-class RequestDetailPage extends StatelessWidget {
+class RequestDetailPage extends StatefulWidget {
   const RequestDetailPage({super.key});
+
+  @override
+  State<RequestDetailPage> createState() => _RequestDetailPageState();
+}
+
+class _RequestDetailPageState extends State<RequestDetailPage> {
+  final MyMap _myMap = MyMap();
+  late LatLng initLocation = LatLng(10.00, 10.00);
+
+  @override
+  void initState() {
+    super.initState();
+    _myMap.setUpMapOnRequestDetail();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("request detail page")),
       body: Stack(children: [
+        FutureBuilder(
+            future: _myMap.setUpMapOnRequestDetail(),
+            builder: (BuildContext context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              return GoogleMap(
+                onMapCreated: (GoogleMapController controller) {
+                  _myMap.setMapController(ctrl: controller);
+                },
+                initialCameraPosition: CameraPosition(
+                  target: _myMap.myLocation!,
+                  zoom: 12,
+                ),
+                markers: _myMap.markers,
+              );
+            }),
         Center(
             child: Column(
           children: [
-            const Text("map in background"),
             const Spacer(),
-            const Text("detail card"),
-            ElevatedButton(
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('check'),
-                          content: const Text('are you sure?'),
-                          actions: [
-                            ElevatedButton(
-                              onPressed: () {
-                                context.go(RouterPath.applySuccess);
-                              },
-                              child: const Text("ok"),
-                            )
-                          ],
-                        );
-                      });
-                },
-                child: const Text('apply')),
+            Card.outlined(
+              child: ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('check'),
+                            content: const Text('are you sure?'),
+                            actions: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  context.go(RouterPath.applySuccess);
+                                },
+                                child: const Text("ok"),
+                              )
+                            ],
+                          );
+                        });
+                  },
+                  child: const Text('apply')),
+            ),
           ],
         )),
       ]),

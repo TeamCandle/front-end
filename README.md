@@ -1,43 +1,56 @@
 # flutter_doguber_v1
 
-### 할거
+## TODO
 결제플로우
 예외플로우
 
 
-### 참고 링크
+## 참고 링크
 - 플러터 참고 자료 모음
 https://velog.io/@jaybon/%ED%94%8C%EB%9F%AC%ED%84%B0-%EA%B4%80%EB%A0%A8-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B6%94%EC%B2%9C  
-
 https://velog.io/@ximya_hf/howtowirtutilclasslikepro  
-
 https://medium.com/@gunseliunsal/stateless-vs-stateful-widgets-in-flutter-852741b6046e  
 
 - ui 템플릿들
 https://flutterawesome.com/tag/ui/  
-
 https://iqonic.design/product-category/mobile/page/3/
 
-ThemeData 클래스의 공식 문서 -> 디자인
+- 기능 샘플 코드
+https://github.com/lkrcdd/flutter_google_map_demo.git
 
-### 사용 패키지 및 API
+## 사용 패키지 및 API
 화면 이동 : go_router  
-상태 관리 :provider. 안드로이드의 viewmodel이라고 생각하면 됨.  
+상태 관리 : provider. 안드로이드의 viewmodel이라고 생각하면 됨.  
 백그라운드 서비스 : flutter_background_service 패키지  
-지도 : google API. tracking기능은 직접 만들어야 할듯?  
+지도 : google API, geolocator, geocoding 
 로컬 스토리지 : localstorage
 스케줄링 : Timer
 푸쉬 알림 : FCM, local_notification
 채팅 : stomp
 
-
-### 파일 구성
+파일 구성
 - api.dart : 통신 모듈
 - constants.dart : 상수 파일. 링크, 텍스트스타일 등의 const변수 저장  
 - providers.dart : 데이터 파일. viewmodel역할
 - router.dart : 화면 이동 경로 지정
 
-### provider 사용법
+## setting
+#### 1. google map api setting
+1. api 키 발급 https://cloud.google.com/maps-platform/
+  -> api 키 : AIzaSyBTk9blgdCa4T8fARQha7o-AuF8WkK3byI
+2. API 및 서비스 항목으로 이동해서 sdk for android, ios enable
+3. android/app/build.gradle 
+  -> minSdk = flutter.minSdkVersion
+4. android/app/src/main/AndroidManifest.xml 
+  -> api key setup <activity ~ activity/> 
+  !주의! 키 위치가 잘못 적히면 지도 안나옴. 만약 수정했다면 rebuild하지 말고 앱을 완전히 끄고 다시 빌드해야함
+  -> <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+#### 2. fcm setting
+#### 3. 
+
+## information
+#### provider 사용법
 - 값을 읽는 가장 쉬운 방법은 BuildContext의 확장 메소드를 활용하는 것입니다.  
 context.watch<T>() : 위젯이 T의 변화를 감지할 수 있도록 합니다.  
 context.read<T>() : T를 변화 감지 없이 return 합니다.  
@@ -53,14 +66,22 @@ MultiProvider(
   child: someWidget,  
 )  
 
-### localstorage package
+#### localstorage package
 main -> await initLocalStorage()
 localStorage.getItem('key')
 localStorage.setItem('key', 'value')
 key - value 형태로 간단한 정보만 저장
 
-### 기타 정보
-- 스프링부트 파일 구조  
+#### google map API
+지도 사용 시 permission get -> handleLocationPermission() 함수로 얻음
+
+구글 맵 컨트롤러 할당 LatLng 타입 변수로 좌표 지정 가능
+
+마커 표시 
+-> infowindow : 마커 클릭 시 표시되는 창 
+-> snippet : subtitle
+
+#### 스프링부트 파일 구조  
 my-spring-boot-project/  
 ├── src/  
 │   ├── main/  
@@ -87,7 +108,7 @@ my-spring-boot-project/
 - (_)의 의미  
 함수나 메서드의 매개변수로 _를 사용하면 해당 매개변수를 사용하지 않는다는 것을 나타냅니다  
 
-### 변수 선언 종류
+#### 변수 선언 종류
 String, int ... : classic variable type
 
 - type free variable
@@ -104,13 +125,13 @@ static : global variable(class에 사용)
 - init time
 late : late init variable
 
-
-### android 오류
+## 오류 로그
+#### android 오류
 - net::ERR_CLEARTEXT_NOT_PERMITTED
 https://peterica.tistory.com/560  
 androidmanifest.xml파일에 추가하여 해결  
 
-### 플러터 오류
+#### 플러터 오류
 - 이미지 추가
 pubspec.yaml 추가 작성  
 flutter:  
@@ -125,3 +146,7 @@ defaultConfig{minSdkVersion 21}
 - flutter buildcontext async  
 https://medium.com/nerd-for-tech/do-not-use-buildcontext-in-async-gaps-why-and-how-to-handle-flutter-context-correctly-870b924eb42e
 await ~ then ~  
+
+
+## 기타
+ThemeData 클래스의 공식 문서 -> 디자인
