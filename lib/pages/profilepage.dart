@@ -1,14 +1,23 @@
 // 유저 프로필 페이지
 // 연결되는 서브 페이지 : my review, dog profile, regist dog
+import 'dart:io';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_doguber_frontend/providers.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../api.dart';
 import '../constants.dart';
 
 class UserProfilePage extends StatelessWidget {
   const UserProfilePage({super.key});
+
+  //내프로필에 넣을거
+  //
 
   @override
   Widget build(BuildContext context) {
@@ -17,67 +26,156 @@ class UserProfilePage extends StatelessWidget {
       body: Container(
         margin: const EdgeInsets.all(10),
         child: Column(children: [
-          Row(children: [
-            const CircleAvatar(
-              radius: 50,
-              foregroundImage: AssetImage('assets/images/profile_test.png'),
-            ),
-            Expanded(
-              child: Column(children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(
-                      '${context.read<UserInfo>().name}',
-                      style: const TextStyle(fontSize: 30),
+          Expanded(
+            flex: 1,
+            child: CircleAvatar(
+                radius: double.infinity,
+                backgroundImage: buildProfileImage(context)),
+          ),
+          Expanded(
+            flex: 1,
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  Text(
+                    context.read<UserInfo>().name,
+                    style: const TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
                     ),
-                    Text('${context.read<UserInfo>().gender}'),
-                    Text('${context.read<UserInfo>().age}'),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Spacer(flex: 10),
+                      Text(
+                        context.read<UserInfo>().gender == "male" ? "남성" : "여성",
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                      const Spacer(flex: 1),
+                      Text(
+                        '${context.read<UserInfo>().age}세',
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                      const Spacer(flex: 10),
+                    ],
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Card(
+                      elevation: 1,
+                      child: Text(
+                          context.read<UserInfo>().description ?? "안녕하세요~^^"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Column(
+              children: [
+                context.read<UserInfo>().ownDogList.isEmpty
+                    ? Center(child: Text('no dogs'))
+                    : ListView.builder(
+                        itemCount: context.read<UserInfo>().ownDogList.length,
+                        itemBuilder: (context, index) {
+                          var dogs = context.read<UserInfo>().ownDogList;
+                          return ListTile(
+                            title: Text(dogs[index]["name"]),
+                            trailing: ElevatedButton(
+                              onPressed: () =>
+                                  context.go(RouterPath.myDogProfile),
+                              child: const Text('detail'),
+                            ),
+                          );
+                        },
+                      ),
+                Column(
+                  children: [
+                    ElevatedButton(
+                        onPressed: () =>
+                            context.go(RouterPath.myDogRegistraion),
+                        child: Text("regist dog")),
+                    ElevatedButton(
+                      onPressed: () => context.go(RouterPath.myReview),
+                      child: Text("view my reivew"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => context.go(RouterPath.profileModify),
+                      child: Text("modify my info"),
+                    ),
                   ],
                 ),
-              ]),
+              ],
             ),
-          ]),
-          Row(
-            children: [
-              const Spacer(),
-              SizedBox(
-                  height: 60,
-                  child: Image.asset('assets/images/rank_test.png')),
-              const Spacer(),
-              const Text("normal rank"),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: () => context.go(RouterPath.myReview),
-                child: const Text("view my reivew"),
-              ),
-              const Spacer(),
-            ],
           ),
-          const Text("description"),
-          Expanded(
-            flex: 100,
-            child: context.read<UserInfo>().ownDogList.isEmpty
-                ? const Center(child: Text('no dogs'))
-                : ListView.builder(
-                    itemCount: context.read<UserInfo>().ownDogList.length,
-                    itemBuilder: (context, index) {
-                      var dogs = context.read<UserInfo>().ownDogList;
-                      return ListTile(
-                        title: Text(dogs[index]["name"]),
-                        trailing: ElevatedButton(
-                          onPressed: () => context.go(RouterPath.myDogProfile),
-                          child: const Text('detail'),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-          const Spacer(),
-          ElevatedButton(
-              onPressed: () => context.go(RouterPath.myDogRegistraion),
-              child: const Text("regist dog")),
         ]),
+      ),
+    );
+  }
+
+  ImageProvider<Object>? buildProfileImage(BuildContext context) {
+    if (context.read<UserInfo>().image == null) {
+      return const AssetImage('assets/images/profile_test.png');
+    }
+    return context.read<UserInfo>().image!;
+  }
+}
+
+class ProfileModifyPage extends StatelessWidget {
+  ProfileModifyPage({super.key});
+
+  final TextEditingController _descriptionCtrl = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          children: [
+            TextField(
+              controller: _descriptionCtrl,
+              decoration: const InputDecoration(labelText: '이름'),
+            ),
+            ElevatedButton(
+                onPressed: () async {
+                  bool result = await ProfileApi.modifyMyDescriptionAtServer(
+                      description: _descriptionCtrl.text);
+                  if (result == true) {
+                    debugPrint('[log] modify success');
+                  } else {
+                    debugPrint('[log] modify fail');
+                  }
+                },
+                child: const Text('수정')),
+            ElevatedButton(
+              onPressed: () async {
+                //이미지 선택 함수
+                try {
+                  XFile? pickedFile =
+                      await _imagePicker.pickImage(source: ImageSource.gallery);
+                  if (pickedFile == null) {
+                    return;
+                  }
+                  await ProfileApi.modifyMyImageAtServer(image: pickedFile);
+                } catch (e) {
+                  // 에러 발생 시 처리
+                  print("Error picking image: $e");
+                  return;
+                }
+              },
+              child: const Text('select image'),
+            ),
+            ElevatedButton(
+              onPressed: () {},
+              child: const Text('modify'),
+            )
+          ],
+        ),
       ),
     );
   }

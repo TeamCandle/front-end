@@ -45,6 +45,11 @@ final GoRouter router = GoRouter(
                       builder: (BuildContext context, GoRouterState state) {
                         return const DogRegistrationPage();
                       }),
+                  GoRoute(
+                      path: 'modify_myprofile',
+                      builder: (BuildContext context, GoRouterState state) {
+                        return ProfileModifyPage();
+                      }),
                 ],
               ),
               GoRoute(

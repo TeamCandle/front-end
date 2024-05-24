@@ -4,6 +4,7 @@
 
 //dependencies
 import 'package:flutter/material.dart';
+import 'package:flutter_doguber_frontend/api.dart';
 import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:provider/provider.dart';
@@ -57,6 +58,7 @@ class WebViewPage extends StatefulWidget {
 
 class _WebViewPageState extends State<WebViewPage> {
   late final WebViewController _webViewController;
+  final AuthApi _authApi = AuthApi();
 
   @override
   void initState() {
@@ -79,8 +81,9 @@ class _WebViewPageState extends State<WebViewPage> {
     _webViewController.addJavaScriptChannel(
       'tokenHandler',
       onMessageReceived: (JavaScriptMessage message) async {
-        Map<String, dynamic> token = jsonDecode(message.message);
-        await context.read<UserInfo>().logIn(token).then((_) {
+        _authApi.logIn(message: message);
+        await context.read<UserInfo>().getMyProfile().then((_) {
+          debugPrint('[log] login success!');
           context.go('/home');
         });
       },
