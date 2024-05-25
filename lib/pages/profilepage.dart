@@ -74,7 +74,7 @@ class UserProfilePage extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Column(
               children: [
                 context.read<UserInfo>().ownDogList.isEmpty
@@ -85,10 +85,19 @@ class UserProfilePage extends StatelessWidget {
                           itemBuilder: (context, index) {
                             var dogs = context.read<UserInfo>().ownDogList;
                             return ListTile(
+                              leading: dogs[index]['dogImage'] == null
+                                  ? Image.asset(
+                                      'assets/images/profile_test.png',
+                                    )
+                                  : Image.memory(
+                                      dogs[index]['dogImage'],
+                                    ),
                               title: Text(dogs[index]["name"]),
                               trailing: ElevatedButton(
-                                onPressed: () =>
-                                    context.go(RouterPath.myDogProfile),
+                                onPressed: () {
+                                  context.go(
+                                      '${RouterPath.myDogProfile}?dogId=${dogs[index]["id"]}');
+                                },
                                 child: const Text('detail'),
                               ),
                             );
@@ -208,53 +217,35 @@ class MyReviewPage extends StatelessWidget {
 }
 
 class DogProfilePage extends StatelessWidget {
-  const DogProfilePage({super.key});
+  final int dogId;
+  const DogProfilePage({required this.dogId, super.key});
 
   @override
   Widget build(BuildContext context) {
-    // 프로필 확인 화면
     return Scaffold(
-      appBar: AppBar(title: const Text("dog 1")),
-      body: Container(
-        margin: const EdgeInsets.all(10),
+      appBar: AppBar(title: Text("dog id : $dogId")),
+      body: Center(
         child: Column(
           children: [
             Expanded(
-              flex: 1,
-              child: Image.asset("assets/images/empty_image.png"),
-            ),
-            const Expanded(
-              flex: 1,
-              child: Expanded(
-                child: Column(
-                  children: [
-                    Row(
+              child: FutureBuilder(
+                  future: DogProfileApi.getDogProfile(id: dogId),
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator(); // 로딩 중일 때
+                    } else if (snapshot.data == null) {
+                      return Text('data is null ${snapshot.error}');
+                    } else if (snapshot.hasError) {
+                      return Text(
+                          'snapshot has Error: ${snapshot.error}'); // 에러 발생 시
+                    }
+                    return Column(
                       children: [
-                        Spacer(),
-                        Text(
-                          "gender/neutering",
-                          style: TextStyle(fontSize: 20),
-                        ),
-                        Spacer(),
-                        Text(
-                          "age/weight",
-                          style: TextStyle(fontSize: 20),
-                        ),
-                        Spacer(),
-                        Text(
-                          "breed/size",
-                          style: TextStyle(fontSize: 20),
-                        ),
-                        Spacer(),
+                        Text(snapshot.data.dogName),
+                        // 나머지 DogInfo 필드에 대한 UI 추가
                       ],
-                    ),
-                    Text(
-                      "description",
-                      style: TextStyle(fontSize: 20),
-                    ),
-                  ],
-                ),
-              ),
+                    );
+                  }),
             ),
             ElevatedButton(
                 onPressed: () {

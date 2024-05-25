@@ -38,7 +38,17 @@ final GoRouter router = GoRouter(
                   GoRoute(
                       path: 'dog_profile',
                       builder: (BuildContext context, GoRouterState state) {
-                        return const DogProfilePage();
+                        var dogId = state.uri.queryParameters['dogId'];
+                        int dogIdInt;
+                        if (dogId == null) {
+                          return ErrorPage();
+                        }
+                        try {
+                          dogIdInt = int.parse(dogId);
+                        } catch (e) {
+                          return ErrorPage();
+                        }
+                        return DogProfilePage(dogId: dogIdInt);
                       }),
                   GoRoute(
                       path: 'dog_registration',
@@ -116,3 +126,13 @@ final GoRouter router = GoRouter(
     ),
   ],
 );
+
+class ErrorPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Error')),
+      body: Center(child: Text('Dog ID is missing')),
+    );
+  }
+}

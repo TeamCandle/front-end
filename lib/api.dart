@@ -246,8 +246,47 @@ class DogProfileApi {
   static final AuthApi _auth = AuthApi();
 
   //애견 프로필 조회
-  static Future<void> getDogProfile({required int id}) async {}
+  static Future<DogInfo?> getDogProfile({required int id}) async {
+    var url = Uri.parse('${ServerUrl.dogProfileUrl}?id=$id');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get dog profile",
+      url: url,
+      header: header,
+    );
+
+    if (response == null) {
+      debugPrint('[log] get dog profile error');
+      return null;
+    }
+    var data = jsonDecode(response.body);
+    debugPrint('[log] json decode $data');
+    DogInfo dogInfo;
+    try {
+      dogInfo = DogInfo(
+        1, //int.parse(data['id']),
+        data['name'],
+        data['gender'],
+        null, //base64Decode(data['image']),
+        1, //int.parse(data['owner']),
+        true,
+        1, //int.parse(data['age']),
+        1.1,
+        1.1,
+        data['breed'],
+        data['description'],
+      );
+      return dogInfo;
+    } catch (e) {
+      debugPrint('[log] create doginfo fail');
+      return null;
+    }
+    return null;
+  }
+
   //애견 프로필 리스트 조회 : 필요 시 제작
+
   //애견 프로필 등록
   static Future<bool> registDogProfile({required DogInfo doginfo}) async {
     var url = Uri.parse(ServerUrl.dogRegistrationUrl);
