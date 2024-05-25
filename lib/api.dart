@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_doguber_frontend/pages/matchpage.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
@@ -10,6 +11,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 //files
 import 'constants.dart';
+import 'providers.dart';
 
 class AuthApi {
   String? _accessToken;
@@ -194,7 +196,7 @@ class ProfileApi {
     return true;
   }
 
-  static Future<dynamic> modifyMyImageAtServer({required XFile image}) async {
+  static Future<bool> modifyMyImageAtServer({required XFile image}) async {
     //전송할 데이터 준비
     var url = Uri.parse(ServerUrl.userProfileUrl);
     var header = {
@@ -217,11 +219,16 @@ class ProfileApi {
     // Send the request
     try {
       http.StreamedResponse response = await request.send();
-      debugPrint('[log] success, ${response.statusCode}');
-      final responseBody = await response.stream.bytesToString();
-      debugPrint('[log] response body: $responseBody');
+      debugPrint('[log] result ${response.statusCode}');
+      if (response.statusCode != 200) {
+        final responseBody = await response.stream.bytesToString();
+        debugPrint('[log] response body: $responseBody');
+        return false;
+      }
+      return true;
     } catch (e) {
       debugPrint('[log] error, $e');
+      return false;
     }
   }
 
@@ -233,6 +240,63 @@ class ProfileApi {
   //       title: "get user profile", url: url, header: header);
   //   if (result == null) return null;
   // }
+}
+
+class DogProfileApi {
+  static final AuthApi _auth = AuthApi();
+
+  //애견 프로필 조회
+  static Future<void> getDogProfile({required int id}) async {}
+  //애견 프로필 리스트 조회 : 필요 시 제작
+  //애견 프로필 등록
+  static Future<bool> registDogProfile({required DogInfo doginfo}) async {
+    var url = Uri.parse(ServerUrl.dogRegistrationUrl);
+    var header = {
+      'Authorization': 'Bearer ${_auth.accessToken}',
+      'Content-Type': 'multipart/form-data'
+    };
+
+    //전송 데이터 준비
+    var request = http.MultipartRequest('POST', url);
+    request.headers.addAll(header);
+    request.fields['name'] = doginfo.dogName;
+    request.fields['gender'] = doginfo.dogGender;
+    request.fields['neutered'] = doginfo.neutered.toString();
+    request.fields['age'] = doginfo.age.toString();
+    request.fields['size'] = doginfo.size.toString();
+    request.fields['weight'] = doginfo.weight.toString();
+    request.fields['breed'] = doginfo.breed;
+    request.fields['description'] = doginfo.description;
+    if (doginfo.dogImage != null) {
+      var multipartFile = http.MultipartFile.fromBytes(
+        'image',
+        doginfo.dogImage!.toList(),
+        filename: DateTime.now().toString(),
+        contentType: MediaType('image', 'jpeg'),
+      );
+      request.files.add(multipartFile);
+    } else {
+      request.fields['image'] = "";
+    }
+
+    // Send the request
+    try {
+      http.StreamedResponse response = await request.send();
+      debugPrint('[log] result ${response.statusCode}');
+      if (response.statusCode != 200) {
+        final responseBody = await response.stream.bytesToString();
+        debugPrint('[log] response body: $responseBody');
+        return false;
+      }
+      return true;
+    } catch (e) {
+      debugPrint('[log] error, $e');
+      return false;
+    }
+  }
+
+  //애견 프로필 변경
+  //애견 프로필 삭제
 }
 
 class RequirementApi {
@@ -268,8 +332,6 @@ class RequirementApi {
   //   if (result == null) return null;
   // }
 }
-
-class DogProfileApi {}
 
 class ApplicationApi {}
 

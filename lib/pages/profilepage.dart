@@ -79,19 +79,21 @@ class UserProfilePage extends StatelessWidget {
               children: [
                 context.read<UserInfo>().ownDogList.isEmpty
                     ? Center(child: Text('no dogs'))
-                    : ListView.builder(
-                        itemCount: context.read<UserInfo>().ownDogList.length,
-                        itemBuilder: (context, index) {
-                          var dogs = context.read<UserInfo>().ownDogList;
-                          return ListTile(
-                            title: Text(dogs[index]["name"]),
-                            trailing: ElevatedButton(
-                              onPressed: () =>
-                                  context.go(RouterPath.myDogProfile),
-                              child: const Text('detail'),
-                            ),
-                          );
-                        },
+                    : Expanded(
+                        child: ListView.builder(
+                          itemCount: context.read<UserInfo>().ownDogList.length,
+                          itemBuilder: (context, index) {
+                            var dogs = context.read<UserInfo>().ownDogList;
+                            return ListTile(
+                              title: Text(dogs[index]["name"]),
+                              trailing: ElevatedButton(
+                                onPressed: () =>
+                                    context.go(RouterPath.myDogProfile),
+                                child: const Text('detail'),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                 Column(
                   children: [
@@ -121,7 +123,7 @@ class UserProfilePage extends StatelessWidget {
     if (context.read<UserInfo>().image == null) {
       return const AssetImage('assets/images/profile_test.png');
     }
-    return context.read<UserInfo>().image!;
+    return MemoryImage(context.read<UserInfo>().image!);
   }
 }
 
@@ -130,9 +132,12 @@ class ProfileModifyPage extends StatelessWidget {
 
   final TextEditingController _descriptionCtrl = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
+  XFile? pickedFile;
 
   @override
   Widget build(BuildContext context) {
+    void goBack() => context.go(RouterPath.myProfile);
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -154,24 +159,33 @@ class ProfileModifyPage extends StatelessWidget {
                 child: const Text('수정')),
             ElevatedButton(
               onPressed: () async {
-                //이미지 선택 함수
                 try {
-                  XFile? pickedFile =
+                  pickedFile =
                       await _imagePicker.pickImage(source: ImageSource.gallery);
                   if (pickedFile == null) {
                     return;
                   }
-                  await ProfileApi.modifyMyImageAtServer(image: pickedFile);
                 } catch (e) {
-                  // 에러 발생 시 처리
-                  print("Error picking image: $e");
+                  debugPrint("[log] Error picking image: $e");
                   return;
                 }
               },
               child: const Text('select image'),
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () async {
+                if (pickedFile == null) {
+                  debugPrint("[log] select image");
+                  return;
+                }
+                bool result =
+                    await ProfileApi.modifyMyImageAtServer(image: pickedFile!);
+                if (result == false) {
+                  debugPrint("[log] modify fail");
+                  return;
+                }
+                goBack();
+              },
               child: const Text('modify'),
             )
           ],
@@ -285,10 +299,15 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
   final TextEditingController sizeController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
+  late DogInfo _dogInfo;
+  XFile? _dogImage;
+  bool? _selectedRadio;
 
   @override
   Widget build(BuildContext context) {
-    // 프로필 등록
+    void goBack() => context.go(RouterPath.myProfile);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('프로필 등록'),
@@ -299,6 +318,22 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      XFile? pickedFile = await _imagePicker.pickImage(
+                          source: ImageSource.gallery);
+                      if (pickedFile == null) {
+                        return;
+                      }
+                      _dogImage = pickedFile;
+                    } catch (e) {
+                      // 에러 발생 시 처리
+                      print("Error picking image: $e");
+                      return;
+                    }
+                  },
+                  child: const Text('select image')),
               TextField(
                 controller: nameController,
                 decoration: const InputDecoration(labelText: '이름'),
@@ -316,9 +351,36 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
                 controller: breedController,
                 decoration: const InputDecoration(labelText: '종'),
               ),
-              TextField(
-                controller: neuteredController,
-                decoration: const InputDecoration(labelText: '중성화 여부'),
+              Row(
+                children: [
+                  const Expanded(child: Text('중성화 여부')),
+                  Expanded(
+                    flex: 2,
+                    child: ListTile(
+                      title: const Text('완료'),
+                      leading: Radio<bool>(
+                        value: true,
+                        groupValue: _selectedRadio,
+                        onChanged: (bool? value) {
+                          setState(() => _selectedRadio = value!);
+                        },
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: ListTile(
+                      title: const Text('안함'),
+                      leading: Radio<bool>(
+                        value: false,
+                        groupValue: _selectedRadio,
+                        onChanged: (bool? value) {
+                          setState(() => _selectedRadio = value!);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
               TextField(
                 controller: sizeController,
@@ -336,19 +398,31 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
               ),
               const SizedBox(height: 16.0),
               ElevatedButton(
-                onPressed: () {
-                  //프로필 확인용 으로 일단 입력 값 저장 했는데 서버로 저장으로 수정 필요
-                  Map<String, dynamic> profile = {
-                    "name": nameController.text,
-                    "gender": genderController.text,
-                    "age": ageController.text,
-                    "breed": breedController.text,
-                    "neutered": neuteredController.text,
-                    "size": sizeController.text,
-                    "weight": weightController.text,
-                    "description": descriptionController.text,
-                  };
-                  Navigator.pop(context, profile);
+                onPressed: () async {
+                  Uint8List? imagedata;
+                  if (_dogImage != null) {
+                    imagedata = await _dogImage!.readAsBytes();
+                  }
+                  _dogInfo = DogInfo(
+                    null,
+                    nameController.text,
+                    genderController.text,
+                    imagedata,
+                    null,
+                    _selectedRadio!, //불리안 선택
+                    int.parse(ageController.text), //숫자만  가능한 필드로
+                    1.1, //더블만 가능한 필드로
+                    1.1, //더블만 가능한 필드로
+                    breedController.text,
+                    descriptionController.text,
+                  );
+                  bool result =
+                      await DogProfileApi.registDogProfile(doginfo: _dogInfo);
+                  if (result == false) {
+                    debugPrint('[log] regist dog profile failed');
+                    return;
+                  }
+                  goBack();
                 },
                 child: const Text('등록하기'),
               ),

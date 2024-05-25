@@ -14,7 +14,7 @@ class UserInfo extends ChangeNotifier {
   String _gender = '_gender';
   int _age = -1;
   String? _description;
-  MemoryImage? _image;
+  Uint8List? _image;
   List<Map<String, dynamic>> ownDogList = [];
 
   //getter
@@ -22,7 +22,7 @@ class UserInfo extends ChangeNotifier {
   String get gender => _gender;
   int get age => _age;
   String? get description => _description;
-  MemoryImage? get image => _image;
+  Uint8List? get image => _image;
 
   Future<void> getMyProfile() async {
     Map<String, dynamic>? data = await ProfileApi.getMyProfileFromServer();
@@ -36,7 +36,7 @@ class UserInfo extends ChangeNotifier {
     _age = data['age'];
     _description = data['description'];
     List<int> bytes = base64Decode(data['image']);
-    _image = MemoryImage(Uint8List.fromList(bytes));
+    _image = Uint8List.fromList(bytes);
     ownDogList = data['dogList'].cast<Map<String, dynamic>>();
     debugPrint('[log] success get my profile');
     return;
@@ -46,10 +46,29 @@ class UserInfo extends ChangeNotifier {
 }
 
 class DogInfo {
-  final String dogId;
+  final int? dogId;
   final String dogName;
+  final int? ownerId;
   final String dogGender;
-  final dynamic dogImage;
+  final bool neutered;
+  final int age;
+  final double size;
+  final double weight;
+  final String breed;
+  final String description;
+  final Uint8List? dogImage;
 
-  DogInfo(this.dogId, this.dogName, this.dogGender, this.dogImage);
+  DogInfo(
+    this.dogId,
+    this.dogName,
+    this.dogGender,
+    this.dogImage,
+    this.ownerId,
+    this.neutered,
+    this.age,
+    this.size,
+    this.weight,
+    this.breed,
+    this.description,
+  );
 }
