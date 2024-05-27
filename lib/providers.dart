@@ -2,7 +2,6 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'dart:convert';
 //files
 import 'constants.dart';
@@ -18,6 +17,7 @@ class UserInfo extends ChangeNotifier {
   List<Map<String, dynamic>> ownDogList = [];
 
   //getter
+  int get id => _id;
   String get name => _name;
   String get gender => _gender;
   int get age => _age;
@@ -41,22 +41,20 @@ class UserInfo extends ChangeNotifier {
     debugPrint('[log] success get my profile');
     return;
   }
-
-  void infoInit() {}
 }
 
 class DogInfo {
-  final int? dogId;
-  final String dogName;
-  final int? ownerId;
-  final String dogGender;
-  final bool neutered;
-  final int age;
-  final double size;
-  final double weight;
-  final String breed;
-  final String description;
-  final Uint8List? dogImage;
+  int? dogId; //최초 등록 시에만 null
+  String dogName;
+  int? ownerId; //최초 등록 시에만 null
+  String dogGender;
+  bool neutered;
+  int age;
+  double size;
+  double weight;
+  String breed;
+  String description;
+  Uint8List? dogImage;
 
   DogInfo(
     this.dogId,

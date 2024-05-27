@@ -13,77 +13,76 @@ import 'package:image_picker/image_picker.dart';
 import '../api.dart';
 import '../constants.dart';
 
-class UserProfilePage extends StatelessWidget {
-  const UserProfilePage({super.key});
-
-  //내프로필에 넣을거
-  //
+// profile pages
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('프로필 페이지')),
+      appBar: AppBar(title: const Text('내 정보')),
       body: Container(
         margin: const EdgeInsets.all(10),
         child: Column(children: [
           Expanded(
             flex: 1,
             child: CircleAvatar(
-                radius: double.infinity,
-                backgroundImage: buildProfileImage(context)),
+              radius: double.infinity,
+              backgroundImage: buildProfileImage(context),
+            ),
           ),
           Expanded(
             flex: 1,
-            child: SizedBox(
-              width: double.infinity,
-              child: Column(
-                children: [
-                  Text(
-                    context.read<UserInfo>().name,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Text(
+                    context.watch<UserInfo>().name,
                     style: const TextStyle(
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Spacer(flex: 10),
-                      Text(
-                        context.read<UserInfo>().gender == "male" ? "남성" : "여성",
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                      const Spacer(flex: 1),
-                      Text(
-                        '${context.read<UserInfo>().age}세',
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                      const Spacer(flex: 10),
-                    ],
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Card(
-                      elevation: 1,
-                      child: Text(
-                          context.read<UserInfo>().description ?? "안녕하세요~^^"),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Spacer(flex: 10),
+                    Text(
+                      context.watch<UserInfo>().gender == "male" ? "남성" : "여성",
+                      style: const TextStyle(fontSize: 20),
                     ),
+                    const Spacer(flex: 1),
+                    Text(
+                      '${context.watch<UserInfo>().age}세',
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                    const Spacer(flex: 10),
+                  ],
+                ),
+                Expanded(
+                  child: Card(
+                    elevation: 1,
+                    child: Text(
+                        context.watch<UserInfo>().description ?? "안녕하세요~^^"),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           Expanded(
             flex: 2,
             child: Column(
               children: [
-                context.read<UserInfo>().ownDogList.isEmpty
-                    ? Center(child: Text('no dogs'))
+                context.watch<UserInfo>().ownDogList.isEmpty
+                    ? const Center(child: Text('no dogs'))
                     : Expanded(
                         child: ListView.builder(
-                          itemCount: context.read<UserInfo>().ownDogList.length,
+                          itemCount:
+                              context.watch<UserInfo>().ownDogList.length,
                           itemBuilder: (context, index) {
-                            var dogs = context.read<UserInfo>().ownDogList;
+                            var dogs = context.watch<UserInfo>().ownDogList;
                             return ListTile(
                               leading: dogs[index]['dogImage'] == null
                                   ? Image.asset(
@@ -129,10 +128,10 @@ class UserProfilePage extends StatelessWidget {
   }
 
   ImageProvider<Object>? buildProfileImage(BuildContext context) {
-    if (context.read<UserInfo>().image == null) {
+    if (context.watch<UserInfo>().image == null) {
       return const AssetImage('assets/images/profile_test.png');
     }
-    return MemoryImage(context.read<UserInfo>().image!);
+    return MemoryImage(context.watch<UserInfo>().image!);
   }
 }
 
@@ -145,80 +144,86 @@ class ProfileModifyPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //define function
     void goBack() => context.go(RouterPath.myProfile);
 
+    Future<void> modifyMyImage() async {
+      if (pickedFile == null) {
+        debugPrint("[log] select image");
+        return;
+      }
+      bool result = await ProfileApi.modifyMyImageAtServer(image: pickedFile!);
+      if (result == false) {
+        debugPrint("[log] modify fail");
+        return;
+      }
+    }
+
+    void pickImageFromGallery() async {
+      try {
+        pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+        if (pickedFile == null) {
+          return;
+        }
+      } catch (e) {
+        debugPrint("[log] Error picking image: $e");
+        return;
+      }
+    }
+
+    void modifyMyDescription() async {
+      bool result = await ProfileApi.modifyMyDescriptionAtServer(
+          description: _descriptionCtrl.text);
+      if (result == true) {
+        debugPrint('[log] modify success');
+      } else {
+        debugPrint('[log] modify fail');
+      }
+    }
+
+    //build UI
     return Scaffold(
       body: Center(
-        child: Column(
-          children: [
-            TextField(
-              controller: _descriptionCtrl,
-              decoration: const InputDecoration(labelText: '이름'),
-            ),
-            ElevatedButton(
-                onPressed: () async {
-                  bool result = await ProfileApi.modifyMyDescriptionAtServer(
-                      description: _descriptionCtrl.text);
-                  if (result == true) {
-                    debugPrint('[log] modify success');
-                  } else {
-                    debugPrint('[log] modify fail');
-                  }
-                },
-                child: const Text('수정')),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  pickedFile =
-                      await _imagePicker.pickImage(source: ImageSource.gallery);
-                  if (pickedFile == null) {
-                    return;
-                  }
-                } catch (e) {
-                  debugPrint("[log] Error picking image: $e");
-                  return;
-                }
-              },
-              child: const Text('select image'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (pickedFile == null) {
-                  debugPrint("[log] select image");
-                  return;
-                }
-                bool result =
-                    await ProfileApi.modifyMyImageAtServer(image: pickedFile!);
-                if (result == false) {
-                  debugPrint("[log] modify fail");
-                  return;
-                }
-                goBack();
-              },
-              child: const Text('modify'),
-            )
-          ],
-        ),
+        child: Column(children: [
+          TextField(
+            controller: _descriptionCtrl,
+            decoration: const InputDecoration(labelText: '설명'),
+          ),
+          ElevatedButton(
+            onPressed: modifyMyDescription,
+            child: const Text('수정'),
+          ),
+          ElevatedButton(
+            onPressed: pickImageFromGallery,
+            child: const Text('select image'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await modifyMyImage();
+              goBack();
+            },
+            child: const Text('modify'),
+          )
+        ]),
       ),
     );
   }
 }
 
-class MyReviewPage extends StatelessWidget {
-  const MyReviewPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("my review")),
-      body: const Center(child: Text("reviews")),
-    );
-  }
-}
-
+// Dog pages
 class DogProfilePage extends StatelessWidget {
+  DogProfilePage({required this.dogId, super.key});
   final int dogId;
-  const DogProfilePage({required this.dogId, super.key});
+  DogInfo? _dogInfo;
+
+  Future<bool> getData() async {
+    try {
+      _dogInfo = await DogProfileApi.getDogProfile(id: dogId);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -229,24 +234,44 @@ class DogProfilePage extends StatelessWidget {
           children: [
             Expanded(
               child: FutureBuilder(
-                  future: DogProfileApi.getDogProfile(id: dogId),
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  future: getData(),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<bool> snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator(); // 로딩 중일 때
-                    } else if (snapshot.data == null) {
-                      return Text('data is null ${snapshot.error}');
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.data == false) {
+                      return const Text('get data fail');
                     } else if (snapshot.hasError) {
-                      return Text(
-                          'snapshot has Error: ${snapshot.error}'); // 에러 발생 시
+                      return Text('snapshot has Error: ${snapshot.error}');
+                    } else if (_dogInfo == null) {
+                      return const Text('doginfo is null');
                     }
                     return Column(
                       children: [
-                        Text(snapshot.data.dogName),
-                        // 나머지 DogInfo 필드에 대한 UI 추가
+                        Text(_dogInfo!.dogId.toString()),
+                        Text(_dogInfo!.dogName),
+                        Text(_dogInfo!.dogGender),
+                        Text(_dogInfo!.ownerId.toString()),
+                        Text(_dogInfo!.neutered.toString()),
+                        Text(_dogInfo!.age.toString()),
+                        Text(_dogInfo!.size.toString()),
+                        Text(_dogInfo!.weight.toString()),
+                        Text(_dogInfo!.breed),
+                        Text(_dogInfo!.description),
                       ],
                     );
                   }),
             ),
+            ElevatedButton(
+                onPressed: () async {
+                  _dogInfo!.dogName = 'changed';
+                  final ImagePicker _imagePicker = ImagePicker();
+                  XFile? file =
+                      await _imagePicker.pickImage(source: ImageSource.gallery);
+                  _dogInfo!.dogImage = await file!.readAsBytes();
+                  await DogProfileApi.modifyDogProfile(doginfo: _dogInfo!);
+                },
+                child: const Text('modify : name to changed')),
             ElevatedButton(
                 onPressed: () {
                   showDialog(
@@ -257,9 +282,12 @@ class DogProfilePage extends StatelessWidget {
                           content: const Text("are you sure?"),
                           actions: [
                             ElevatedButton(
-                                onPressed: () {
-                                  //TODO: 기능추가
-                                  context.go(RouterPath.myProfile);
+                                onPressed: () async {
+                                  await DogProfileApi.deleteDogProfile(
+                                          id: _dogInfo!.dogId!)
+                                      .then((_) {
+                                    context.go(RouterPath.myProfile);
+                                  });
                                 },
                                 child: const Text('yes'))
                           ],
@@ -298,6 +326,7 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
   @override
   Widget build(BuildContext context) {
     void goBack() => context.go(RouterPath.myProfile);
+    void getDataBeforeGoBack() {}
 
     return Scaffold(
       appBar: AppBar(
@@ -413,6 +442,7 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
                     debugPrint('[log] regist dog profile failed');
                     return;
                   }
+                  await context.read<UserInfo>().getMyProfile();
                   goBack();
                 },
                 child: const Text('등록하기'),
@@ -421,6 +451,19 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// Review Pages
+class MyReviewPage extends StatelessWidget {
+  const MyReviewPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("my review")),
+      body: const Center(child: Text("reviews")),
     );
   }
 }

@@ -27,7 +27,7 @@ final GoRouter router = GoRouter(
               GoRoute(
                 path: 'my_profile',
                 builder: (BuildContext context, GoRouterState state) {
-                  return const UserProfilePage();
+                  return const ProfilePage();
                 },
                 routes: [
                   GoRoute(

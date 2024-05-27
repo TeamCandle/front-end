@@ -82,50 +82,47 @@ class HttpMethod {
     required Uri url,
     required Map<String, String> header,
   }) async {
-    debugPrint("[log] $title start");
+    debugPrint("[log] start $title");
 
     try {
       http.Response? response = await http.get(url, headers: header);
       if (response.statusCode != 200) {
-        debugPrint("[log] fail code ${response.statusCode}");
-        debugPrint("[log] fail body ${response.body}");
+        debugPrint("[log] fail ${response.statusCode}");
+        debugPrint("[log] body ${response.body}");
         return null;
       }
-      debugPrint("[log] success code ${response.statusCode}");
-      Map<String, dynamic> decodedData = jsonDecode(response.body);
-      debugPrint('[log] body : $decodedData');
-
+      debugPrint("[log] success $title");
       return response;
     } catch (e) {
-      debugPrint('[log] $title error : $e');
+      debugPrint('[log] error $title: $e');
       return null;
     }
   }
 
-  static Future<dynamic> tryPost({
+  static Future<http.Response?> tryPost({
     required String title,
     required Uri url,
     required Map<String, String> header,
     required Map<String, dynamic> body,
   }) async {
     debugPrint("[log] start $title");
+
     try {
       var response = await http.post(url, headers: header, body: body);
       if (response.statusCode != 200) {
-        debugPrint("[log] $title fail!!");
         debugPrint("[log] fail code ${response.statusCode}");
         debugPrint("[log] fail body ${response.body}");
         return null;
       }
-      debugPrint("[log] $title success!");
+      debugPrint("[log] success $title");
       return response;
     } catch (e) {
-      debugPrint('[log] $title error? : $e');
+      debugPrint('[log] error $title: $e');
       return null;
     }
   }
 
-  static Future<dynamic> tryPatch({
+  static Future<http.Response?> tryPatch({
     required String title,
     required Uri url,
     required Map<String, String> header,
@@ -134,21 +131,62 @@ class HttpMethod {
     debugPrint("[log] start $title");
 
     try {
-      var response = await http.patch(
-        url,
-        headers: header,
-        body: json.encode(body),
-      );
+      var response =
+          await http.patch(url, headers: header, body: json.encode(body));
       if (response.statusCode != 200) {
-        debugPrint("[log] fail code ${response.statusCode}");
+        debugPrint("[log] fail ${response.statusCode}");
         debugPrint("[log] fail body ${response.body}");
         return null;
       }
-      debugPrint("[log] success code : ${response.statusCode}");
+      debugPrint("[log] success $title");
       return response;
     } catch (e) {
-      debugPrint('[log] $title error!! : $e');
+      debugPrint('[log] error $title: $e');
       return null;
+    }
+  }
+
+  static Future<bool> tryDelete({
+    required String title,
+    required Uri url,
+    required Map<String, String> header,
+  }) async {
+    debugPrint("[log] start $title");
+
+    try {
+      http.Response? response = await http.delete(url, headers: header);
+      if (response.statusCode != 200) {
+        debugPrint("[log] fail ${response.statusCode}");
+        debugPrint("[log] body ${response.body}");
+        return false;
+      }
+      debugPrint("[log] success $title");
+      return true;
+    } catch (e) {
+      debugPrint('[log] error $title: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> tryMultipartRequest({
+    required String title,
+    required http.MultipartRequest request,
+  }) async {
+    debugPrint("[log] start $title");
+
+    try {
+      http.StreamedResponse response = await request.send();
+      if (response.statusCode != 200) {
+        final responseBody = await response.stream.bytesToString();
+        debugPrint('[log] fail ${response.statusCode}');
+        debugPrint('[log] fail body: $responseBody');
+        return false;
+      }
+      debugPrint("[log] success $title");
+      return true;
+    } catch (e) {
+      debugPrint('[log] error $title, $e');
+      return false;
     }
   }
 }
@@ -217,19 +255,10 @@ class ProfileApi {
     request.files.add(multipartFile);
 
     // Send the request
-    try {
-      http.StreamedResponse response = await request.send();
-      debugPrint('[log] result ${response.statusCode}');
-      if (response.statusCode != 200) {
-        final responseBody = await response.stream.bytesToString();
-        debugPrint('[log] response body: $responseBody');
-        return false;
-      }
-      return true;
-    } catch (e) {
-      debugPrint('[log] error, $e');
-      return false;
-    }
+    return await HttpMethod.tryMultipartRequest(
+      title: 'modify profile image',
+      request: request,
+    );
   }
 
   // static Future<dynamic> getUserProfileFromServer(
@@ -282,7 +311,6 @@ class DogProfileApi {
       debugPrint('[log] create doginfo fail');
       return null;
     }
-    return null;
   }
 
   //애견 프로필 리스트 조회 : 필요 시 제작
@@ -319,23 +347,62 @@ class DogProfileApi {
     }
 
     // Send the request
-    try {
-      http.StreamedResponse response = await request.send();
-      debugPrint('[log] result ${response.statusCode}');
-      if (response.statusCode != 200) {
-        final responseBody = await response.stream.bytesToString();
-        debugPrint('[log] response body: $responseBody');
-        return false;
-      }
-      return true;
-    } catch (e) {
-      debugPrint('[log] error, $e');
-      return false;
-    }
+    return await HttpMethod.tryMultipartRequest(
+      title: 'regist dog',
+      request: request,
+    );
   }
 
   //애견 프로필 변경
+  static Future<bool> modifyDogProfile({required DogInfo doginfo}) async {
+    var url = Uri.parse(ServerUrl.dogRegistrationUrl);
+    var header = {
+      'Authorization': 'Bearer ${_auth.accessToken}',
+      'Content-Type': 'multipart/form-data'
+    };
+
+    //전송 데이터 준비
+    var request = http.MultipartRequest('PATCH', url);
+    request.headers.addAll(header);
+    request.fields['id'] = doginfo.dogId.toString();
+    request.fields['name'] = doginfo.dogName;
+    request.fields['gender'] = doginfo.dogGender;
+    request.fields['neutered'] = doginfo.neutered.toString();
+    request.fields['age'] = doginfo.age.toString();
+    request.fields['size'] = doginfo.size.toString();
+    request.fields['weight'] = doginfo.weight.toString();
+    request.fields['breed'] = doginfo.breed;
+    request.fields['description'] = doginfo.description;
+    if (doginfo.dogImage != null) {
+      var multipartFile = http.MultipartFile.fromBytes(
+        'image',
+        doginfo.dogImage!.toList(),
+        filename: DateTime.now().toString(),
+        contentType: MediaType('image', 'jpeg'),
+      );
+      request.files.add(multipartFile);
+    } else {
+      request.fields['image'] = "";
+    }
+
+    // Send the request
+    return await HttpMethod.tryMultipartRequest(
+      title: 'modify dog profile',
+      request: request,
+    );
+  }
+
   //애견 프로필 삭제
+  static Future<bool> deleteDogProfile({required int id}) async {
+    var url = Uri.parse('${ServerUrl.dogProfileUrl}?id=$id');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    return await HttpMethod.tryDelete(
+      title: "delete dog profile",
+      url: url,
+      header: header,
+    );
+  }
 }
 
 class RequirementApi {
