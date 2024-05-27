@@ -20,7 +20,10 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('내 정보')),
+      appBar: AppBar(
+        title: const Text('내 정보'),
+        backgroundColor: Colors.white,
+      ),
       body: Container(
         margin: const EdgeInsets.all(10),
         child: Column(children: [
@@ -63,10 +66,8 @@ class ProfilePage extends StatelessWidget {
                 ),
                 Expanded(
                   child: Card(
-                    elevation: 1,
-                    child: Text(
-                        context.watch<UserInfo>().description ?? "안녕하세요~^^"),
-                  ),
+                      child: Text(
+                          context.watch<UserInfo>().description ?? "안녕하세요~^^")),
                 ),
               ],
             ),
@@ -75,34 +76,12 @@ class ProfilePage extends StatelessWidget {
             flex: 2,
             child: Column(
               children: [
-                context.watch<UserInfo>().ownDogList.isEmpty
-                    ? const Center(child: Text('no dogs'))
-                    : Expanded(
-                        child: ListView.builder(
-                          itemCount:
-                              context.watch<UserInfo>().ownDogList.length,
-                          itemBuilder: (context, index) {
-                            var dogs = context.watch<UserInfo>().ownDogList;
-                            return ListTile(
-                              leading: dogs[index]['dogImage'] == null
-                                  ? Image.asset(
-                                      'assets/images/profile_test.png',
-                                    )
-                                  : Image.memory(
-                                      dogs[index]['dogImage'],
-                                    ),
-                              title: Text(dogs[index]["name"]),
-                              trailing: ElevatedButton(
-                                onPressed: () {
-                                  context.go(
-                                      '${RouterPath.myDogProfile}?dogId=${dogs[index]["id"]}');
-                                },
-                                child: const Text('detail'),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: context.watch<UserInfo>().ownDogList.length,
+                    itemBuilder: buildOwnDogList,
+                  ),
+                ),
                 Column(
                   children: [
                     ElevatedButton(
@@ -127,6 +106,28 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
+  Widget? buildOwnDogList(BuildContext context, int index) {
+    if (context.watch<UserInfo>().ownDogList.isEmpty) {
+      return const Center(
+          child: Text('키우는 반려견이 없으신가요?\n가족같은 나의 반려견을 등록해보세요 ^^'));
+    }
+    return ListTile(
+      leading: context.watch<UserInfo>().ownDogList[index]['dogImage'] == null
+          ? Image.asset('assets/images/profile_test.png')
+          : Image.memory(
+              context.watch<UserInfo>().ownDogList[index]['dogImage']),
+      title: Text(context.watch<UserInfo>().ownDogList[index]["name"]),
+      trailing: ElevatedButton(
+        onPressed: () {
+          context.go(
+            '${RouterPath.myDogProfile}?dogId=${context.read<UserInfo>().ownDogList[index]["id"]}',
+          );
+        },
+        child: const Text('detail'),
+      ),
+    );
+  }
+
   ImageProvider<Object>? buildProfileImage(BuildContext context) {
     if (context.watch<UserInfo>().image == null) {
       return const AssetImage('assets/images/profile_test.png');
@@ -135,19 +136,30 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-class ProfileModifyPage extends StatelessWidget {
-  ProfileModifyPage({super.key});
+class ProfileModifyPage extends StatefulWidget {
+  const ProfileModifyPage({super.key});
 
+  @override
+  State<ProfileModifyPage> createState() => _ProfileModifyPageState();
+}
+
+class _ProfileModifyPageState extends State<ProfileModifyPage> {
   final TextEditingController _descriptionCtrl = TextEditingController();
+
   final ImagePicker _imagePicker = ImagePicker();
+
   XFile? pickedFile;
 
   @override
   Widget build(BuildContext context) {
     //define function
-    void goBack() => context.go(RouterPath.myProfile);
+    void goBack() async {
+      await context.read<UserInfo>().updateMyProfile().then((_) {
+        context.go(RouterPath.myProfile);
+      });
+    }
 
-    Future<void> modifyMyImage() async {
+    void modifyMyImage() async {
       if (pickedFile == null) {
         debugPrint("[log] select image");
         return;
@@ -157,6 +169,7 @@ class ProfileModifyPage extends StatelessWidget {
         debugPrint("[log] modify fail");
         return;
       }
+      goBack();
     }
 
     void pickImageFromGallery() async {
@@ -169,6 +182,7 @@ class ProfileModifyPage extends StatelessWidget {
         debugPrint("[log] Error picking image: $e");
         return;
       }
+      goBack();
     }
 
     void modifyMyDescription() async {
@@ -179,6 +193,7 @@ class ProfileModifyPage extends StatelessWidget {
       } else {
         debugPrint('[log] modify fail');
       }
+      goBack();
     }
 
     //build UI
@@ -198,10 +213,7 @@ class ProfileModifyPage extends StatelessWidget {
             child: const Text('select image'),
           ),
           ElevatedButton(
-            onPressed: () async {
-              await modifyMyImage();
-              goBack();
-            },
+            onPressed: modifyMyImage,
             child: const Text('modify'),
           )
         ]),
@@ -212,89 +224,106 @@ class ProfileModifyPage extends StatelessWidget {
 
 // Dog pages
 class DogProfilePage extends StatelessWidget {
-  DogProfilePage({required this.dogId, super.key});
   final int dogId;
-  DogInfo? _dogInfo;
 
-  Future<bool> getData() async {
-    try {
-      _dogInfo = await DogProfileApi.getDogProfile(id: dogId);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+  const DogProfilePage({required this.dogId, super.key});
 
   @override
   Widget build(BuildContext context) {
+    void goBack() async {
+      await context.read<UserInfo>().updateMyProfile().then((_) {
+        context.go(RouterPath.myProfile);
+      });
+    }
+
+    Future<dynamic> buildDeleteDialog(BuildContext context, int id) {
+      return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("remove dog profile"),
+            content: const Text("are you sure?"),
+            actions: [
+              ElevatedButton(
+                onPressed: () async {
+                  await DogProfileApi.deleteDogProfile(id: id);
+                  goBack();
+                },
+                child: const Text('yes'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text("dog id : $dogId")),
       body: Center(
+        child: FutureBuilder(
+          future: DogProfileApi.getDogProfile(id: dogId),
+          builder: (BuildContext context, AsyncSnapshot<DogInfo?> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (snapshot.data == null) {
+              return const Text('snapshot has null');
+            } else if (snapshot.hasError) {
+              return Text('snapshot has Error: ${snapshot.error}');
+            }
+
+            DogInfo dogInfo = snapshot.data!;
+            return Column(
+              children: [
+                Text(dogInfo.dogId.toString()),
+                Text(dogInfo.dogName),
+                Text(dogInfo.dogGender),
+                Text(dogInfo.ownerId.toString()),
+                Text(dogInfo.neutered.toString()),
+                Text(dogInfo.age.toString()),
+                Text(dogInfo.size.toString()),
+                Text(dogInfo.weight.toString()),
+                Text(dogInfo.breed),
+                Text(dogInfo.description),
+                ElevatedButton(
+                  onPressed: () => buildDeleteDialog(context, dogInfo.dogId!),
+                  child: const Text('remove'),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class DogModifyPage extends StatefulWidget {
+  final DogInfo dogInfo;
+  const DogModifyPage({super.key, required this.dogInfo});
+
+  @override
+  State<DogModifyPage> createState() => _DogModifyPageState();
+}
+
+class _DogModifyPageState extends State<DogModifyPage> {
+  //TODO: UI랑 같이 만들기
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
         child: Column(
           children: [
-            Expanded(
-              child: FutureBuilder(
-                  future: getData(),
-                  builder:
-                      (BuildContext context, AsyncSnapshot<bool> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else if (snapshot.data == false) {
-                      return const Text('get data fail');
-                    } else if (snapshot.hasError) {
-                      return Text('snapshot has Error: ${snapshot.error}');
-                    } else if (_dogInfo == null) {
-                      return const Text('doginfo is null');
-                    }
-                    return Column(
-                      children: [
-                        Text(_dogInfo!.dogId.toString()),
-                        Text(_dogInfo!.dogName),
-                        Text(_dogInfo!.dogGender),
-                        Text(_dogInfo!.ownerId.toString()),
-                        Text(_dogInfo!.neutered.toString()),
-                        Text(_dogInfo!.age.toString()),
-                        Text(_dogInfo!.size.toString()),
-                        Text(_dogInfo!.weight.toString()),
-                        Text(_dogInfo!.breed),
-                        Text(_dogInfo!.description),
-                      ],
-                    );
-                  }),
+            ElevatedButton(
+              onPressed: () async {
+                widget.dogInfo.dogName = 'changed';
+                final ImagePicker _imagePicker = ImagePicker();
+                XFile? file =
+                    await _imagePicker.pickImage(source: ImageSource.gallery);
+                widget.dogInfo.dogImage = await file!.readAsBytes();
+                await DogProfileApi.modifyDogProfile(doginfo: widget.dogInfo);
+              },
+              child: const Text('modify : name to changed'),
             ),
-            ElevatedButton(
-                onPressed: () async {
-                  _dogInfo!.dogName = 'changed';
-                  final ImagePicker _imagePicker = ImagePicker();
-                  XFile? file =
-                      await _imagePicker.pickImage(source: ImageSource.gallery);
-                  _dogInfo!.dogImage = await file!.readAsBytes();
-                  await DogProfileApi.modifyDogProfile(doginfo: _dogInfo!);
-                },
-                child: const Text('modify : name to changed')),
-            ElevatedButton(
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text("remove dog profile"),
-                          content: const Text("are you sure?"),
-                          actions: [
-                            ElevatedButton(
-                                onPressed: () async {
-                                  await DogProfileApi.deleteDogProfile(
-                                          id: _dogInfo!.dogId!)
-                                      .then((_) {
-                                    context.go(RouterPath.myProfile);
-                                  });
-                                },
-                                child: const Text('yes'))
-                          ],
-                        );
-                      });
-                },
-                child: const Text('remove')),
           ],
         ),
       ),
@@ -325,13 +354,14 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
-    void goBack() => context.go(RouterPath.myProfile);
-    void getDataBeforeGoBack() {}
+    void goBack() async {
+      await context.read<UserInfo>().updateMyProfile().then((_) {
+        context.go(RouterPath.myProfile);
+      });
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('프로필 등록'),
-      ),
+      appBar: AppBar(title: const Text('프로필 등록')),
       body: Container(
         margin: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -442,7 +472,6 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
                     debugPrint('[log] regist dog profile failed');
                     return;
                   }
-                  await context.read<UserInfo>().getMyProfile();
                   goBack();
                 },
                 child: const Text('등록하기'),

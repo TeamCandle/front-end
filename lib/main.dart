@@ -33,7 +33,7 @@ class DogUberApp extends StatelessWidget {
     //router.dart파일의 화면 트리로 이동.
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<UserInfo>(create: (_) => UserInfo()),
+        ChangeNotifierProvider<UserInfo>(create: (context) => UserInfo()),
       ],
       child: MaterialApp.router(
         routerConfig: router,

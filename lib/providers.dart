@@ -24,7 +24,7 @@ class UserInfo extends ChangeNotifier {
   String? get description => _description;
   Uint8List? get image => _image;
 
-  Future<void> getMyProfile() async {
+  Future<void> updateMyProfile() async {
     Map<String, dynamic>? data = await ProfileApi.getMyProfileFromServer();
     if (data == null || data.isEmpty) {
       debugPrint('[log] get profile error!');
@@ -35,10 +35,13 @@ class UserInfo extends ChangeNotifier {
     _gender = data['gender'];
     _age = data['age'];
     _description = data['description'];
-    List<int> bytes = base64Decode(data['image']);
-    _image = Uint8List.fromList(bytes);
+    if (data['image'] != null) {
+      List<int> bytes = base64Decode(data['image']);
+      _image = Uint8List.fromList(bytes);
+    }
     ownDogList = data['dogList'].cast<Map<String, dynamic>>();
     debugPrint('[log] success get my profile');
+    notifyListeners();
     return;
   }
 }

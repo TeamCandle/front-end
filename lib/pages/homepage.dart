@@ -11,8 +11,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  void nothing() {}
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,8 +21,8 @@ class _HomePageState extends State<HomePage> {
             onPressed: () => context.go(RouterPath.matching),
             child: const Text('match'),
           ),
-          ElevatedButton(onPressed: nothing, child: const Text("community")),
-          ElevatedButton(onPressed: nothing, child: const Text("premium")),
+          ElevatedButton(onPressed: () {}, child: const Text("community")),
+          ElevatedButton(onPressed: () {}, child: const Text("premium")),
           ElevatedButton(
             onPressed: () => context.go(RouterPath.myProfile),
             child: const Text("profile"),

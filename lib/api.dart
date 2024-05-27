@@ -294,13 +294,14 @@ class DogProfileApi {
     DogInfo dogInfo;
     try {
       dogInfo = DogInfo(
-        1, //int.parse(data['id']),
+        data['id'],
         data['name'],
         data['gender'],
-        null, //base64Decode(data['image']),
-        1, //int.parse(data['owner']),
+        data['image'] == null ? null : base64Decode(data['image']),
+        data['owner'],
         true,
-        1, //int.parse(data['age']),
+        data['age'],
+        //TODO: 고치기
         1.1,
         1.1,
         data['breed'],
@@ -395,6 +396,7 @@ class DogProfileApi {
   //애견 프로필 삭제
   static Future<bool> deleteDogProfile({required int id}) async {
     var url = Uri.parse('${ServerUrl.dogProfileUrl}?id=$id');
+    debugPrint(url.toString());
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
 
     return await HttpMethod.tryDelete(

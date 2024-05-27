@@ -62,6 +62,8 @@ class _WebViewPageState extends State<WebViewPage> {
 
   @override
   void initState() {
+    super.initState();
+
     late final PlatformWebViewControllerCreationParams params;
 
     //platform check
@@ -82,7 +84,7 @@ class _WebViewPageState extends State<WebViewPage> {
       'tokenHandler',
       onMessageReceived: (JavaScriptMessage message) async {
         _authApi.logIn(message: message);
-        await context.read<UserInfo>().getMyProfile().then((_) {
+        await context.read<UserInfo>().updateMyProfile().then((_) {
           debugPrint('[log] login success!');
           context.go('/home');
         });
@@ -93,8 +95,6 @@ class _WebViewPageState extends State<WebViewPage> {
     AndroidWebViewController.enableDebugging(true);
     (_webViewController.platform as AndroidWebViewController)
         .setMediaPlaybackRequiresUserGesture(false);
-
-    super.initState();
   }
 
   @override
