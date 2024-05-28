@@ -45,7 +45,7 @@ class DogUberApp extends StatelessWidget {
             selectedItemColor: Color(0xFF77D970),
             //unselectedItemColor: Colors.grey,
           ),
-          buttonTheme: const ButtonThemeData(buttonColor: Colors.white),
+          buttonTheme: const ButtonThemeData(buttonColor: Color(0xFF77D970)),
           floatingActionButtonTheme: const FloatingActionButtonThemeData(
               backgroundColor: Color(0xFF77D970)),
           dialogTheme: const DialogTheme(backgroundColor: Colors.white),

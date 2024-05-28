@@ -4,8 +4,9 @@
 결제플로우
 예외플로우
 
-## 요청할 수정사항
-
+## 요청사항 or 질문사항
+파이어베이스 통합 키? 암튼 같은 프로젝트를 여따 빌드하는거
+구글 맵 키는? 사실 그냥 임베딩해서 써도되는데 서버에서 받아오는것도 나쁘지않을듯? 완성도측면에서
 
 ## 참고 링크
 - 플러터 참고 자료 모음
@@ -48,8 +49,86 @@ https://github.com/lkrcdd/flutter_google_map_demo.git
   !주의! 키 위치가 잘못 적히면 지도 안나옴. 만약 수정했다면 rebuild하지 말고 앱을 완전히 끄고 다시 빌드해야함
   -> <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
-#### 2. fcm setting
-#### 3. 
+#### 2. local_notification setting
+1. android/app/build.gradle에 종속성 추가
+android {
+    ...
+    compileSdk flutter.compileSdkVersion  //doctor로 확인해서 34이하면 34로 명시
+    ...
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        ...
+    }
+    defaultConfig {
+        ...
+        multiDexEnabled true
+    }
+    ...
+}
+dependencies {
+    implementation 'androidx.window:window:1.0.0'
+    implementation 'androidx.window:window-java:1.0.0'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
+}
+
+2. android/build.gradle에 종속성 추가
+코드 최상단에 추가
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.3.1'
+    }
+}
+
+3. android/app/src/main/AndroidManifest.xml 세팅
+application 태그 내의 하단에 추가
+<receiver 
+  android:exported="false" 
+  android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />
+
+4. permission 받기
+notiController
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()!
+        .requestNotificationsPermission();
+그럼 notify 시 권한이 있는지 확인하는 함수도 필요할듯.
+
+#### 3. firebase setting
+1. install firebase cli (if not installed)
+2. firebase login
+3. firebase configure
+4. set android package name
+
+#### 4. flutter_background_service setting 
+1. android/build.gradle setting
+buildscript {
+    ext.kotlin_version = '1.8.10' <-
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.4.2' <-
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" <-
+    }
+}
+
+2. android/app/build.gradle setting
+dependencies에 추가
+implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+3. android/gradle/wrapper/gradle-wrapper.properties
+-> distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-all.zip 로 변경
+
+4. permission setting
+android/app/src/main/AndroidManifest.xml에 permission 코드 추가
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="com.example">
+  ...
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+...
 
 ## information
 #### provider 사용법
