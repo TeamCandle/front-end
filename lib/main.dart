@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:localstorage/localstorage.dart';
 //files
 import 'router.dart';
-import 'providers.dart';
+import 'datamodels.dart';
 
 Future<void> main() async {
   //init flutter engine
@@ -34,6 +34,7 @@ class DogUberApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<UserInfo>(create: (context) => UserInfo()),
+        ChangeNotifierProvider<InfinitList>(create: (context) => InfinitList()),
       ],
       child: MaterialApp.router(
         routerConfig: router,

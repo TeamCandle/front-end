@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_doguber_frontend/providers.dart';
+import 'package:flutter_doguber_frontend/datamodels.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../api.dart';

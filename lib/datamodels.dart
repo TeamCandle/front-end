@@ -73,3 +73,34 @@ class DogInfo {
     this.description,
   );
 }
+
+class InfinitList extends ChangeNotifier {
+  int _allRequestOffset = 1;
+  List<dynamic> _allRequestList = [];
+
+  List<dynamic> get allRequestList => _allRequestList;
+
+  Future<void> updateAllRequestList() async {
+    List<dynamic>? data =
+        await RequirementApi.getAllRequestList(offset: _allRequestOffset);
+    if (data == null) {
+      debugPrint('[log] null from updateAllRequestList');
+      return;
+    } else if (data.isEmpty) {
+      debugPrint('[log] empty from updateAllRequestList');
+      return;
+    } else {
+      _allRequestList.addAll(data);
+      ++_allRequestOffset;
+      notifyListeners();
+      return;
+    }
+  }
+
+  void releaseList() {
+    _allRequestOffset = 1;
+    _allRequestList = [];
+    notifyListeners();
+    return;
+  }
+}

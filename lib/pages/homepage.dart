@@ -18,11 +18,26 @@ class _HomePageState extends State<HomePage> {
       body: Center(
         child: Column(children: [
           ElevatedButton(
-            onPressed: () => context.go(RouterPath.matching),
-            child: const Text('match'),
+            onPressed: () {},
+            child: const Text("current process & chatting"),
           ),
-          ElevatedButton(onPressed: () {}, child: const Text("community")),
+          ElevatedButton(
+            onPressed: () => context.go(RouterPath.allRequest),
+            child: const Text('goto search page and apply'),
+            //all request list, my apply list
+          ),
+          ElevatedButton(
+            onPressed: () {},
+            child: const Text("regist my request"),
+            //my registration list, regist my request
+          ),
           ElevatedButton(onPressed: () {}, child: const Text("premium")),
+          ElevatedButton(onPressed: () {}, child: const Text("community")),
+          ElevatedButton(
+            onPressed: () {},
+            child: const Text("look my matching log"),
+            //match log list
+          ),
           ElevatedButton(
             onPressed: () => context.go(RouterPath.myProfile),
             child: const Text("profile"),

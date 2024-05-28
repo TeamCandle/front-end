@@ -11,7 +11,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 //files
 import 'constants.dart';
-import 'providers.dart';
+import 'datamodels.dart';
 
 class AuthApi {
   String? _accessToken;
@@ -108,7 +108,8 @@ class HttpMethod {
     debugPrint("[log] start $title");
 
     try {
-      var response = await http.post(url, headers: header, body: body);
+      var response =
+          await http.post(url, headers: header, body: jsonEncode(body));
       if (response.statusCode != 200) {
         debugPrint("[log] fail code ${response.statusCode}");
         debugPrint("[log] fail body ${response.body}");
@@ -408,16 +409,8 @@ class DogProfileApi {
 }
 
 class RequirementApi {
-  // 내 요구 조회
-  // Future<dynamic> getMyRequirement({required String requirementId}) async {
-  //   var url = Uri.parse('${ServerUrl.requirementUrl}/me?id=$requirementId');
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result =
-  //       await _tryGet(title: "my requirement", url: url, header: header);
-  //   if (result == null) return null;
-  // }
+  static final AuthApi _auth = AuthApi();
 
-  //requirement function
   // // 요구 등록
   // Future<dynamic> registRequirement(
   //     {required Map<String, dynamic> requirement}) async {
@@ -439,6 +432,54 @@ class RequirementApi {
   //       await _tryGet(title: "my requirement list", url: url, header: header);
   //   if (result == null) return null;
   // }
+
+  // 내 요구 조회
+  // Future<dynamic> getMyRequirement({required String requirementId}) async {
+  //   var url = Uri.parse('${ServerUrl.requirementUrl}/me?id=$requirementId');
+  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
+  //   var result =
+  //       await _tryGet(title: "my requirement", url: url, header: header);
+  //   if (result == null) return null;
+  // }
+
+  // 전체 요구 리스트 조회
+  static Future<List<dynamic>?> getAllRequestList({required int offset}) async {
+    //데이터 준비
+    var url = Uri.parse('${ServerUrl.requirementListUrl}?offset=$offset');
+    var header = {
+      'Authorization': 'Bearer ${_auth.accessToken}',
+      'Content-Type': 'application/json',
+    };
+    var body = {
+      'location': {"x": 128.3936, "y": 36.1461}
+    };
+
+    //연결
+    var response = await HttpMethod.tryPost(
+      title: "all requirement list",
+      url: url,
+      header: header,
+      body: body,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    debugPrint('start decode');
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    debugPrint('end decode');
+    debugPrint('start get list');
+    List<dynamic> tempList = tempMap['requirements'];
+    debugPrint('end get list');
+    debugPrint('print all item');
+
+    return tempList;
+  }
+
+  // 특정 요구 조회
+  // 요구 취소
+  //
 }
 
 class ApplicationApi {}

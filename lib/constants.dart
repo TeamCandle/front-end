@@ -17,6 +17,9 @@ class RouterPath {
   static const String myDogRegistraion = '/home/my_profile/dog_registration';
   static const String profileModify = '/home/my_profile/modify_myprofile';
 
+  //search tree
+  static const String allRequest = '/home/all_request';
+
   //match tree
   static const String matching = '/home/matching';
   static const String requestDetail = '/home/matching/request_detail';

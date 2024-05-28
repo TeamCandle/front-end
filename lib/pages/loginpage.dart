@@ -13,7 +13,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 //files
-import '../providers.dart';
+import '../datamodels.dart';
 import '../constants.dart';
 
 class LogInPage extends StatelessWidget {

@@ -68,97 +68,97 @@ class _MatchingPageState extends State<MatchingPage> {
   }
 }
 
-class RequestDetailPage extends StatefulWidget {
-  const RequestDetailPage({super.key});
+// class RequestDetailPage extends StatefulWidget {
+//   const RequestDetailPage({super.key});
 
-  @override
-  State<RequestDetailPage> createState() => _RequestDetailPageState();
-}
+//   @override
+//   State<RequestDetailPage> createState() => _RequestDetailPageState();
+// }
 
-class _RequestDetailPageState extends State<RequestDetailPage> {
-  final MyMap _myMap = MyMap();
-  late LatLng initLocation = LatLng(10.00, 10.00);
+// class _RequestDetailPageState extends State<RequestDetailPage> {
+//   final MyMap _myMap = MyMap();
+//   late LatLng initLocation = LatLng(10.00, 10.00);
 
-  @override
-  void initState() {
-    super.initState();
-    _myMap.setUpMapOnRequestDetail();
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     _myMap.setUpMapOnRequestDetail();
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("request detail page")),
-      body: Stack(children: [
-        FutureBuilder(
-            future: _myMap.setUpMapOnRequestDetail(),
-            builder: (BuildContext context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              }
-              return GoogleMap(
-                onMapCreated: (GoogleMapController controller) {
-                  _myMap.setMapController(ctrl: controller);
-                },
-                initialCameraPosition: CameraPosition(
-                  target: _myMap.myLocation!,
-                  zoom: 12,
-                ),
-                markers: _myMap.markers,
-              );
-            }),
-        Center(
-            child: Column(
-          children: [
-            const Spacer(),
-            Card.outlined(
-              child: ElevatedButton(
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('check'),
-                            content: const Text('are you sure?'),
-                            actions: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  context.go(RouterPath.applySuccess);
-                                },
-                                child: const Text("ok"),
-                              )
-                            ],
-                          );
-                        });
-                  },
-                  child: const Text('apply')),
-            ),
-          ],
-        )),
-      ]),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text("request detail page")),
+//       body: Stack(children: [
+//         FutureBuilder(
+//             future: _myMap.setUpMapOnRequestDetail(),
+//             builder: (BuildContext context, snapshot) {
+//               if (snapshot.connectionState == ConnectionState.waiting) {
+//                 return const Center(child: CircularProgressIndicator());
+//               } else if (snapshot.hasError) {
+//                 return Center(child: Text('Error: ${snapshot.error}'));
+//               }
+//               return GoogleMap(
+//                 onMapCreated: (GoogleMapController controller) {
+//                   _myMap.setMapController(ctrl: controller);
+//                 },
+//                 initialCameraPosition: CameraPosition(
+//                   target: _myMap.myLocation!,
+//                   zoom: 12,
+//                 ),
+//                 markers: _myMap.markers,
+//               );
+//             }),
+//         Center(
+//             child: Column(
+//           children: [
+//             const Spacer(),
+//             Card.outlined(
+//               child: ElevatedButton(
+//                   onPressed: () {
+//                     showDialog(
+//                         context: context,
+//                         builder: (BuildContext context) {
+//                           return AlertDialog(
+//                             title: const Text('check'),
+//                             content: const Text('are you sure?'),
+//                             actions: [
+//                               ElevatedButton(
+//                                 onPressed: () {
+//                                   context.go(RouterPath.applySuccess);
+//                                 },
+//                                 child: const Text("ok"),
+//                               )
+//                             ],
+//                           );
+//                         });
+//                   },
+//                   child: const Text('apply')),
+//             ),
+//           ],
+//         )),
+//       ]),
+//     );
+//   }
+// }
 
-class ApplySuccessPage extends StatelessWidget {
-  const ApplySuccessPage({super.key});
+// class ApplySuccessPage extends StatelessWidget {
+//   const ApplySuccessPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("success page")),
-      body: Center(
-          child: ElevatedButton(
-        onPressed: () {
-          context.go(RouterPath.matching);
-        },
-        child: const Text('success'),
-      )),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text("success page")),
+//       body: Center(
+//           child: ElevatedButton(
+//         onPressed: () {
+//           context.go(RouterPath.matching);
+//         },
+//         child: const Text('success'),
+//       )),
+//     );
+//   }
+// }
 
 class MyRequestListPage extends StatelessWidget {
   const MyRequestListPage({super.key});
@@ -190,19 +190,19 @@ class RequestRegistrationFormPage extends StatelessWidget {
   }
 }
 
-class MyApplicationListPage extends StatelessWidget {
-  const MyApplicationListPage({super.key});
+// class MyApplicationListPage extends StatelessWidget {
+//   const MyApplicationListPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("my application")),
-      body: const Center(
-        child: Text("my application list"),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text("my application")),
+//       body: const Center(
+//         child: Text("my application list"),
+//       ),
+//     );
+//   }
+// }
 
 class MatchLogPage extends StatelessWidget {
   const MatchLogPage({super.key});
@@ -228,14 +228,14 @@ class ChattingPage extends StatelessWidget {
   }
 }
 
-class RequestSearchPage extends StatelessWidget {
-  const RequestSearchPage({super.key});
+// class RequestSearchPage extends StatelessWidget {
+//   const RequestSearchPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("request search page")),
-      body: const Center(child: Text("request list")),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text("request search page")),
+//       body: const Center(child: Text("request list")),
+//     );
+//   }
+// }
