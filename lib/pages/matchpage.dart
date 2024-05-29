@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../constants.dart';
 import '../testdata.dart';
 import '../mymap.dart';
+import '../router.dart';
 
 class MatchingPage extends StatefulWidget {
   const MatchingPage({super.key});
@@ -160,35 +161,35 @@ class _MatchingPageState extends State<MatchingPage> {
 //   }
 // }
 
-class MyRequestListPage extends StatelessWidget {
-  const MyRequestListPage({super.key});
+// class MyRequestListPage extends StatelessWidget {
+//   const MyRequestListPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("my request list")),
-      body: const Center(child: Text("my request list")),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.go(RouterPath.requestRegistrationForm);
-        },
-        child: const Text("+"),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text("my request list")),
+//       body: const Center(child: Text("my request list")),
+//       floatingActionButton: FloatingActionButton(
+//         onPressed: () {
+//           context.go(RouterPath.requestRegistrationForm);
+//         },
+//         child: const Text("+"),
+//       ),
+//     );
+//   }
+// }
 
-class RequestRegistrationFormPage extends StatelessWidget {
-  const RequestRegistrationFormPage({super.key});
+// class RequestRegistrationFormPage extends StatelessWidget {
+//   const RequestRegistrationFormPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("request registration form page")),
-      body: const Center(child: Text("request registration form")),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text("request registration form page")),
+//       body: const Center(child: Text("request registration form")),
+//     );
+//   }
+// }
 
 // class MyApplicationListPage extends StatelessWidget {
 //   const MyApplicationListPage({super.key});

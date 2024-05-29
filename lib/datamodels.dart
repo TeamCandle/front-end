@@ -2,11 +2,13 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 //files
 import 'constants.dart';
 import 'api.dart';
 
+//provider class
 class UserInfo extends ChangeNotifier {
   int _id = -1;
   String _name = '_name';
@@ -46,6 +48,61 @@ class UserInfo extends ChangeNotifier {
   }
 }
 
+class InfinitList extends ChangeNotifier {
+  int _allRequestOffset = 1;
+  List<dynamic> _allRequestList = [];
+
+  int _myRequestOffset = 1;
+  List<dynamic> _myRequestList = [];
+
+  List<dynamic> get allRequestList => _allRequestList;
+  List<dynamic> get myRequestList => _myRequestList;
+
+  Future<void> updateAllRequestList() async {
+    List<dynamic>? data =
+        await RequirementApi.getAllRequirementList(offset: _allRequestOffset);
+    if (data == null) {
+      debugPrint('[log] null from updateAllRequestList');
+      return;
+    } else if (data.isEmpty) {
+      debugPrint('[log] empty from updateAllRequestList');
+      return;
+    } else {
+      _allRequestList.addAll(data);
+      ++_allRequestOffset;
+      notifyListeners();
+      return;
+    }
+  }
+
+  Future<void> updateMyRequestList() async {
+    List<dynamic>? data =
+        await RequirementApi.getMyRequirementList(offset: _myRequestOffset);
+    if (data == null) {
+      debugPrint('[log] null from updateMyRequestList');
+      return;
+    } else if (data.isEmpty) {
+      debugPrint('[log] empty from updateMyRequestList');
+      return;
+    } else {
+      _myRequestList.addAll(data);
+      ++_myRequestOffset;
+      notifyListeners();
+      return;
+    }
+  }
+
+  void releaseList() {
+    _allRequestOffset = 1;
+    _allRequestList = [];
+    _myRequestOffset = 1;
+    _myRequestList = [];
+    notifyListeners();
+    return;
+  }
+}
+
+//data model
 class DogInfo {
   int? dogId; //최초 등록 시에만 null
   String dogName;
@@ -74,33 +131,30 @@ class DogInfo {
   );
 }
 
-class InfinitList extends ChangeNotifier {
-  int _allRequestOffset = 1;
-  List<dynamic> _allRequestList = [];
+class RequirementDetail {
+  int requirementId;
+  Uint8List? dogImage;
+  String careType;
+  String startTime;
+  String endTime;
+  LatLng careLoaction;
+  String description;
+  int userId;
+  int dogId;
+  int reward;
+  String status;
 
-  List<dynamic> get allRequestList => _allRequestList;
-
-  Future<void> updateAllRequestList() async {
-    List<dynamic>? data =
-        await RequirementApi.getAllRequestList(offset: _allRequestOffset);
-    if (data == null) {
-      debugPrint('[log] null from updateAllRequestList');
-      return;
-    } else if (data.isEmpty) {
-      debugPrint('[log] empty from updateAllRequestList');
-      return;
-    } else {
-      _allRequestList.addAll(data);
-      ++_allRequestOffset;
-      notifyListeners();
-      return;
-    }
-  }
-
-  void releaseList() {
-    _allRequestOffset = 1;
-    _allRequestList = [];
-    notifyListeners();
-    return;
-  }
+  RequirementDetail(
+    this.requirementId,
+    this.dogImage,
+    this.careType,
+    this.startTime,
+    this.endTime,
+    this.careLoaction,
+    this.description,
+    this.userId,
+    this.dogId,
+    this.reward,
+    this.status,
+  );
 }

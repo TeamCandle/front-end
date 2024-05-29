@@ -27,7 +27,7 @@ class MyMap {
     _mapController = ctrl;
   }
 
-  Future<bool> setUpMapOnRequestDetail() async {
+  Future<bool> initMapOnRequestDetail() async {
     _markers.clear();
     await markingMyLocation();
     return true;
@@ -38,16 +38,12 @@ class MyMap {
     if (_myLocation == null) return;
 
     Marker marker = Marker(
-        markerId: MarkerId(DateTime.now().toString()),
-        position: _myLocation!,
-        icon: await BitmapDescriptor.fromAssetImage(
-          const ImageConfiguration(size: Size(1000, 1000)),
-          'assets/images/empty_image.png',
-        )
-        //TODO: BitmapDescriptor.fromByte로 바꾸기
-        //이미지 크기 변경. https://stackoverflow.com/questions/53633404/how-to-change-the-icon-size-of-google-maps-marker-in-flutter
-        );
+      markerId: MarkerId(DateTime.now().toString()),
+      position: _myLocation!,
+      icon: BitmapDescriptor.defaultMarker,
+    );
     _markers.add(marker);
+    debugPrint('[log] marking my location $_myLocation');
   }
 
   Future<void> getMyLocation() async {
@@ -96,6 +92,7 @@ class MyMap {
       icon: BitmapDescriptor.defaultMarker,
     );
     _markers.add(marker);
+    debugPrint('[log] marked at $lat, $lng');
   }
 
   // Future<dynamic> _getPlaceAddress(double lat, double lng) async {

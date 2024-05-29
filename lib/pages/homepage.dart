@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../constants.dart';
+import '../router.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,7 +28,9 @@ class _HomePageState extends State<HomePage> {
             //all request list, my apply list
           ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              context.go(RouterPath.myRequirement);
+            },
             child: const Text("regist my request"),
             //my registration list, regist my request
           ),

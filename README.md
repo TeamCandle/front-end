@@ -20,6 +20,7 @@ https://iqonic.design/product-category/mobile/page/3/
 
 - 기능 샘플 코드
 https://github.com/lkrcdd/flutter_google_map_demo.git
+https://github.com/lkrcdd/flutter_push_back_v3.git
 
 ## 사용 패키지 및 API
 화면 이동 : go_router  
@@ -36,6 +37,8 @@ https://github.com/lkrcdd/flutter_google_map_demo.git
 - constants.dart : 상수 파일. 링크, 텍스트스타일 등의 const변수 저장  
 - providers.dart : 데이터 파일. viewmodel역할
 - router.dart : 화면 이동 경로 지정
+
+
 
 ## setting
 #### 1. google map api setting
@@ -99,7 +102,7 @@ notiController
 #### 3. firebase setting
 1. install firebase cli (if not installed)
 2. firebase login
-3. firebase configure
+3. flutterfire configure
 4. set android package name
 
 #### 4. flutter_background_service setting 
@@ -129,6 +132,8 @@ android/app/src/main/AndroidManifest.xml에 permission 코드 추가
   ...
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 ...
+
+
 
 ## information
 #### provider 사용법
@@ -162,6 +167,23 @@ key - value 형태로 간단한 정보만 저장
 -> infowindow : 마커 클릭 시 표시되는 창 
 -> snippet : subtitle
 
+#### 변수 선언 종류
+String, int ... : classic variable type
+
+- type free variable
+var : compile time variable -> must be init
+dynamic : run time variable
+
+- constants
+const : compile time constants
+final : run time constants(assign only one time)
+
+- scope
+static : global variable(class에 사용)
+
+- init time
+late : late init variable
+
 #### 스프링부트 파일 구조  
 my-spring-boot-project/  
 ├── src/  
@@ -189,24 +211,8 @@ my-spring-boot-project/
 - (_)의 의미  
 함수나 메서드의 매개변수로 _를 사용하면 해당 매개변수를 사용하지 않는다는 것을 나타냅니다  
 
-#### 변수 선언 종류
-String, int ... : classic variable type
 
-- type free variable
-var : compile time variable -> must be init
-dynamic : run time variable
-
-- constants
-const : compile time constants
-final : run time constants(assign only one time)
-
-- scope
-static : global variable(class에 사용)
-
-- init time
-late : late init variable
-
-## 오류 로그
+## Error log
 #### android 오류
 - net::ERR_CLEARTEXT_NOT_PERMITTED
 https://peterica.tistory.com/560  

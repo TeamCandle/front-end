@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../api.dart';
 import '../constants.dart';
+import '../router.dart';
 
 // profile pages
 class ProfilePage extends StatelessWidget {

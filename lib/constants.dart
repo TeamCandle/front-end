@@ -7,33 +7,6 @@ class ApiKeys {
   static const String googleApiKey = 'AIzaSyBTk9blgdCa4T8fARQha7o-AuF8WkK3byI';
 }
 
-class RouterPath {
-  static const String home = '/home';
-
-  //profile tree
-  static const String myProfile = '/home/my_profile';
-  static const String myReview = '/home/my_profile/my_review';
-  static const String myDogProfile = '/home/my_profile/dog_profile';
-  static const String myDogRegistraion = '/home/my_profile/dog_registration';
-  static const String profileModify = '/home/my_profile/modify_myprofile';
-
-  //search tree
-  static const String allRequest = '/home/all_request';
-
-  //match tree
-  static const String matching = '/home/matching';
-  static const String requestDetail = '/home/matching/request_detail';
-  static const String applySuccess =
-      '/home/matching/request_detail/apply_success';
-  static const String myRequestList = '/home/matching/my_request_list';
-  static const String requestRegistrationForm =
-      '/home/matching/my_request_list/form';
-  static const String myApplicationList = "/home/matching/my_application_list";
-  static const String matchLog = '/home/matching/match_log';
-  static const String chatting = '/home/matching/chatting';
-  static const String requestSearch = '/home/matching/request_search';
-}
-
 class CareType {
   static const String walking = "WALKING";
   static const String boarding = "BOARDING";

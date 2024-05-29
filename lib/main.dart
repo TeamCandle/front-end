@@ -1,15 +1,23 @@
 //dependencies
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_doguber_frontend/firebase_options.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:provider/provider.dart';
 import 'package:localstorage/localstorage.dart';
 //files
 import 'router.dart';
 import 'datamodels.dart';
+import 'notification.dart';
 
+//exfAqq5NSyugB-Bst4UVix:APA91bFR7PCtRFwCBO5XjYLf2gOO3eUp93_urIPcC6XyDGZeXx1poNi4Zzgf-SwTOQ9PcCRkJF-93HUQGB-RyYfjikENlw7fE9Ji9Hc_wDGRH3ZWhdzvgGlApBq43kINn8c9gJzhyuN1
 Future<void> main() async {
   //init flutter engine
   WidgetsFlutterBinding.ensureInitialized();
+
+  //init fcm
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FcmNotification.initFcmNotification();
 
   //init kakao login sdk
   KakaoSdk.init(
@@ -24,8 +32,19 @@ Future<void> main() async {
   runApp(const DogUberApp());
 }
 
-class DogUberApp extends StatelessWidget {
+class DogUberApp extends StatefulWidget {
   const DogUberApp({super.key});
+
+  @override
+  State<DogUberApp> createState() => _DogUberAppState();
+}
+
+class _DogUberAppState extends State<DogUberApp> {
+  @override
+  void initState() {
+    super.initState();
+    //FcmNotification.setTapListener(context);
+  }
 
   @override
   Widget build(BuildContext context) {

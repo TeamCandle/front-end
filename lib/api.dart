@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_doguber_frontend/pages/matchpage.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
@@ -411,39 +412,9 @@ class DogProfileApi {
 class RequirementApi {
   static final AuthApi _auth = AuthApi();
 
-  // // 요구 등록
-  // Future<dynamic> registRequirement(
-  //     {required Map<String, dynamic> requirement}) async {
-  //   var url = Uri.parse(ServerUrl.requirementUrl);
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result = await _tryPost(
-  //       title: "regist requirement",
-  //       url: url,
-  //       header: header,
-  //       body: requirement);
-  //   if (result == null) return null;
-  // }
-
-  // // 내 요구 리스트 조회
-  // Future<dynamic> getmyRequirementList() async {
-  //   var url = Uri.parse('${ServerUrl.requirementListUrl}/me');
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result =
-  //       await _tryGet(title: "my requirement list", url: url, header: header);
-  //   if (result == null) return null;
-  // }
-
-  // 내 요구 조회
-  // Future<dynamic> getMyRequirement({required String requirementId}) async {
-  //   var url = Uri.parse('${ServerUrl.requirementUrl}/me?id=$requirementId');
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result =
-  //       await _tryGet(title: "my requirement", url: url, header: header);
-  //   if (result == null) return null;
-  // }
-
   // 전체 요구 리스트 조회
-  static Future<List<dynamic>?> getAllRequestList({required int offset}) async {
+  static Future<List<dynamic>?> getAllRequirementList(
+      {required int offset}) async {
     //데이터 준비
     var url = Uri.parse('${ServerUrl.requirementListUrl}?offset=$offset');
     var header = {
@@ -478,8 +449,96 @@ class RequirementApi {
   }
 
   // 특정 요구 조회
+  static Future<RequirementDetail?> getRequirementDetail(
+      {required int id}) async {
+    var url = Uri.parse('${ServerUrl.requirementUrl}?id=$id');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get request detail",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[log] get request detail error');
+      return null;
+    }
+
+    var data = jsonDecode(response.body);
+    debugPrint('$data');
+    double x = data['careLocation']['x'];
+    double y = data['careLocation']['y'];
+    debugPrint('position : $x, $y');
+    RequirementDetail requirementDetail;
+    try {
+      requirementDetail = RequirementDetail(
+        data['id'],
+        data['image'] == null ? null : base64Decode(data['image']),
+        data['careType'],
+        data['startTime'].toString(),
+        data['endTime'].toString(),
+        LatLng(data['careLocation']['y'], data['careLocation']['x']),
+        data['description'],
+        data['userId'],
+        data['dogId'],
+        data['reward'],
+        data['status'],
+      );
+      return requirementDetail;
+    } catch (e) {
+      debugPrint('[log] decode requirement fail');
+      return null;
+    }
+  }
+
+  // 내 요구 리스트 조회
+  static Future<List<dynamic>?> getMyRequirementList(
+      {required int offset}) async {
+    var url = Uri.parse('${ServerUrl.requirementListUrl}/me?offset=$offset');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    http.Response? response = await HttpMethod.tryGet(
+      title: "my requirement list",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+    debugPrint('start decode');
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    debugPrint('end decode');
+    debugPrint('start get list');
+    List<dynamic> tempList = tempMap['requirements'];
+    debugPrint('end get list');
+    debugPrint('print all item');
+
+    return tempList;
+  }
+
+  // 내 요구 조회
+  // Future<dynamic> getMyRequirement({required String requirementId}) async {
+  //   var url = Uri.parse('${ServerUrl.requirementUrl}/me?id=$requirementId');
+  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
+  //   var result =
+  //       await _tryGet(title: "my requirement", url: url, header: header);
+  //   if (result == null) return null;
+  // }
+
+  // // 요구 등록
+  // Future<dynamic> registRequirement(
+  //     {required Map<String, dynamic> requirement}) async {
+  //   var url = Uri.parse(ServerUrl.requirementUrl);
+  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
+  //   var result = await _tryPost(
+  //       title: "regist requirement",
+  //       url: url,
+  //       header: header,
+  //       body: requirement);
+  //   if (result == null) return null;
+  // }
+
   // 요구 취소
-  //
 }
 
 class ApplicationApi {}
