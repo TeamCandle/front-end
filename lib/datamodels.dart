@@ -50,13 +50,13 @@ class UserInfo extends ChangeNotifier {
 
 class InfinitList extends ChangeNotifier {
   int _allRequestOffset = 1;
-  List<dynamic> _allRequestList = [];
+  List<dynamic> allRequestList = [];
 
   int _myRequestOffset = 1;
-  List<dynamic> _myRequestList = [];
+  List<dynamic> myRequestList = [];
 
-  List<dynamic> get allRequestList => _allRequestList;
-  List<dynamic> get myRequestList => _myRequestList;
+  int _myApplicationOffset = 1;
+  List<dynamic> myApplicationList = [];
 
   Future<void> updateAllRequestList() async {
     List<dynamic>? data =
@@ -68,7 +68,7 @@ class InfinitList extends ChangeNotifier {
       debugPrint('[log] empty from updateAllRequestList');
       return;
     } else {
-      _allRequestList.addAll(data);
+      allRequestList.addAll(data);
       ++_allRequestOffset;
       notifyListeners();
       return;
@@ -85,8 +85,25 @@ class InfinitList extends ChangeNotifier {
       debugPrint('[log] empty from updateMyRequestList');
       return;
     } else {
-      _myRequestList.addAll(data);
+      myRequestList.addAll(data);
       ++_myRequestOffset;
+      notifyListeners();
+      return;
+    }
+  }
+
+  Future<void> updateMyApplicationList() async {
+    List<dynamic>? data =
+        await ApplicationApi.getMyApplicationList(offset: _myApplicationOffset);
+    if (data == null) {
+      debugPrint('[log] null from updateMyApplicationList');
+      return;
+    } else if (data.isEmpty) {
+      debugPrint('[log] empty from updateMyApplicationList');
+      return;
+    } else {
+      myApplicationList.addAll(data);
+      ++_myApplicationOffset;
       notifyListeners();
       return;
     }
@@ -94,9 +111,11 @@ class InfinitList extends ChangeNotifier {
 
   void releaseList() {
     _allRequestOffset = 1;
-    _allRequestList = [];
+    allRequestList = [];
     _myRequestOffset = 1;
-    _myRequestList = [];
+    myRequestList = [];
+    _myApplicationOffset = 1;
+    myApplicationList = [];
     notifyListeners();
     return;
   }

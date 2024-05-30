@@ -1,4 +1,6 @@
 //dependency
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
@@ -90,6 +92,10 @@ class _AllRequestPageState extends State<AllRequestPage> {
                 },
               ),
             ),
+            ElevatedButton(
+              onPressed: () => context.go(RouterPath.myApplicationList),
+              child: const Text('my applications'),
+            ),
           ],
         ),
       ),
@@ -97,7 +103,7 @@ class _AllRequestPageState extends State<AllRequestPage> {
   }
 }
 
-// single request detail
+// request detail -> success page
 class RequestDetailPage extends StatefulWidget {
   final int requestId;
   const RequestDetailPage({super.key, required this.requestId});
@@ -107,9 +113,6 @@ class RequestDetailPage extends StatefulWidget {
 }
 
 class _RequestDetailPageState extends State<RequestDetailPage> {
-  //리퀘디테일
-  //맵컨트롤러
-
   final MyMap _mapController = MyMap();
   late RequirementDetail? _requirementDetail;
 
@@ -191,7 +194,7 @@ class _RequestDetailPageState extends State<RequestDetailPage> {
                       ),
                       Expanded(
                         flex: 1,
-                        child: Container(child: Text('description')),
+                        child: Container(child: const Text('description')),
                       ),
                     ],
                   ),
@@ -207,8 +210,13 @@ class _RequestDetailPageState extends State<RequestDetailPage> {
                             content: const Text('are you sure?'),
                             actions: [
                               ElevatedButton(
-                                onPressed: () {
-                                  context.go(RouterPath.applySuccess);
+                                onPressed: () async {
+                                  await ApplicationApi.apply(widget.requestId)
+                                      .then((bool result) {
+                                    if (result == true) {
+                                      context.go(RouterPath.allRequest);
+                                    }
+                                  });
                                 },
                                 child: const Text("ok"),
                               )
@@ -225,7 +233,6 @@ class _RequestDetailPageState extends State<RequestDetailPage> {
   }
 }
 
-//apply
 class ApplySuccessPage extends StatelessWidget {
   const ApplySuccessPage({super.key});
 
@@ -244,6 +251,7 @@ class ApplySuccessPage extends StatelessWidget {
   }
 }
 
+// my application page
 class MyApplicationListPage extends StatelessWidget {
   const MyApplicationListPage({super.key});
 
@@ -251,8 +259,66 @@ class MyApplicationListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("my application")),
-      body: const Center(
-        child: Text("my application list"),
+      body: FutureBuilder(
+        future: context.read<InfinitList>().updateMyApplicationList(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            return const Text('something wrong..');
+          }
+
+          return ListView.builder(
+              itemCount: context.watch<InfinitList>().myApplicationList.length,
+              itemBuilder: (BuildContext context, int index) {
+                if (index ==
+                    context.watch<InfinitList>().myApplicationList.length - 3) {
+                  context.read<InfinitList>().updateMyApplicationList();
+                }
+
+                return ListTile(
+                  leading: Image.asset('assets/images/empty_image.png'),
+                  title: Text(context
+                      .watch<InfinitList>()
+                      .myApplicationList[index]['careType']),
+                  subtitle: Text(
+                      '${context.watch<InfinitList>().myApplicationList[index]['time']} / ${context.watch<InfinitList>().myApplicationList[index]['breed']}'),
+                  trailing: Text(context
+                      .watch<InfinitList>()
+                      .myApplicationList[index]['status']),
+                  onTap: () {
+                    context.go(
+                        '${RouterPath.myApplicationDetail}?applicationId=${context.read<InfinitList>().myApplicationList[index]['id']}');
+                  },
+                );
+              });
+        },
+      ),
+    );
+  }
+}
+
+class MyApplicationDetailPage extends StatelessWidget {
+  final int applicationId;
+  const MyApplicationDetailPage({super.key, required this.applicationId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('my application detail'),
+      ),
+      body: FutureBuilder(
+        future: ApplicationApi.getApplicationDetail(applicationId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          } else if (snapshot.data == null || snapshot.hasError) {
+            return const Text('data err');
+          }
+          var data = jsonDecode(snapshot.data!.body);
+          return Text('$data');
+        },
       ),
     );
   }

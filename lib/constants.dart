@@ -62,4 +62,7 @@ class ServerUrl {
   static const String requirementUrl = '$serverUrl/requirement'; //+me
   static const String requirementListUrl = '$serverUrl/requirement/list'; //+me
   static const String requirementCancelUrl = '$serverUrl/requirement/cancel';
+
+  //application url
+  static const String applicationUrl = '$serverUrl/application';
 }

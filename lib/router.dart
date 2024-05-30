@@ -49,6 +49,31 @@ final GoRouter router = GoRouter(
                     return RequestDetailPage(requestId: requestIdInt);
                   },
                 ),
+                GoRoute(
+                  path: 'my_application_list',
+                  builder: (context, state) {
+                    return const MyApplicationListPage();
+                  },
+                  routes: [
+                    GoRoute(
+                      path: 'detail',
+                      builder: (context, state) {
+                        var id = state.uri.queryParameters['applicationId'];
+                        if (id == null) {
+                          return ErrorPage();
+                        }
+
+                        int idInt;
+                        try {
+                          idInt = int.parse(id);
+                        } catch (e) {
+                          return ErrorPage();
+                        }
+                        return MyApplicationDetailPage(applicationId: idInt);
+                      },
+                    )
+                  ],
+                ),
               ],
             ),
             GoRoute(
@@ -159,7 +184,7 @@ class ErrorPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Error')),
-      body: Center(child: Text('Error!')),
+      body: Center(child: Text('query Error!')),
     );
   }
 }
@@ -177,6 +202,10 @@ class RouterPath {
   //search tree
   static const String allRequest = '/home/all_request';
   static const String requestDetail = '/home/all_request/request_detail';
+  static const String myApplicationList =
+      '/home/all_request/my_application_list';
+  static const String myApplicationDetail =
+      '/home/all_request/my_application_list/detail';
 
   //my requirement tree
   static const String myRequirement = '/home/my_requirement_list';
@@ -195,7 +224,6 @@ class RouterPath {
   static const String myRequestList = '/home/matching/my_request_list';
   static const String requestRegistrationForm =
       '/home/matching/my_request_list/form';
-  static const String myApplicationList = "/home/matching/my_application_list";
   static const String matchLog = '/home/matching/match_log';
   static const String chatting = '/home/matching/chatting';
   static const String requestSearch = '/home/matching/request_search';

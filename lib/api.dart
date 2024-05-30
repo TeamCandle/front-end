@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_doguber_frontend/mymap.dart';
+import 'package:flutter_doguber_frontend/notification.dart';
 import 'package:flutter_doguber_frontend/pages/matchpage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -31,7 +32,7 @@ class AuthApi {
   bool get isLogined => _isLogined;
 
   //function
-  void logIn({required JavaScriptMessage message}) {
+  Future<void> logIn({required JavaScriptMessage message}) async {
     Map<String, dynamic> tokens = jsonDecode(message.message);
     _accessToken = tokens['accessToken'];
     _refreshToken = tokens['refreshToken'];
@@ -39,6 +40,7 @@ class AuthApi {
     debugPrint('[log] got login');
     debugPrint('[log] access token : $_accessToken');
     debugPrint('[log] refresh token : $_refreshToken');
+    await _registFcmTokenToServer(tokens['accessToken']);
     return;
   }
 
@@ -55,6 +57,27 @@ class AuthApi {
     _accessToken = null;
     _refreshToken = null;
     _isLogined = false;
+  }
+
+  Future<void> _registFcmTokenToServer(String accessToken) async {
+    var url = Uri.parse('${ServerUrl.serverUrl}/fcm/token');
+    var header = {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    };
+    var body = {"token": "${FcmNotification.fcmToken}"};
+
+    http.Response? response = await HttpMethod.tryPost(
+      title: "regist fcm token",
+      url: url,
+      header: header,
+      body: body,
+    );
+
+    if (response?.statusCode != 200) {
+      debugPrint('[log] fcm token regist fail');
+    }
+    return;
   }
 
   Future<dynamic> reissuAccessToken() async {
@@ -611,14 +634,77 @@ class RequirementApi {
 }
 
 class ApplicationApi {
+  static final AuthApi _auth = AuthApi();
+
   //내가 신청했던 리스트 조회
+  static Future<List<dynamic>?> getMyApplicationList(
+      {required int offset}) async {
+    var url = Uri.parse('${ServerUrl.applicationUrl}/list?offset=$offset');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get my application list",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    List<dynamic> tempList = tempMap['applications'];
+    return tempList;
+  }
+
   //특정 신청 조회
+  static Future<http.Response?> getApplicationDetail(int applicationId) async {
+    var url = Uri.parse('${ServerUrl.applicationUrl}?id=$applicationId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get application detail",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[log] response is null');
+      return null;
+    }
+    return response;
+  }
+
   //탐색한 요구사항에 대한 신청
+  static Future<bool> apply(int requirementId) async {
+    var url =
+        Uri.parse('${ServerUrl.applicationUrl}?requirementId=$requirementId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    try {
+      var response = await http.post(url, headers: header);
+      if (response.statusCode != 200) {
+        debugPrint("[log] apply fail code ${response.statusCode}");
+        debugPrint("[log] apply fail body ${response.body}");
+        return false;
+      }
+      debugPrint("[log] success apply");
+      return true;
+    } catch (e) {
+      debugPrint('[log] error apply $e');
+      return false;
+    }
+  }
   //그에 대한 취소
   //내가 등록한 요구사항에 들어온 신청 수락
 }
 
-class MatchingLogApi {}
+class MatchingLogApi {
+  static final AuthApi _auth = AuthApi();
+
+  //매칭 로그 조회
+  //특정 매칭 기록 조회
+  //매칭 완료
+  //매칭 취소
+  //
+}
 
 class PaymentApi {}
 

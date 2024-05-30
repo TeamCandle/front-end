@@ -83,7 +83,7 @@ class _WebViewPageState extends State<WebViewPage> {
     _webViewController.addJavaScriptChannel(
       'tokenHandler',
       onMessageReceived: (JavaScriptMessage message) async {
-        _authApi.logIn(message: message);
+        await _authApi.logIn(message: message);
         await context.read<UserInfo>().updateMyProfile().then((_) {
           debugPrint('[log] login success!');
           context.go('/home');
