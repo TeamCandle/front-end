@@ -58,6 +58,25 @@ final GoRouter router = GoRouter(
               },
               routes: [
                 GoRoute(
+                  path: 'detail',
+                  builder: (context, state) {
+                    var requirementId =
+                        state.uri.queryParameters['requirementId'];
+                    if (requirementId == null) {
+                      return ErrorPage();
+                    }
+
+                    int requirementIdInt;
+                    try {
+                      requirementIdInt = int.parse(requirementId);
+                    } catch (e) {
+                      return ErrorPage();
+                    }
+                    return MyRequirementDetailPage(
+                        requirementId: requirementIdInt);
+                  },
+                ),
+                GoRoute(
                   path: 'select_requirement_dog',
                   builder: (BuildContext context, GoRouterState state) {
                     return const SelectDogInRequirementPage();
@@ -140,7 +159,7 @@ class ErrorPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Error')),
-      body: Center(child: Text('Dog ID is missing')),
+      body: Center(child: Text('Error!')),
     );
   }
 }
@@ -161,6 +180,7 @@ class RouterPath {
 
   //my requirement tree
   static const String myRequirement = '/home/my_requirement_list';
+  static const String myRequirementDetail = '/home/my_requirement_list/detail';
   static const String selectDog =
       '/home/my_requirement_list/select_requirement_dog';
   static const String requirementRegistForm =

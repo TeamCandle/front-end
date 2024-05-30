@@ -114,11 +114,16 @@ class _RequestDetailPageState extends State<RequestDetailPage> {
   late RequirementDetail? _requirementDetail;
 
   Future<bool> initRequestDetailPage() async {
+    //init map at this moment
     bool result = await _mapController.initMapOnRequestDetail();
     if (result == false) return false;
+
+    //get request detail
     _requirementDetail =
         await RequirementApi.getRequirementDetail(id: widget.requestId);
     if (_requirementDetail == null) return false;
+
+    //mark target location
     _mapController.marking(
       _requirementDetail!.careLoaction.latitude,
       _requirementDetail!.careLoaction.longitude,
@@ -131,55 +136,91 @@ class _RequestDetailPageState extends State<RequestDetailPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("request detail page")),
       body: FutureBuilder(
-          future: initRequestDetailPage(),
-          builder: (BuildContext context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError || snapshot.data == false) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
+        future: initRequestDetailPage(),
+        builder: (BuildContext context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError || snapshot.data == false) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
 
-            return Stack(children: [
-              GoogleMap(
-                onMapCreated: (GoogleMapController controller) {
-                  _mapController.setMapController(ctrl: controller);
-                },
-                initialCameraPosition: CameraPosition(
-                  target: _requirementDetail!.careLoaction,
-                  zoom: 30,
-                ),
-                markers: _mapController.markers,
-              ),
-              Center(
-                  child: Column(
-                children: [
-                  const Spacer(),
-                  Card.outlined(
-                    child: ElevatedButton(
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('check'),
-                                  content: const Text('are you sure?'),
-                                  actions: [
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        context.go(RouterPath.applySuccess);
-                                      },
-                                      child: const Text("ok"),
-                                    )
-                                  ],
-                                );
-                              });
-                        },
-                        child: const Text('apply')),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 2,
+                child: GoogleMap(
+                  onMapCreated: (GoogleMapController controller) {
+                    _mapController.setMapController(ctrl: controller);
+                  },
+                  initialCameraPosition: CameraPosition(
+                    target: _requirementDetail!.careLoaction,
+                    zoom: 30,
                   ),
-                ],
-              )),
-            ]);
-          }),
+                  markers: _mapController.markers,
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Card.outlined(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: _requirementDetail!.dogImage == null
+                                  ? Image.asset(
+                                      'assets/images/profile_test.png')
+                                  : Image.memory(_requirementDetail!.dogImage!),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Column(children: [
+                                Text(_requirementDetail!.careType),
+                                Text(
+                                    '${_requirementDetail!.reward.toString()} 원'),
+                                Text(_requirementDetail!.status),
+                              ]),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(child: Text('description')),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('check'),
+                            content: const Text('are you sure?'),
+                            actions: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  context.go(RouterPath.applySuccess);
+                                },
+                                child: const Text("ok"),
+                              )
+                            ],
+                          );
+                        });
+                  },
+                  child: const Text('apply')),
+            ],
+          );
+        },
+      ),
     );
   }
 }

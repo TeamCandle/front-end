@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_doguber_frontend/mymap.dart';
 import 'package:flutter_doguber_frontend/pages/matchpage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -167,6 +168,28 @@ class HttpMethod {
     } catch (e) {
       debugPrint('[log] error $title: $e');
       return false;
+    }
+  }
+
+  static Future<http.Response?> tryPut({
+    required String title,
+    required Uri url,
+    required Map<String, String> header,
+  }) async {
+    debugPrint("[log] start $title");
+
+    try {
+      http.Response? response = await http.put(url, headers: header);
+      if (response.statusCode != 200) {
+        debugPrint("[log] fail ${response.statusCode}");
+        debugPrint("[log] body ${response.body}");
+        return null;
+      }
+      debugPrint("[log] success $title");
+      return response;
+    } catch (e) {
+      debugPrint('[log] error $title: $e');
+      return null;
     }
   }
 
@@ -505,43 +528,95 @@ class RequirementApi {
       debugPrint('response is null');
       return null;
     }
-    debugPrint('start decode');
-    Map<String, dynamic> tempMap = jsonDecode(response.body);
-    debugPrint('end decode');
-    debugPrint('start get list');
-    List<dynamic> tempList = tempMap['requirements'];
-    debugPrint('end get list');
-    debugPrint('print all item');
 
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    List<dynamic> tempList = tempMap['requirements'];
     return tempList;
   }
 
   // 내 요구 조회
-  // Future<dynamic> getMyRequirement({required String requirementId}) async {
-  //   var url = Uri.parse('${ServerUrl.requirementUrl}/me?id=$requirementId');
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result =
-  //       await _tryGet(title: "my requirement", url: url, header: header);
-  //   if (result == null) return null;
-  // }
+  static Future<http.Response?> getMyRequirementDetail(
+      {required int requirementId}) async {
+    var url = Uri.parse('${ServerUrl.requirementUrl}/me?id=$requirementId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    http.Response? response = await HttpMethod.tryGet(
+      title: "my requirement",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[log] response is null');
+      return null;
+    }
+    return response;
+  }
 
   // // 요구 등록
-  Future<dynamic> registRequirement(
-      {required Map<String, dynamic> requirement}) async {
+  static Future<bool> registRequirement({
+    required int dogId,
+    required DateTime dateTime,
+    required int duration,
+    required String careType,
+    required int reward,
+    required String description,
+  }) async {
     var url = Uri.parse(ServerUrl.requirementUrl);
-    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
-    var result = await HttpMethod.tryPost(
-        title: "regist requirement",
-        url: url,
-        header: header,
-        body: requirement);
-    if (result == null) return null;
+    var header = {
+      'Authorization': 'Bearer ${_auth.accessToken}',
+      'Content-Type': 'application/json',
+    };
+    MyMap myMap = MyMap();
+    await myMap.getMyLocation();
+    var body = {
+      "dogId": dogId,
+      "careType": careType,
+      "startTime": dateTime.toIso8601String(),
+      "endTime": dateTime.toIso8601String(),
+      "careLocation": {
+        "x": myMap.myLocation!.longitude,
+        "y": myMap.myLocation!.latitude,
+      },
+      "reward": reward,
+      "description": description,
+    };
+
+    http.Response? response = await HttpMethod.tryPost(
+      title: "regist requirement",
+      url: url,
+      header: header,
+      body: body,
+    );
+    if (response == null || response.body.isEmpty) {
+      debugPrint('[log] regist requirement fail');
+      return false;
+    }
+    return true;
   }
 
   // 요구 취소
+  static Future<bool> cancelMyRequirement(int requirementId) async {
+    var url = Uri.parse('${ServerUrl.requirementUrl}/cancel?id=$requirementId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    http.Response? response = await HttpMethod.tryPut(
+      title: "my requirement",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[log] response is null');
+      return false;
+    }
+    return true;
+  }
 }
 
-class ApplicationApi {}
+class ApplicationApi {
+  //내가 신청했던 리스트 조회
+  //특정 신청 조회
+  //탐색한 요구사항에 대한 신청
+  //그에 대한 취소
+  //내가 등록한 요구사항에 들어온 신청 수락
+}
 
 class MatchingLogApi {}
 

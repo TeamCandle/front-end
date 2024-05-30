@@ -1,9 +1,13 @@
 //dependency
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_doguber_frontend/api.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 //files
@@ -11,6 +15,9 @@ import '../constants.dart';
 import '../testdata.dart';
 import '../mymap.dart';
 import '../router.dart';
+
+//print my requirement list
+//regist my request
 
 class MyRequestListPage extends StatelessWidget {
   const MyRequestListPage({super.key});
@@ -31,13 +38,47 @@ class MyRequestListPage extends StatelessWidget {
           return ListView.builder(
             itemCount: context.watch<InfinitList>().myRequestList.length,
             itemBuilder: (BuildContext context, int index) {
+              //이미지, 견종, 날짜, 케어타입, 등록상태
               return ListTile(
-                title: Text(
-                  context
-                      .watch<InfinitList>()
-                      .myRequestList[index]['id']
-                      .toString(),
+                leading: CircleAvatar(
+                  radius: 30.0,
+                  child: context.watch<InfinitList>().myRequestList[index]
+                              ['image'] ==
+                          null
+                      ? Image.asset('assets/images/profile_test.png')
+                      : Image.memory(base64Decode(context
+                          .watch<InfinitList>()
+                          .myRequestList[index]['image'])),
                 ),
+                title: Row(
+                  children: [
+                    Text(
+                      context.watch<InfinitList>().myRequestList[index]
+                          ['breed'],
+                    ),
+                    const Spacer(),
+                    Text(
+                      context.watch<InfinitList>().myRequestList[index]
+                          ['careType'],
+                    ),
+                  ],
+                ),
+                subtitle: Text(
+                  context.watch<InfinitList>().myRequestList[index]['time'],
+                ),
+                trailing: Text(
+                  context.watch<InfinitList>().myRequestList[index]['status'],
+                ),
+                onTap: () {
+                  if (context.read<InfinitList>().myRequestList[index]
+                          ['status'] ==
+                      '취소됨') {
+                    return;
+                  } else {
+                    context.go(
+                        '${RouterPath.myRequirementDetail}?requirementId=${context.read<InfinitList>().myRequestList[index]['id']}');
+                  }
+                },
               );
             },
           );
@@ -53,6 +94,83 @@ class MyRequestListPage extends StatelessWidget {
   }
 }
 
+//see my requirement detail
+class MyRequirementDetailPage extends StatelessWidget {
+  final int requirementId;
+  const MyRequirementDetailPage({super.key, required this.requirementId});
+
+  @override
+  Widget build(BuildContext context) {
+    Future<void> goBack() async {
+      await context.read<InfinitList>().updateMyRequestList().then((_) {
+        context.go(RouterPath.myRequirement);
+      });
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('my requirement')),
+      body: FutureBuilder(
+        future:
+            RequirementApi.getMyRequirementDetail(requirementId: requirementId),
+        builder:
+            (BuildContext context, AsyncSnapshot<http.Response?> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('Error loading data'));
+          } else if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('No data available'));
+          }
+          var data = jsonDecode(snapshot.data!.body);
+          Map<String, dynamic> detail = data['details'];
+          List<dynamic> applicants = data['applications'];
+          return Column(
+            children: [
+              CircleAvatar(
+                radius: 30.0,
+                child: detail['dogImage'] == null
+                    ? Image.asset('assets/images/profile_test.png')
+                    : Image.memory(base64Decode(detail['dogImage'])),
+              ),
+              Text('${detail['careType']}'),
+              Text('${detail['description']}'),
+              Text('${detail['status']}'),
+              Text(detail['reward'].toString()),
+              Expanded(
+                child: ListView.builder(
+                    itemCount: applicants.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return ListTile(
+                        leading: Expanded(
+                          child: applicants[index]['image'] == null
+                              ? Image.asset('assets/images/profile_test.png')
+                              : Image.memory(Uint8List.fromList(
+                                  utf8.encode(applicants[index]['image']))),
+                        ),
+                        title: Text(applicants[index]['name']),
+                        subtitle: Text(applicants[index]['gender']),
+                        trailing: Text('${applicants[index]['rating']}'),
+                      );
+                    }),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  bool result =
+                      await RequirementApi.cancelMyRequirement(requirementId);
+                  if (result == false) return;
+                  await goBack();
+                },
+                child: const Text('cancel'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+//requirement regist sequence
 class SelectDogInRequirementPage extends StatelessWidget {
   const SelectDogInRequirementPage({super.key});
 
@@ -126,10 +244,13 @@ class RequestRegistrationFormPage extends StatefulWidget {
 
 class _RequestRegistrationFormPageState
     extends State<RequestRegistrationFormPage> {
+  final TextEditingController timeController = TextEditingController();
   final TextEditingController rewardController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  MyMap _mymap = MyMap();
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  String _selectedCare = CareType.boarding;
 
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
@@ -153,14 +274,6 @@ class _RequestRegistrationFormPageState
     }
   }
 
-  // final DateTime dateTime = DateTime(
-  //     _selectedDate.year,
-  //     _selectedDate.month,
-  //     _selectedDate.day,
-  //     _selectedTime.hour,
-  //     _selectedTime.minute,
-  //   );
-
   @override
   Widget build(BuildContext context) {
     debugPrint(
@@ -173,16 +286,53 @@ class _RequestRegistrationFormPageState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ElevatedButton(
-                onPressed: () {},
-                child: const Text('select dog'),
-              ),
-              ElevatedButton(
                 onPressed: () async => await _selectDate(),
-                child: const Text('when start?'),
+                child: const Text('select date'),
               ),
               ElevatedButton(
                 onPressed: () async => await _selectTime(),
-                child: const Text('how long?'),
+                child: const Text('select start time'),
+              ),
+              TextField(
+                controller: timeController,
+                decoration: const InputDecoration(labelText: 'how long?'),
+                keyboardType: TextInputType.number,
+              ),
+              Row(
+                children: [
+                  const Spacer(),
+                  const Text('요청사항'),
+                  const Spacer(),
+                  DropdownButton<String>(
+                    value: _selectedCare,
+                    onChanged: (String? value) {
+                      setState(() => _selectedCare = value!);
+                    },
+                    items: const [
+                      DropdownMenuItem<String>(
+                        value: CareType.boarding,
+                        child: Text(CareType.boarding),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: CareType.etc,
+                        child: Text(CareType.etc),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: CareType.grooming,
+                        child: Text(CareType.grooming),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: CareType.playtime,
+                        child: Text(CareType.playtime),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: CareType.walking,
+                        child: Text(CareType.walking),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                ],
               ),
               TextField(
                 controller: rewardController,
@@ -193,6 +343,30 @@ class _RequestRegistrationFormPageState
                 controller: descriptionController,
                 decoration: const InputDecoration(labelText: '설명'),
               ),
+              ElevatedButton(
+                  onPressed: () async {
+                    if (_selectedDate == null || _selectedTime == null) return;
+                    final DateTime dateTime = DateTime(
+                      _selectedDate!.year,
+                      _selectedDate!.month,
+                      _selectedDate!.day,
+                      _selectedTime!.hour,
+                      _selectedTime!.minute,
+                    );
+                    await RequirementApi.registRequirement(
+                      dogId: widget.dogId,
+                      dateTime: dateTime,
+                      duration: int.parse(timeController.text),
+                      careType: _selectedCare,
+                      reward: int.parse(rewardController.text),
+                      description: descriptionController.text,
+                    ).then((bool result) {
+                      if (result == true) {
+                        context.go(RouterPath.myRequirement);
+                      }
+                    });
+                  },
+                  child: const Text('request')),
             ],
           ),
         ),
