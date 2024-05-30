@@ -110,7 +110,7 @@ class DogInfo {
   String dogGender;
   bool neutered;
   int age;
-  double size;
+  String size;
   double weight;
   String breed;
   String description;

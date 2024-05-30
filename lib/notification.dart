@@ -5,13 +5,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'firebase_options.dart';
 import 'router.dart';
-
-//exfAqq5NSyugB-Bst4UVix:APA91bFR7PCtRFwCBO5XjYLf2gOO3eUp93_urIPcC6XyDGZeXx1poNi4Zzgf-SwTOQ9PcCRkJF-93HUQGB-RyYfjikENlw7fE9Ji9Hc_wDGRH3ZWhdzvgGlApBq43kINn8c9gJzhyuN
 
 @pragma('vm:entry-point')
 Future<void> listenFcmInBackground(RemoteMessage message) async {
@@ -85,7 +84,11 @@ class FcmNotification {
       const InitializationSettings(
         android: AndroidInitializationSettings('app_icon'),
       ),
-      onDidReceiveNotificationResponse: onNotiTapped,
+      // onDidReceiveNotificationResponse: (NotificationResponse response) {
+      //   //리스너 대기열(스트림)에 추가
+      //   notiTapStream.add(response.payload);
+      //   debugPrint('[log] notification tapped');
+      // },
       //onDidReceiveBackgroundNotificationResponse: interactNotiWithoutTap,
     );
 
@@ -120,27 +123,46 @@ class FcmNotification {
     debugPrint('[log] ${settings.authorizationStatus}');
   }
 
-  static void onNotiTapped(NotificationResponse notificationResponse) {
-    debugPrint('[log] notification tapped');
-    //리스너 대기열(스트림)에 추가
-    notiTapStream.add(notificationResponse.payload);
+  static void setFcmListenerInForeground() {
+    //TODO: 이친구가 띄우는 알람의 핸들링은 local noti의 핸들링으로 처리해야함.
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      debugPrint('[log] Got a message in the foreground');
+      var notiDetailForAnd = const AndroidNotificationDetails(
+        'your channel id',
+        'your channel name',
+        channelDescription: 'your channel description',
+        importance: Importance.max,
+        priority: Priority.high,
+        ticker: 'ticker',
+      );
+      var notiDetail = NotificationDetails(android: notiDetailForAnd);
+
+      await notiController.show(
+        1,
+        message.data['title'],
+        message.data['body'],
+        notiDetail,
+        payload: 'item x',
+      );
+    });
   }
 
-  //얘는 일단 보류해두고.
-  static Future<void> setTapListener(BuildContext context) async {
-    //when app terminated
+  //notihandler보다 얘 쓰는듯.
+  static Future<void> setFcmListenerInBackground(BuildContext context) async {
+    //종료 상태에서 받은 알림으로 앱을 열 때
     await FirebaseMessaging.instance.getInitialMessage().then((initialMessage) {
       if (initialMessage != null) {
         _gotoHomePage(initialMessage, context);
       }
     });
 
-    //when app in background
+    //백그라운드 상태에서 받은 알림으로 앱을 열 때
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage remoteMessage) {
       _gotoHomePage(remoteMessage, context);
     });
   }
 
+  //TODO: Navigator.push 순정 쓰기
   static void _gotoHomePage(RemoteMessage message, BuildContext context) =>
-      context.go(RouterPath.home);
+      context.go(RouterPath.myProfile);
 }

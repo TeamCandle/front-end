@@ -56,7 +56,33 @@ final GoRouter router = GoRouter(
               builder: (BuildContext context, GoRouterState state) {
                 return const MyRequestListPage();
               },
-              routes: [],
+              routes: [
+                GoRoute(
+                  path: 'select_requirement_dog',
+                  builder: (BuildContext context, GoRouterState state) {
+                    return const SelectDogInRequirementPage();
+                  },
+                  routes: [
+                    GoRoute(
+                      path: 'registform_requirement',
+                      builder: (BuildContext context, GoRouterState state) {
+                        var dogId = state.uri.queryParameters['dogId'];
+                        if (dogId == null) {
+                          return ErrorPage();
+                        }
+
+                        int dogIdInt;
+                        try {
+                          dogIdInt = int.parse(dogId);
+                        } catch (e) {
+                          return ErrorPage();
+                        }
+                        return RequestRegistrationFormPage(dogId: dogIdInt);
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
             GoRoute(
               path: 'my_profile',
@@ -135,10 +161,15 @@ class RouterPath {
 
   //my requirement tree
   static const String myRequirement = '/home/my_requirement_list';
+  static const String selectDog =
+      '/home/my_requirement_list/select_requirement_dog';
+  static const String requirementRegistForm =
+      '/home/my_requirement_list/select_requirement_dog/registform_requirement';
 
   //match tree
   static const String matching = '/home/matching';
 
+  //죽일 경로들
   static const String applySuccess =
       '/home/matching/request_detail/apply_success';
   static const String myRequestList = '/home/matching/my_request_list';

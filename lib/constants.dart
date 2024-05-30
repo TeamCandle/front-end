@@ -7,6 +7,12 @@ class ApiKeys {
   static const String googleApiKey = 'AIzaSyBTk9blgdCa4T8fARQha7o-AuF8WkK3byI';
 }
 
+class DogSize {
+  static String small = "SMALL";
+  static String medium = "MEDIUM";
+  static String large = "LARGE";
+}
+
 class CareType {
   static const String walking = "WALKING";
   static const String boarding = "BOARDING";

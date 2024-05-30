@@ -341,7 +341,6 @@ class DogRegistrationPage extends StatefulWidget {
 
 class _DogRegistrationPageState extends State<DogRegistrationPage> {
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController genderController = TextEditingController();
   final TextEditingController ageController = TextEditingController();
   final TextEditingController breedController = TextEditingController();
   final TextEditingController neuteredController = TextEditingController();
@@ -351,7 +350,9 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
   final ImagePicker _imagePicker = ImagePicker();
   late DogInfo _dogInfo;
   XFile? _dogImage;
-  bool? _selectedRadio;
+  bool? _isNeutered;
+  String? _isGender;
+  final List<bool> _isSizeSelected = [false, false, false];
 
   @override
   Widget build(BuildContext context) {
@@ -364,7 +365,7 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('프로필 등록')),
       body: Container(
-        margin: const EdgeInsets.all(16.0),
+        margin: const EdgeInsets.all(10.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -389,9 +390,36 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
                 controller: nameController,
                 decoration: const InputDecoration(labelText: '이름'),
               ),
-              TextField(
-                controller: genderController,
-                decoration: const InputDecoration(labelText: '성별'),
+              Row(
+                children: [
+                  const Expanded(child: Text('성별')),
+                  Expanded(
+                    flex: 2,
+                    child: ListTile(
+                      title: const Text('남자'),
+                      leading: Radio<String>(
+                        value: 'male',
+                        groupValue: _isGender,
+                        onChanged: (String? value) {
+                          setState(() => _isGender = value!);
+                        },
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: ListTile(
+                      title: const Text('여자'),
+                      leading: Radio<String>(
+                        value: 'female',
+                        groupValue: _isGender,
+                        onChanged: (String? value) {
+                          setState(() => _isGender = value!);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
               TextField(
                 controller: ageController,
@@ -411,9 +439,9 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
                       title: const Text('완료'),
                       leading: Radio<bool>(
                         value: true,
-                        groupValue: _selectedRadio,
+                        groupValue: _isNeutered,
                         onChanged: (bool? value) {
-                          setState(() => _selectedRadio = value!);
+                          setState(() => _isNeutered = value!);
                         },
                       ),
                     ),
@@ -424,19 +452,38 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
                       title: const Text('안함'),
                       leading: Radio<bool>(
                         value: false,
-                        groupValue: _selectedRadio,
+                        groupValue: _isNeutered,
                         onChanged: (bool? value) {
-                          setState(() => _selectedRadio = value!);
+                          setState(() => _isNeutered = value!);
                         },
                       ),
                     ),
                   ),
                 ],
               ),
-              TextField(
-                controller: sizeController,
-                decoration: const InputDecoration(labelText: '크기'),
-              ),
+              LayoutBuilder(builder: (context, constraints) {
+                return ToggleButtons(
+                  isSelected: _isSizeSelected,
+                  constraints: BoxConstraints.expand(
+                      width: (constraints.maxWidth - 10) / 3),
+                  onPressed: (int index) {
+                    setState(() {
+                      for (int i = 0; i < _isSizeSelected.length; i++) {
+                        if (i == index) {
+                          _isSizeSelected[i] = true;
+                        } else {
+                          _isSizeSelected[i] = false;
+                        }
+                      }
+                    });
+                  },
+                  children: const <Widget>[
+                    Text('소형'),
+                    Text('중형'),
+                    Text('대형'),
+                  ],
+                );
+              }),
               TextField(
                 controller: weightController,
                 decoration: const InputDecoration(labelText: '무게'),
@@ -454,15 +501,28 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
                   if (_dogImage != null) {
                     imagedata = await _dogImage!.readAsBytes();
                   }
+                  if (_isGender == null) {
+                    return;
+                  }
+                  String size;
+                  if (_isSizeSelected[0] == true) {
+                    size = DogSize.small;
+                  } else if (_isSizeSelected[1] == true) {
+                    size = DogSize.medium;
+                  } else if (_isSizeSelected[2] == true) {
+                    size = DogSize.large;
+                  } else {
+                    return;
+                  }
                   _dogInfo = DogInfo(
                     null,
                     nameController.text,
-                    genderController.text,
+                    _isGender!,
                     imagedata,
-                    null,
-                    _selectedRadio!, //불리안 선택
+                    null, //owner id. must be empty
+                    _isNeutered!, //불리안 선택
                     int.parse(ageController.text), //숫자만  가능한 필드로
-                    1.1, //더블만 가능한 필드로
+                    size,
                     1.1, //더블만 가능한 필드로
                     breedController.text,
                     descriptionController.text,

@@ -10,7 +10,6 @@ import 'router.dart';
 import 'datamodels.dart';
 import 'notification.dart';
 
-//exfAqq5NSyugB-Bst4UVix:APA91bFR7PCtRFwCBO5XjYLf2gOO3eUp93_urIPcC6XyDGZeXx1poNi4Zzgf-SwTOQ9PcCRkJF-93HUQGB-RyYfjikENlw7fE9Ji9Hc_wDGRH3ZWhdzvgGlApBq43kINn8c9gJzhyuN1
 Future<void> main() async {
   //init flutter engine
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +42,8 @@ class _DogUberAppState extends State<DogUberApp> {
   @override
   void initState() {
     super.initState();
-    //FcmNotification.setTapListener(context);
+    FcmNotification.setFcmListenerInBackground(context);
+    FcmNotification.setFcmListenerInForeground();
   }
 
   @override

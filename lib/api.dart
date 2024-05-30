@@ -304,7 +304,7 @@ class DogProfileApi {
         true,
         data['age'],
         //TODO: 고치기
-        1.1,
+        data['size'],
         1.1,
         data['breed'],
         data['description'],
@@ -333,7 +333,7 @@ class DogProfileApi {
     request.fields['gender'] = doginfo.dogGender;
     request.fields['neutered'] = doginfo.neutered.toString();
     request.fields['age'] = doginfo.age.toString();
-    request.fields['size'] = doginfo.size.toString();
+    request.fields['size'] = doginfo.size;
     request.fields['weight'] = doginfo.weight.toString();
     request.fields['breed'] = doginfo.breed;
     request.fields['description'] = doginfo.description;
@@ -526,17 +526,17 @@ class RequirementApi {
   // }
 
   // // 요구 등록
-  // Future<dynamic> registRequirement(
-  //     {required Map<String, dynamic> requirement}) async {
-  //   var url = Uri.parse(ServerUrl.requirementUrl);
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result = await _tryPost(
-  //       title: "regist requirement",
-  //       url: url,
-  //       header: header,
-  //       body: requirement);
-  //   if (result == null) return null;
-  // }
+  Future<dynamic> registRequirement(
+      {required Map<String, dynamic> requirement}) async {
+    var url = Uri.parse(ServerUrl.requirementUrl);
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    var result = await HttpMethod.tryPost(
+        title: "regist requirement",
+        url: url,
+        header: header,
+        body: requirement);
+    if (result == null) return null;
+  }
 
   // 요구 취소
 }
