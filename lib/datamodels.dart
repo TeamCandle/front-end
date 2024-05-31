@@ -58,6 +58,9 @@ class InfinitList extends ChangeNotifier {
   int _myApplicationOffset = 1;
   List<dynamic> myApplicationList = [];
 
+  int _matchingLogOffset = 1;
+  List<dynamic> matchingLogList = [];
+
   Future<void> updateAllRequestList() async {
     List<dynamic>? data =
         await RequirementApi.getAllRequirementList(offset: _allRequestOffset);
@@ -109,6 +112,23 @@ class InfinitList extends ChangeNotifier {
     }
   }
 
+  Future<void> updateMatchingLogList() async {
+    List<dynamic>? data =
+        await MatchingLogApi.getMatchingLogList(_matchingLogOffset);
+    if (data == null) {
+      debugPrint('[log] null from updateMatchingLogList');
+      return;
+    } else if (data.isEmpty) {
+      debugPrint('[log] empty from updateMatchingLogList');
+      return;
+    } else {
+      matchingLogList.addAll(data);
+      ++_matchingLogOffset;
+      notifyListeners();
+      return;
+    }
+  }
+
   void releaseList() {
     _allRequestOffset = 1;
     allRequestList = [];
@@ -116,6 +136,8 @@ class InfinitList extends ChangeNotifier {
     myRequestList = [];
     _myApplicationOffset = 1;
     myApplicationList = [];
+    _matchingLogOffset = 1;
+    matchingLogList = [];
     notifyListeners();
     return;
   }

@@ -1,52 +1,78 @@
 //dependency
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 //files
 import '../constants.dart';
+import '../datamodels.dart';
 import '../testdata.dart';
 import '../mymap.dart';
 import '../router.dart';
 
-class MatchingPage extends StatefulWidget {
-  const MatchingPage({super.key});
+class MatchingLogPage extends StatefulWidget {
+  const MatchingLogPage({super.key});
 
   @override
-  State<MatchingPage> createState() => _MatchingPageState();
+  State<MatchingLogPage> createState() => _MatchingLogPageState();
 }
 
-class _MatchingPageState extends State<MatchingPage> {
+class _MatchingLogPageState extends State<MatchingLogPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('match page'),
+      appBar: AppBar(title: const Text("매칭 기록")),
+      body: FutureBuilder(
+        future: context.read<InfinitList>().updateMatchingLogList(),
+        builder: buildMatchingLogList,
       ),
-      body: const Center(child: Text('match')),
     );
   }
-}
 
-class MatchLogPage extends StatelessWidget {
-  const MatchLogPage({super.key});
+  Widget buildMatchingLogList(BuildContext context, AsyncSnapshot snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError) {
+      return const Center(child: Text('error!'));
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("match log page")),
-      body: const Center(child: Text("match log")),
-    );
-  }
-}
+    return ListView.builder(
+        itemCount: context.watch<InfinitList>().matchingLogList.length,
+        itemBuilder: (BuildContext context, int index) {
+          if (index ==
+              context.watch<InfinitList>().matchingLogList.length - 3) {
+            context.read<InfinitList>().updateMyApplicationList();
+          }
 
-class ChattingPage extends StatelessWidget {
-  const ChattingPage({super.key});
+          var image = context.watch<InfinitList>().matchingLogList[index]
+                      ['image'] ==
+                  null
+              ? Image.asset('assets/images/empty_image.png')
+              : Image.memory(
+                  base64Decode(
+                    context.read<InfinitList>().matchingLogList[index]['image'],
+                  ),
+                );
+          int id = context.watch<InfinitList>().matchingLogList[index]['id'];
+          String careType =
+              context.watch<InfinitList>().matchingLogList[index]['careType'];
+          String time =
+              context.watch<InfinitList>().matchingLogList[index]['time'];
+          String breed =
+              context.watch<InfinitList>().matchingLogList[index]['breed'];
+          String status =
+              context.watch<InfinitList>().matchingLogList[index]['status'];
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("chatting page")),
-      body: const Center(child: Text("chatting")),
-    );
+          return ListTile(
+            leading: image,
+            title: Text('$breed\t$careType'),
+            subtitle: Text(time),
+            trailing: Text(status),
+            onTap: () => context
+                .go('${RouterPath.myApplicationDetail}?applicationId=$id'),
+          );
+        });
   }
 }

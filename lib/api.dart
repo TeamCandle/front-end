@@ -154,6 +154,28 @@ class HttpMethod {
     }
   }
 
+  static Future<http.Response?> tryPostWithoutBody({
+    required String title,
+    required Uri url,
+    required Map<String, String> header,
+  }) async {
+    debugPrint("[!!!] start $title");
+
+    try {
+      var response = await http.post(url, headers: header);
+      if (response.statusCode != 200) {
+        debugPrint("[!!!] fail code ${response.statusCode}");
+        debugPrint("[!!!] fail body ${response.body}");
+        return null;
+      }
+      debugPrint("[!!!] success $title");
+      return response;
+    } catch (e) {
+      debugPrint('[!!!] error $title: $e');
+      return null;
+    }
+  }
+
   static Future<http.Response?> tryPatch({
     required String title,
     required Uri url,
@@ -711,19 +733,17 @@ class ApplicationApi {
         Uri.parse('${ServerUrl.applicationUrl}?requirementId=$requirementId');
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
 
-    try {
-      var response = await http.post(url, headers: header);
-      if (response.statusCode != 200) {
-        debugPrint("[!!!] apply fail code ${response.statusCode}");
-        debugPrint("[!!!] apply fail body ${response.body}");
-        return false;
-      }
-      debugPrint("[!!!] success");
-      return true;
-    } catch (e) {
-      debugPrint('[!!!] error apply $e');
+    http.Response? response = await HttpMethod.tryPostWithoutBody(
+      title: "cancel my application",
+      url: url,
+      header: header,
+    );
+
+    if (response == null) {
+      debugPrint('[!!!] response is null');
       return false;
     }
+    return true;
   }
 
   //그에 대한 취소
@@ -745,12 +765,47 @@ class ApplicationApi {
   }
 
   //내가 등록한 요구사항에 들어온 신청 수락
+  static Future<bool> accept(int requirementId, int applicationId) async {
+    var url = Uri.parse(
+        '${ServerUrl.serverUrl}/match?requirementId=$requirementId&applicationId=$applicationId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPostWithoutBody(
+      title: "cancel my application",
+      url: url,
+      header: header,
+    );
+
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return false;
+    }
+    return true;
+  }
 }
 
 class MatchingLogApi {
   static final AuthApi _auth = AuthApi();
 
   //매칭 로그 조회
+  static Future<List<dynamic>?> getMatchingLogList(int offset) async {
+    var url = Uri.parse('${ServerUrl.matchUrl}/list?offset=$offset');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get match log list",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    List<dynamic> tempList = tempMap['matches'];
+    return tempList;
+  }
   //특정 매칭 기록 조회
   //매칭 완료
   //매칭 취소

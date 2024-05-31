@@ -278,9 +278,9 @@ final GoRouter router = GoRouter(
               ],
             ),
             GoRoute(
-              path: 'matching',
+              path: 'matchLog',
               builder: (BuildContext context, GoRouterState state) {
-                return const MatchingPage();
+                return const MatchingLogPage();
               },
             ),
           ],
@@ -335,5 +335,5 @@ class RouterPath {
   static const String requirementRegistForm = '$selectDog/registform';
 
   //match tree
-  static const String matching = '/home/matching';
+  static const String matchLog = '/home/matchLog';
 }

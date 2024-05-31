@@ -37,9 +37,8 @@ class _HomePageState extends State<HomePage> {
           ElevatedButton(onPressed: () {}, child: const Text("premium")),
           ElevatedButton(onPressed: () {}, child: const Text("community")),
           ElevatedButton(
-            onPressed: () {},
-            child: const Text("look my matching log"),
-            //match log list
+            onPressed: () => context.go(RouterPath.matchLog),
+            child: const Text("my match log"),
           ),
           ElevatedButton(
             onPressed: () => context.go(RouterPath.myProfile),

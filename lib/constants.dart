@@ -70,5 +70,7 @@ class ServerUrl {
   static const String requirementCancelUrl = '$serverUrl/requirement/cancel';
 
   //application url
-  static const String applicationUrl = '$serverUrl/application';
+  static const String applicationUrl = '$serverUrl/application'; //+me
+
+  static const String matchUrl = '$serverUrl/match';
 }
