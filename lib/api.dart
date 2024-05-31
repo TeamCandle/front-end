@@ -33,14 +33,20 @@ class AuthApi {
 
   //function
   Future<void> logIn({required JavaScriptMessage message}) async {
+    //login page webview로부터 응답을 받는다.
     Map<String, dynamic> tokens = jsonDecode(message.message);
+
+    //로그인 정보를 갱신한다.
     _accessToken = tokens['accessToken'];
     _refreshToken = tokens['refreshToken'];
     _isLogined = true;
+
+    //서버에 fcm token을 등록한다(설치 등으로 바뀌는 케이스 있으므로 매 로그인마다 실행)
+    await _registFcmTokenToServer(tokens['accessToken']);
+
     debugPrint('[log] got login');
     debugPrint('[log] access token : $_accessToken');
     debugPrint('[log] refresh token : $_refreshToken');
-    await _registFcmTokenToServer(tokens['accessToken']);
     return;
   }
 
@@ -495,8 +501,7 @@ class RequirementApi {
   }
 
   // 특정 요구 조회
-  static Future<RequirementDetail?> getRequirementDetail(
-      {required int id}) async {
+  static Future<DetailInfo?> getRequirementDetail({required int id}) async {
     var url = Uri.parse('${ServerUrl.requirementUrl}?id=$id');
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
 
@@ -512,12 +517,9 @@ class RequirementApi {
 
     var data = jsonDecode(response.body);
     debugPrint('$data');
-    double x = data['careLocation']['x'];
-    double y = data['careLocation']['y'];
-    debugPrint('position : $x, $y');
-    RequirementDetail requirementDetail;
+    DetailInfo requirementDetail;
     try {
-      requirementDetail = RequirementDetail(
+      requirementDetail = DetailInfo(
         data['id'],
         data['image'] == null ? null : base64Decode(data['image']),
         data['careType'],
@@ -557,7 +559,7 @@ class RequirementApi {
     return tempList;
   }
 
-  // 내 요구 조회
+  // 내 요구 조회, 신청자 리스트가 동봉되어있으므로 detailInfo 사용 x
   static Future<http.Response?> getMyRequirementDetail(
       {required int requirementId}) async {
     var url = Uri.parse('${ServerUrl.requirementUrl}/me?id=$requirementId');
@@ -574,7 +576,7 @@ class RequirementApi {
     return response;
   }
 
-  // // 요구 등록
+  //요구 등록
   static Future<bool> registRequirement({
     required int dogId,
     required DateTime dateTime,
@@ -657,7 +659,7 @@ class ApplicationApi {
   }
 
   //특정 신청 조회
-  static Future<http.Response?> getApplicationDetail(int applicationId) async {
+  static Future<DetailInfo?> getApplicationDetail(int applicationId) async {
     var url = Uri.parse('${ServerUrl.applicationUrl}?id=$applicationId');
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
     http.Response? response = await HttpMethod.tryGet(
@@ -669,7 +671,29 @@ class ApplicationApi {
       debugPrint('[log] response is null');
       return null;
     }
-    return response;
+
+    var data = jsonDecode(response.body);
+    debugPrint('$data');
+    DetailInfo applicationDetail;
+    try {
+      applicationDetail = DetailInfo(
+        data['id'],
+        data['image'] == null ? null : base64Decode(data['image']),
+        data['careType'],
+        data['startTime'].toString(),
+        data['endTime'].toString(),
+        LatLng(data['careLocation']['y'], data['careLocation']['x']),
+        data['description'],
+        data['userId'],
+        data['dogId'],
+        data['reward'],
+        data['status'],
+      );
+      return applicationDetail;
+    } catch (e) {
+      debugPrint('[log] decode application fail');
+      return null;
+    }
   }
 
   //탐색한 요구사항에 대한 신청

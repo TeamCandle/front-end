@@ -42,13 +42,14 @@ class _AllRequestPageState extends State<AllRequestPage> {
           children: [
             Row(children: [
               Expanded(
-                  child: TextField(
-                controller: _searchController,
-                decoration: const InputDecoration(
-                  labelText: 'Enter Text',
-                  border: OutlineInputBorder(),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    labelText: 'Enter Text',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              )),
+              ),
               IconButton(
                 onPressed: () {},
                 icon: const Icon(Icons.filter_list_rounded),
@@ -57,39 +58,7 @@ class _AllRequestPageState extends State<AllRequestPage> {
             Expanded(
               child: FutureBuilder(
                 future: context.read<InfinitList>().updateAllRequestList(),
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return const Center(child: Text('error!'));
-                  }
-
-                  return ListView.builder(
-                    itemCount:
-                        context.watch<InfinitList>().allRequestList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      if (index ==
-                          context.watch<InfinitList>().allRequestList.length -
-                              3) {
-                        context.read<InfinitList>().updateAllRequestList();
-                      }
-
-                      return ListTile(
-                        leading: Image.asset('assets/images/empty_image.png'),
-                        title: Text(context
-                            .watch<InfinitList>()
-                            .allRequestList[index]['careType']),
-                        subtitle: Text(
-                            '${context.watch<InfinitList>().allRequestList[index]['time']} / ${context.watch<InfinitList>().allRequestList[index]['breed']}'),
-                        trailing: Text(context
-                            .watch<InfinitList>()
-                            .allRequestList[index]['status']),
-                        onTap: () => context.go(
-                            '${RouterPath.requestDetail}?requestId=${context.read<InfinitList>().allRequestList[index]['id']}'),
-                      );
-                    },
-                  );
-                },
+                builder: buildAllRequirementList,
               ),
             ),
             ElevatedButton(
@@ -101,32 +70,73 @@ class _AllRequestPageState extends State<AllRequestPage> {
       ),
     );
   }
+
+  Widget buildAllRequirementList(BuildContext context, AsyncSnapshot snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError) {
+      return const Center(child: Text('error!'));
+    }
+
+    return ListView.builder(
+      itemCount: context.watch<InfinitList>().allRequestList.length,
+      itemBuilder: (BuildContext context, int index) {
+        if (index == context.watch<InfinitList>().allRequestList.length - 3) {
+          context.read<InfinitList>().updateAllRequestList();
+        }
+
+        var image = context.watch<InfinitList>().allRequestList[index]
+                    ['image'] ==
+                null
+            ? Image.asset('assets/images/empty_image.png')
+            : Image.memory(base64Decode(
+                context.read<InfinitList>().allRequestList[index]['image']));
+        int id = context.read<InfinitList>().allRequestList[index]['id'];
+        String careType =
+            context.watch<InfinitList>().allRequestList[index]['careType'];
+        String time =
+            context.watch<InfinitList>().allRequestList[index]['time'];
+        String breed =
+            context.watch<InfinitList>().allRequestList[index]['breed'];
+        String status =
+            context.watch<InfinitList>().allRequestList[index]['status'];
+
+        return ListTile(
+          leading: image,
+          title: Text('$breed\t$careType'),
+          subtitle: Text(time),
+          trailing: Text(status),
+          onTap: () => context.go('${RouterPath.requestDetail}?requestId=$id'),
+        );
+      },
+    );
+  }
 }
 
 // request detail -> success page
-class RequestDetailPage extends StatefulWidget {
+class RequirementDetailPage extends StatefulWidget {
   final int requestId;
-  const RequestDetailPage({super.key, required this.requestId});
+  const RequirementDetailPage({super.key, required this.requestId});
 
   @override
-  State<RequestDetailPage> createState() => _RequestDetailPageState();
+  State<RequirementDetailPage> createState() => _RequirementDetailPageState();
 }
 
-class _RequestDetailPageState extends State<RequestDetailPage> {
+class _RequirementDetailPageState extends State<RequirementDetailPage> {
   final MyMap _mapController = MyMap();
-  late RequirementDetail? _requirementDetail;
+  late DetailInfo? _requirementDetail;
 
-  Future<bool> initRequestDetailPage() async {
-    //init map at this moment
+  Future<bool> initRequirementDetailPage() async {
+    //이 페이지에서 쓸 맵 컨트롤러를 초기화한다.
     bool result = await _mapController.initMapOnRequestDetail();
     if (result == false) return false;
 
-    //get request detail
+    //요청 세부사항을 가져온다.
     _requirementDetail =
         await RequirementApi.getRequirementDetail(id: widget.requestId);
     if (_requirementDetail == null) return false;
 
-    //mark target location
+    //요청자의 좌표를 표시한다.
     _mapController.marking(
       _requirementDetail!.careLoaction.latitude,
       _requirementDetail!.careLoaction.longitude,
@@ -139,96 +149,137 @@ class _RequestDetailPageState extends State<RequestDetailPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("request detail page")),
       body: FutureBuilder(
-        future: initRequestDetailPage(),
-        builder: (BuildContext context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError || snapshot.data == false) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+        future: initRequirementDetailPage(),
+        builder: buildRequirementDetail,
+      ),
+    );
+  }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                flex: 2,
-                child: GoogleMap(
-                  onMapCreated: (GoogleMapController controller) {
-                    _mapController.setMapController(ctrl: controller);
-                  },
-                  initialCameraPosition: CameraPosition(
-                    target: _requirementDetail!.careLoaction,
-                    zoom: 30,
-                  ),
-                  markers: _mapController.markers,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Card.outlined(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: _requirementDetail!.dogImage == null
-                                  ? Image.asset(
-                                      'assets/images/profile_test.png')
-                                  : Image.memory(_requirementDetail!.dogImage!),
+  Widget buildRequirementDetail(BuildContext context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError || snapshot.data == false) {
+      return Center(child: Text('Error: ${snapshot.error}'));
+    }
+
+    //TODO:리스트에서 이미지오류날때 이거쓰삼
+    dynamic image = _requirementDetail!.dogImage == null
+        ? const AssetImage('assets/images/profile_test.png')
+        : MemoryImage(_requirementDetail!.dogImage!);
+    String careType = _requirementDetail!.careType;
+    String description = _requirementDetail!.description;
+    int userId = _requirementDetail!.userId;
+    int dogId = _requirementDetail!.dogId;
+    String reward = _requirementDetail!.reward.toString();
+    String status = _requirementDetail!.status;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          flex: 2,
+          child: GoogleMap(
+            onMapCreated: (GoogleMapController controller) {
+              _mapController.setMapController(ctrl: controller);
+            },
+            initialCameraPosition: CameraPosition(
+              target: _requirementDetail!.careLoaction,
+              zoom: 15,
+            ),
+            markers: _mapController.markers,
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              double height = constraints.maxHeight;
+              double width = constraints.maxWidth;
+
+              return Card(
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            height: height / 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: CircleAvatar(
+                                maxRadius: (height / 4),
+                                backgroundImage: image,
+                              ),
                             ),
-                            Expanded(
-                              flex: 1,
-                              child: Column(children: [
-                                Text(_requirementDetail!.careType),
-                                Text(
-                                    '${_requirementDetail!.reward.toString()} 원'),
-                                Text(_requirementDetail!.status),
-                              ]),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Column(children: [
+                            Text('종류 : $careType'),
+                            Text('보상 : $reward'),
+                            Text('현재 $status'),
+                          ]),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Column(children: [
+                            ElevatedButton(
+                              onPressed: () {},
+                              child: const Text('owner'),
                             ),
-                          ],
+                            ElevatedButton(
+                              onPressed: () {},
+                              child: const Text('dog'),
+                            ),
+                          ]),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      width: width,
+                      height: (height / 2.5),
+                      child: Card.outlined(
+                        elevation: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text(description),
                         ),
                       ),
-                      Expanded(
-                        flex: 1,
-                        child: Container(child: const Text('description')),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-              ElevatedButton(
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('check'),
-                            content: const Text('are you sure?'),
-                            actions: [
-                              ElevatedButton(
-                                onPressed: () async {
-                                  await ApplicationApi.apply(widget.requestId)
-                                      .then((bool result) {
-                                    if (result == true) {
-                                      context.go(RouterPath.allRequest);
-                                    }
-                                  });
-                                },
-                                child: const Text("ok"),
-                              )
-                            ],
-                          );
-                        });
-                  },
-                  child: const Text('apply')),
-            ],
-          );
-        },
-      ),
+              );
+            },
+          ),
+        ),
+        ElevatedButton(
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('check'),
+                      content: const Text('are you sure?'),
+                      actions: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            await ApplicationApi.apply(widget.requestId)
+                                .then((bool result) {
+                              if (result == true) {
+                                context.go(RouterPath.allRequest);
+                              }
+                            });
+                          },
+                          child: const Text("ok"),
+                        )
+                      ],
+                    );
+                  });
+            },
+            child: const Text('apply')),
+      ],
     );
   }
 }
@@ -261,40 +312,52 @@ class MyApplicationListPage extends StatelessWidget {
       appBar: AppBar(title: const Text("my application")),
       body: FutureBuilder(
         future: context.read<InfinitList>().updateMyApplicationList(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            return const Text('something wrong..');
-          }
-
-          return ListView.builder(
-              itemCount: context.watch<InfinitList>().myApplicationList.length,
-              itemBuilder: (BuildContext context, int index) {
-                if (index ==
-                    context.watch<InfinitList>().myApplicationList.length - 3) {
-                  context.read<InfinitList>().updateMyApplicationList();
-                }
-
-                return ListTile(
-                  leading: Image.asset('assets/images/empty_image.png'),
-                  title: Text(context
-                      .watch<InfinitList>()
-                      .myApplicationList[index]['careType']),
-                  subtitle: Text(
-                      '${context.watch<InfinitList>().myApplicationList[index]['time']} / ${context.watch<InfinitList>().myApplicationList[index]['breed']}'),
-                  trailing: Text(context
-                      .watch<InfinitList>()
-                      .myApplicationList[index]['status']),
-                  onTap: () {
-                    context.go(
-                        '${RouterPath.myApplicationDetail}?applicationId=${context.read<InfinitList>().myApplicationList[index]['id']}');
-                  },
-                );
-              });
-        },
+        builder: buildMyApplicationList,
       ),
     );
+  }
+
+  Widget buildMyApplicationList(BuildContext context, AsyncSnapshot snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError) {
+      return const Center(child: Text('error!'));
+    }
+
+    return ListView.builder(
+        itemCount: context.watch<InfinitList>().myApplicationList.length,
+        itemBuilder: (BuildContext context, int index) {
+          if (index ==
+              context.watch<InfinitList>().myApplicationList.length - 3) {
+            context.read<InfinitList>().updateMyApplicationList();
+          }
+
+          var image = context.watch<InfinitList>().myApplicationList[index]
+                      ['image'] ==
+                  null
+              ? Image.asset('assets/images/empty_image.png')
+              : Image.memory(base64Decode(context
+                  .read<InfinitList>()
+                  .myApplicationList[index]['image']));
+          int id = context.read<InfinitList>().myApplicationList[index]['id'];
+          String careType =
+              context.watch<InfinitList>().myApplicationList[index]['careType'];
+          String time =
+              context.watch<InfinitList>().myApplicationList[index]['time'];
+          String breed =
+              context.watch<InfinitList>().myApplicationList[index]['breed'];
+          String status =
+              context.watch<InfinitList>().myApplicationList[index]['status'];
+
+          return ListTile(
+            leading: image,
+            title: Text('$breed\t$careType'),
+            subtitle: Text(time),
+            trailing: Text(status),
+            onTap: () =>
+                context.go('${RouterPath.requestDetail}?applicatgionId=$id'),
+          );
+        });
   }
 }
 
@@ -310,14 +373,13 @@ class MyApplicationDetailPage extends StatelessWidget {
       ),
       body: FutureBuilder(
         future: ApplicationApi.getApplicationDetail(applicationId),
-        builder: (context, snapshot) {
+        builder: (BuildContext context, AsyncSnapshot<DetailInfo?> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const CircularProgressIndicator();
           } else if (snapshot.data == null || snapshot.hasError) {
             return const Text('data err');
           }
-          var data = jsonDecode(snapshot.data!.body);
-          return Text('$data');
+          return Text('${snapshot.data}');
         },
       ),
     );

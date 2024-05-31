@@ -21,29 +21,31 @@ class LogInPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.all(20),
-              margin: const EdgeInsets.all(20),
-              width: double.infinity,
-              child: InkWell(
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const WebViewPage()));
-                },
-                child: Image.asset('assets/images/icon_kakao_login.png'),
+    return SafeArea(
+      child: Scaffold(
+        body: Center(
+          child: Column(
+            children: [
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.all(20),
+                width: double.infinity,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => const WebViewPage()));
+                  },
+                  child: Image.asset('assets/images/icon_kakao_login.png'),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => {context.go('/home')},
-        child: const Text('dev\nhome'),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => {context.go('/home')},
+          child: const Text('dev\nhome'),
+        ),
       ),
     );
   }
@@ -100,7 +102,7 @@ class _WebViewPageState extends State<WebViewPage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: WebViewWidget(controller: _webViewController),
+      home: SafeArea(child: WebViewWidget(controller: _webViewController)),
     );
   }
 }

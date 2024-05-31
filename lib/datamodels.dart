@@ -150,8 +150,8 @@ class DogInfo {
   );
 }
 
-class RequirementDetail {
-  int requirementId;
+class DetailInfo {
+  int detailId;
   Uint8List? dogImage;
   String careType;
   String startTime;
@@ -163,8 +163,8 @@ class RequirementDetail {
   int reward;
   String status;
 
-  RequirementDetail(
-    this.requirementId,
+  DetailInfo(
+    this.detailId,
     this.dogImage,
     this.careType,
     this.startTime,

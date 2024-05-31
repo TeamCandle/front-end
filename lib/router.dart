@@ -46,7 +46,7 @@ final GoRouter router = GoRouter(
                     } catch (e) {
                       return ErrorPage();
                     }
-                    return RequestDetailPage(requestId: requestIdInt);
+                    return RequirementDetailPage(requestId: requestIdInt);
                   },
                 ),
                 GoRoute(
