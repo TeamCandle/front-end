@@ -806,13 +806,89 @@ class MatchingLogApi {
     List<dynamic> tempList = tempMap['matches'];
     return tempList;
   }
+
   //특정 매칭 기록 조회
+  static Future<DetailInfo?> getMatchingLogDetail(int matingId) async {
+    //requester 여부는 upcoming에서확인하자
+    var url = Uri.parse('${ServerUrl.matchUrl}?id=$matingId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get matching log detail",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return null;
+    }
+
+    var data = jsonDecode(response.body);
+    debugPrint('$data');
+    DetailInfo matchingLogDetail;
+    try {
+      matchingLogDetail = DetailInfo(
+        data['details']['id'],
+        data['details']['image'] == null ? null : base64Decode(data['image']),
+        data['details']['careType'],
+        data['details']['startTime'].toString(),
+        data['details']['endTime'].toString(),
+        LatLng(data['details']['careLocation']['y'],
+            data['details']['careLocation']['x']),
+        data['details']['description'], //TODO: null 조심
+        data['details']['userId'],
+        data['details']['dogId'],
+        data['details']['reward'],
+        data['details']['status'],
+      );
+      return matchingLogDetail;
+    } catch (e) {
+      debugPrint('[!!!] decode matching log fail');
+      return null;
+    }
+  }
+
   //매칭 완료
-  //매칭 취소
-  //
+  static Future<bool> complete(int matchingId) async {
+    var url = Uri.parse('${ServerUrl.matchUrl}/complete?id=$matchingId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPut(
+      title: "match completed",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return false;
+    }
+    return true;
+  }
+
+  //매칭 취소 = 매칭이 WAITING_PAYMENT 상태일 때 취소 동작
+  static Future<bool> cancel(int matchingId) async {
+    var url = Uri.parse('${ServerUrl.matchUrl}/cancel?id=$matchingId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPut(
+      title: "cancel this matching",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return false;
+    }
+    return true;
+  }
 }
 
-class PaymentApi {}
+class PaymentApi {
+  AuthApi _auth = AuthApi();
+
+  //결제 요청
+  //결제 취소 = 매칭이 NOT_COMPLETED 상태일 때 취소 동작
+}
 
 class ChattingApi {}
 

@@ -73,4 +73,6 @@ class ServerUrl {
   static const String applicationUrl = '$serverUrl/application'; //+me
 
   static const String matchUrl = '$serverUrl/match';
+
+  static const String paymentUrl = '$serverUrl/payment';
 }
