@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
@@ -21,119 +22,102 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('내 정보'),
-        backgroundColor: Colors.white,
-      ),
-      body: Container(
-        margin: const EdgeInsets.all(10),
-        child: Column(children: [
-          Expanded(
-            flex: 1,
-            child: CircleAvatar(
-              radius: double.infinity,
-              backgroundImage: buildProfileImage(context),
-            ),
-          ),
-          Expanded(
-            flex: 1,
+      appBar: AppBar(title: const Text('내 정보')),
+      body: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          double width = constraints.maxWidth;
+          dynamic image = context.watch<UserInfo>().image == null
+              ? const AssetImage('assets/images/profile_test.png')
+              : MemoryImage(context.watch<UserInfo>().image!);
+          String name = context.watch<UserInfo>().name;
+          String gender =
+              context.watch<UserInfo>().gender == "male" ? "남성" : "여성";
+          String age = context.watch<UserInfo>().age.toString();
+          String description =
+              context.watch<UserInfo>().description ?? "안녕하세요~^^";
+          List<Map<String, dynamic>> Dogs =
+              context.watch<UserInfo>().ownDogList;
+
+          return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                CircleAvatar(
+                  radius: width / 4,
+                  backgroundImage: image,
+                ),
                 Center(
                   child: Text(
-                    context.watch<UserInfo>().name,
+                    name,
                     style: const TextStyle(
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Spacer(flex: 10),
-                    Text(
-                      context.watch<UserInfo>().gender == "male" ? "남성" : "여성",
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    const Spacer(flex: 1),
-                    Text(
-                      '${context.watch<UserInfo>().age}세',
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    const Spacer(flex: 10),
-                  ],
-                ),
-                Expanded(
-                  child: Card(
-                      child: Text(
-                          context.watch<UserInfo>().description ?? "안녕하세요~^^")),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: context.watch<UserInfo>().ownDogList.length,
-                    itemBuilder: buildOwnDogList,
+                Center(
+                  child: Text(
+                    '$gender\t\t\t$age세',
+                    style: const TextStyle(fontSize: 20.0),
                   ),
                 ),
+                SizedBox(
+                  height: width / 4,
+                  child: Card.outlined(
+                    elevation: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(description),
+                    ),
+                  ),
+                ),
+                const Divider(thickness: 2),
                 Column(
-                  children: [
-                    ElevatedButton(
-                        onPressed: () =>
-                            context.go(RouterPath.myDogRegistraion),
-                        child: Text("regist dog")),
-                    ElevatedButton(
-                      onPressed: () => context.go(RouterPath.myReview),
-                      child: Text("view my reivew"),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => context.go(RouterPath.profileModify),
-                      child: Text("modify my info"),
-                    ),
-                  ],
+                  children: Dogs.map((dog) {
+                    if (dog.isEmpty) {
+                      return const Center(
+                          child:
+                              Text('키우는 반려견이 없으신가요?\n가족같은 나의 반려견을 등록해보세요 ^^'));
+                    }
+                    return ListTile(
+                      leading: dog['dogImage'] == null
+                          ? Image.asset('assets/images/profile_test.png')
+                          : Image.memory(dog['dogImage']),
+                      title: Text(dog["name"]),
+                      trailing: ElevatedButton(
+                        onPressed: () {
+                          context.go(
+                            '${RouterPath.myDogProfile}?dogId=${dog["id"]}',
+                          );
+                        },
+                        child: const Text('detail'),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const Divider(thickness: 2),
+                ElevatedButton(
+                  onPressed: () => context.go(RouterPath.myDogRegistraion),
+                  child: const Text("regist dog"),
+                ),
+                ElevatedButton(
+                  onPressed: () => context.go(RouterPath.myReview),
+                  child: const Text("view my reivew"),
+                ),
+                ElevatedButton(
+                  onPressed: () => context.go(RouterPath.profileModify),
+                  child: const Text("modify my info"),
+                ),
+                ElevatedButton(
+                  onPressed: () {},
+                  child: const Text('setting'),
                 ),
               ],
             ),
-          ),
-        ]),
-      ),
-    );
-  }
-
-  Widget? buildOwnDogList(BuildContext context, int index) {
-    if (context.watch<UserInfo>().ownDogList.isEmpty) {
-      return const Center(
-          child: Text('키우는 반려견이 없으신가요?\n가족같은 나의 반려견을 등록해보세요 ^^'));
-    }
-    return ListTile(
-      leading: context.watch<UserInfo>().ownDogList[index]['dogImage'] == null
-          ? Image.asset('assets/images/profile_test.png')
-          : Image.memory(
-              context.watch<UserInfo>().ownDogList[index]['dogImage']),
-      title: Text(context.watch<UserInfo>().ownDogList[index]["name"]),
-      trailing: ElevatedButton(
-        onPressed: () {
-          context.go(
-            '${RouterPath.myDogProfile}?dogId=${context.read<UserInfo>().ownDogList[index]["id"]}',
           );
         },
-        child: const Text('detail'),
       ),
     );
-  }
-
-  ImageProvider<Object>? buildProfileImage(BuildContext context) {
-    if (context.watch<UserInfo>().image == null) {
-      return const AssetImage('assets/images/profile_test.png');
-    }
-    return MemoryImage(context.watch<UserInfo>().image!);
   }
 }
 
@@ -146,9 +130,7 @@ class ProfileModifyPage extends StatefulWidget {
 
 class _ProfileModifyPageState extends State<ProfileModifyPage> {
   final TextEditingController _descriptionCtrl = TextEditingController();
-
   final ImagePicker _imagePicker = ImagePicker();
-
   XFile? pickedFile;
 
   @override
