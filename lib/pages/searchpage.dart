@@ -62,7 +62,9 @@ class _AllRequestPageState extends State<AllRequestPage> {
               ),
             ),
             ElevatedButton(
-              onPressed: () => context.go(RouterPath.myApplicationList),
+              onPressed: () {
+                context.go(RouterPath.myApplicationList);
+              },
               child: const Text('my applications'),
             ),
           ],
@@ -265,7 +267,7 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
             onPressed: () async {
               await ApplicationApi.apply(widget.requirementId)
                   .then((bool result) {
-                _showFailDialog(context, result);
+                _showResult(context, result);
               });
             },
             child: const Text('apply')),
@@ -273,7 +275,7 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
     );
   }
 
-  Future<dynamic> _showFailDialog(BuildContext context, bool result) {
+  Future<dynamic> _showResult(BuildContext context, bool result) {
     String title;
     String content;
     if (result == true) {
@@ -291,11 +293,18 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
             content: Text(content),
             actions: [
               ElevatedButton(
-                onPressed: () {
-                  if (result != true) {
+                onPressed: () async {
+                  if (result == true) {
+                    context.read<InfinitList>().clearMyApplicationOnly();
+                    await context
+                        .read<InfinitList>()
+                        .updateMyApplicationList()
+                        .then((_) {
+                      context.go(RouterPath.allRequirement);
+                    });
+                  } else {
                     Navigator.of(context).pop();
                   }
-                  context.go(RouterPath.allRequirement);
                 },
                 child: const Text("ok"),
               )
@@ -342,7 +351,7 @@ class MyApplicationListPage extends StatelessWidget {
               : Image.memory(base64Decode(context
                   .read<InfinitList>()
                   .myApplicationList[index]['image']));
-          int id = context.read<InfinitList>().myApplicationList[index]['id'];
+          int id = context.watch<InfinitList>().myApplicationList[index]['id'];
           String careType =
               context.watch<InfinitList>().myApplicationList[index]['careType'];
           String time =

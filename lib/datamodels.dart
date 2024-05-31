@@ -119,6 +119,13 @@ class InfinitList extends ChangeNotifier {
     notifyListeners();
     return;
   }
+
+  void clearMyApplicationOnly() {
+    //왜? 내 신청 페이지의 root가 allrequest라서
+    _myApplicationOffset = 1;
+    myApplicationList = [];
+    notifyListeners();
+  }
 }
 
 //data model
