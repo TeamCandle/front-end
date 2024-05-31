@@ -727,6 +727,22 @@ class ApplicationApi {
   }
 
   //그에 대한 취소
+  static Future<bool> cancel(int applicationId) async {
+    var url = Uri.parse('${ServerUrl.applicationUrl}/cancel?id=$applicationId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPut(
+      title: "cancel my application",
+      url: url,
+      header: header,
+    );
+
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return false;
+    }
+    return true;
+  }
 
   //내가 등록한 요구사항에 들어온 신청 수락
 }

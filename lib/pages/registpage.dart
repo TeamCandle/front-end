@@ -102,6 +102,7 @@ class MyRequirementDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Future<void> goBack() async {
+      context.read<InfinitList>().releaseList();
       await context.read<InfinitList>().updateMyRequestList().then((_) {
         context.go(RouterPath.myRequirement);
       });
@@ -276,8 +277,13 @@ class _RequestRegistrationFormPageState
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-        '[log] get dog id from select for requirement : ${widget.dogId}');
+    Future<void> goBack() async {
+      context.read<InfinitList>().releaseList();
+      await context.read<InfinitList>().updateMyRequestList().then((_) {
+        context.go(RouterPath.myRequirement);
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text("request registration form page")),
       body: SingleChildScrollView(
@@ -361,9 +367,7 @@ class _RequestRegistrationFormPageState
                       reward: int.parse(rewardController.text),
                       description: descriptionController.text,
                     ).then((bool result) {
-                      if (result == true) {
-                        context.go(RouterPath.myRequirement);
-                      }
+                      _showResult(context, result);
                     });
                   },
                   child: const Text('request')),
@@ -372,5 +376,43 @@ class _RequestRegistrationFormPageState
         ),
       ),
     );
+  }
+
+  Future<dynamic> _showResult(BuildContext context, bool result) {
+    String title;
+    String content;
+    if (result == true) {
+      title = '등록 성공!';
+      content = '신청자를 모집하고 있습니다!';
+    } else {
+      title = '등록 실패';
+      content = '에러 발생!!';
+    }
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: [
+              ElevatedButton(
+                onPressed: () async {
+                  if (result == true) {
+                    context.read<InfinitList>().releaseList();
+                    await context
+                        .read<InfinitList>()
+                        .updateMyRequestList()
+                        .then((_) {
+                      context.go(RouterPath.myRequirement);
+                    });
+                  } else {
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: const Text("ok"),
+              )
+            ],
+          );
+        });
   }
 }
