@@ -586,11 +586,13 @@ class MyReviewPage extends StatelessWidget {
 //other user pages
 class UserProfilePage extends StatelessWidget {
   final int userId;
-  final int requestId;
+  final int detailId;
+  final String type;
   const UserProfilePage({
     super.key,
     required this.userId,
-    required this.requestId,
+    required this.detailId,
+    required this.type,
   });
 
   @override
@@ -599,8 +601,18 @@ class UserProfilePage extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context
-              .go('${RouterPath.requirementDetail}?requestId=$requestId'),
+          onPressed: () {
+            switch (type) {
+              case DetailFrom.requirement:
+                context.go(
+                    '${RouterPath.requirementDetail}?requirementId=$detailId');
+                break;
+              case DetailFrom.application:
+                context.go(
+                    '${RouterPath.myApplicationDetail}?applicationId=$detailId');
+                break;
+            }
+          },
         ),
         title: const Text('상대 정보'),
       ),

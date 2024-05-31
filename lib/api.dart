@@ -725,7 +725,9 @@ class ApplicationApi {
       return false;
     }
   }
+
   //그에 대한 취소
+
   //내가 등록한 요구사항에 들어온 신청 수락
 }
 

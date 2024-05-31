@@ -8,9 +8,15 @@ class ApiKeys {
 }
 
 class DogSize {
-  static String small = "SMALL";
-  static String medium = "MEDIUM";
-  static String large = "LARGE";
+  static const String small = "SMALL";
+  static const String medium = "MEDIUM";
+  static const String large = "LARGE";
+}
+
+class DetailFrom {
+  static const String requirement = 'requirement';
+  static const String application = 'application';
+  static const String matchLog = 'matchLog';
 }
 
 class CareType {

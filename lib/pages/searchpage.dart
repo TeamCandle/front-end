@@ -109,7 +109,7 @@ class _AllRequestPageState extends State<AllRequestPage> {
           subtitle: Text(time),
           trailing: Text(status),
           onTap: () =>
-              context.go('${RouterPath.requirementDetail}?requestId=$id'),
+              context.go('${RouterPath.requirementDetail}?requirementId=$id'),
         );
       },
     );
@@ -231,14 +231,14 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
                             ElevatedButton(
                               onPressed: () {
                                 context.go(
-                                    '${RouterPath.userProfile}?userId=$userId&requirementId=${widget.requirementId}');
+                                    '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.requirementId}');
                               },
                               child: const Text('owner'),
                             ),
                             ElevatedButton(
                               onPressed: () {
                                 context.go(
-                                    '${RouterPath.dogProfile}?dogId=$dogId&requirementId=${widget.requirementId}');
+                                    '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.requirementId}');
                               },
                               child: const Text('dog'),
                             ),
@@ -367,33 +367,205 @@ class MyApplicationListPage extends StatelessWidget {
             subtitle: Text(time),
             trailing: Text(status),
             onTap: () => context
-                .go('${RouterPath.requirementDetail}?applicatgionId=$id'),
+                .go('${RouterPath.myApplicationDetail}?applicationId=$id'),
           );
         });
   }
 }
 
-class MyApplicationDetailPage extends StatelessWidget {
+class MyApplicationDetailPage extends StatefulWidget {
   final int applicationId;
   const MyApplicationDetailPage({super.key, required this.applicationId});
 
   @override
+  State<MyApplicationDetailPage> createState() =>
+      _MyApplicationDetailPageState();
+}
+
+class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
+  final MyMap _mapController = MyMap();
+  late DetailInfo? _applicationDetail;
+
+  Future<bool> initRequirementDetailPage() async {
+    //이 페이지에서 쓸 맵 컨트롤러를 초기화한다.
+    bool result = await _mapController.initMapOnRequestDetail();
+    if (result == false) return false;
+
+    //요청 세부사항을 가져온다.
+    _applicationDetail =
+        await ApplicationApi.getApplicationDetail(widget.applicationId);
+    if (_applicationDetail == null) return false;
+
+    //요청자의 좌표를 표시한다.
+    _mapController.marking(
+      _applicationDetail!.careLoaction.latitude,
+      _applicationDetail!.careLoaction.longitude,
+    );
+    return true;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('my application detail'),
-      ),
+      appBar: AppBar(title: const Text('my application detail')),
       body: FutureBuilder(
-        future: ApplicationApi.getApplicationDetail(applicationId),
-        builder: (BuildContext context, AsyncSnapshot<DetailInfo?> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          } else if (snapshot.data == null || snapshot.hasError) {
-            return const Text('data err');
+          future: initRequirementDetailPage(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError || snapshot.data == false) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
+            //TODO:리스트에서 이미지오류날때 이거쓰삼
+            dynamic image = _applicationDetail!.dogImage == null
+                ? const AssetImage('assets/images/profile_test.png')
+                : MemoryImage(_applicationDetail!.dogImage!);
+            String careType = _applicationDetail!.careType;
+            String description = _applicationDetail!.description;
+            int userId = _applicationDetail!.userId;
+            int dogId = _applicationDetail!.dogId;
+            String reward = _applicationDetail!.reward.toString();
+            String status = _applicationDetail!.status;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: GoogleMap(
+                    onMapCreated: (GoogleMapController controller) {
+                      _mapController.setMapController(ctrl: controller);
+                    },
+                    initialCameraPosition: CameraPosition(
+                      target: _applicationDetail!.careLoaction,
+                      zoom: 15,
+                    ),
+                    markers: _mapController.markers,
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      double height = constraints.maxHeight;
+                      double width = constraints.maxWidth;
+
+                      return Card(
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: SizedBox(
+                                    height: height / 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: CircleAvatar(
+                                        maxRadius: (height / 4),
+                                        backgroundImage: image,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Column(children: [
+                                    Text('종류 : $careType'),
+                                    Text('보상 : $reward'),
+                                    Text('현재 $status'),
+                                  ]),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Column(children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        context.go(
+                                            '${RouterPath.userProfileFromApplication}?userId=$userId&detailId=${widget.applicationId}');
+                                      },
+                                      child: const Text('owner'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        context.go(
+                                            '${RouterPath.userProfileFromApplication}?dogId=$dogId&detailId=${widget.applicationId}');
+                                      },
+                                      child: const Text('dog'),
+                                    ),
+                                  ]),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              width: width,
+                              height: (height / 2.5),
+                              child: Card.outlined(
+                                elevation: 0,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Text(description),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                ElevatedButton(
+                    onPressed: () async {
+                      // await ApplicationApi.apply(widget.requirementId)
+                      //     .then((bool result) {
+                      //   _showResult(context, result);
+                      // });
+                    },
+                    child: const Text('cancel')),
+              ],
+            );
           }
-          return Text('${snapshot.data}');
-        },
-      ),
+
+          // Future<dynamic> _showResult(BuildContext context, bool result) {
+          //   String title;
+          //   String content;
+          //   if (result == true) {
+          //     title = '신청 성공!';
+          //     content = '수락이 되면 알려드릴게요!';
+          //   } else {
+          //     title = '신청 실패!';
+          //     content = '이미 신청하진 않으셨나요?';
+          //   }
+          //   return showDialog(
+          //       context: context,
+          //       builder: (BuildContext context) {
+          //         return AlertDialog(
+          //           title: Text(title),
+          //           content: Text(content),
+          //           actions: [
+          //             ElevatedButton(
+          //               onPressed: () async {
+          //                 if (result == true) {
+          //                   context.read<InfinitList>().clearMyApplicationOnly();
+          //                   await context
+          //                       .read<InfinitList>()
+          //                       .updateMyApplicationList()
+          //                       .then((_) {
+          //                     context.go(RouterPath.allRequirement);
+          //                   });
+          //                 } else {
+          //                   Navigator.of(context).pop();
+          //                 }
+          //               },
+          //               child: const Text("ok"),
+          //             )
+          //           ],
+          //         );
+          //       });
+          //       },
+          ),
     );
   }
 }

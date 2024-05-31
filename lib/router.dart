@@ -8,6 +8,7 @@ import 'pages/loginpage.dart';
 import 'pages/profilepage.dart';
 import 'pages/searchpage.dart';
 import 'pages/registpage.dart';
+import 'constants.dart';
 
 //화면이동 담당 파일.
 //생략 항목(무시해도 됨) routes: <RouteBase>[...
@@ -35,7 +36,7 @@ final GoRouter router = GoRouter(
                 GoRoute(
                   path: 'detail',
                   builder: (BuildContext context, GoRouterState state) {
-                    var id = state.uri.queryParameters['requestId'];
+                    var id = state.uri.queryParameters['requirementId'];
                     if (id == null) {
                       return ErrorPage(err: 'all_requirement detail query');
                     }
@@ -53,25 +54,25 @@ final GoRouter router = GoRouter(
                       path: 'user_profile',
                       builder: (BuildContext context, GoRouterState state) {
                         var id = state.uri.queryParameters['userId'];
-                        var requirementId =
-                            state.uri.queryParameters['requirementId'];
-                        if (id == null || requirementId == null) {
+                        var detailId = state.uri.queryParameters['detailId'];
+                        if (id == null || detailId == null) {
                           debugPrint('!!! query null');
                           return ErrorPage(err: 'user_profile detail query');
                         }
 
                         int idInt;
-                        int requirementIdInt;
+                        int detailIdInt;
                         try {
                           idInt = int.parse(id);
-                          requirementIdInt = int.parse(requirementId);
+                          detailIdInt = int.parse(detailId);
                         } catch (e) {
                           debugPrint('!!! parsing error');
                           return ErrorPage(err: 'user_profile detail parse');
                         }
                         return UserProfilePage(
                           userId: idInt,
-                          requestId: requirementIdInt,
+                          detailId: detailIdInt,
+                          type: DetailFrom.requirement,
                         );
                       },
                     ),
@@ -79,24 +80,23 @@ final GoRouter router = GoRouter(
                       path: 'dog_profile',
                       builder: (BuildContext context, GoRouterState state) {
                         var id = state.uri.queryParameters['dogId'];
-                        var requirementId =
-                            state.uri.queryParameters['requirementId'];
-                        if (id == null || requirementId == null) {
+                        var detailId = state.uri.queryParameters['detailId'];
+                        if (id == null || detailId == null) {
                           debugPrint('!!! query null');
                           return ErrorPage(err: 'dog_profile detail query');
                         }
 
                         int idInt;
-                        int requirementIdInt;
+                        int detailIdInt;
                         try {
                           idInt = int.parse(id);
-                          requirementIdInt = int.parse(requirementId);
+                          detailIdInt = int.parse(detailId);
                         } catch (e) {
                           return ErrorPage(err: 'dog_profile detail parse');
                         }
                         return UserDogProfile(
                           dogId: idInt,
-                          requestId: requirementIdInt,
+                          requestId: detailIdInt,
                         );
                       },
                     ),
@@ -126,6 +126,62 @@ final GoRouter router = GoRouter(
                         }
                         return MyApplicationDetailPage(applicationId: idInt);
                       },
+                      routes: [
+                        GoRoute(
+                          path: 'user_profile',
+                          builder: (BuildContext context, GoRouterState state) {
+                            var id = state.uri.queryParameters['userId'];
+                            var detailId =
+                                state.uri.queryParameters['detailId'];
+                            if (id == null || detailId == null) {
+                              debugPrint('!!! query null');
+                              return ErrorPage(
+                                  err: 'user_profile detail query');
+                            }
+
+                            int idInt;
+                            int detailIdInt;
+                            try {
+                              idInt = int.parse(id);
+                              detailIdInt = int.parse(detailId);
+                            } catch (e) {
+                              debugPrint('!!! parsing error');
+                              return ErrorPage(
+                                  err: 'user_profile detail parse');
+                            }
+                            return UserProfilePage(
+                              userId: idInt,
+                              detailId: detailIdInt,
+                              type: DetailFrom.application,
+                            );
+                          },
+                        ),
+                        GoRoute(
+                          path: 'dog_profile',
+                          builder: (BuildContext context, GoRouterState state) {
+                            var id = state.uri.queryParameters['dogId'];
+                            var detailId =
+                                state.uri.queryParameters['detailId'];
+                            if (id == null || detailId == null) {
+                              debugPrint('!!! query null');
+                              return ErrorPage(err: 'dog_profile detail query');
+                            }
+
+                            int idInt;
+                            int detailIdInt;
+                            try {
+                              idInt = int.parse(id);
+                              detailIdInt = int.parse(detailId);
+                            } catch (e) {
+                              return ErrorPage(err: 'dog_profile detail parse');
+                            }
+                            return UserDogProfile(
+                              dogId: idInt,
+                              requestId: detailIdInt,
+                            );
+                          },
+                        ),
+                      ],
                     )
                   ],
                 ),
@@ -260,10 +316,17 @@ class RouterPath {
   //search tree
   static const String allRequirement = '/home/all_requirement_list';
   static const String requirementDetail = '$allRequirement/detail';
-  static const String userProfile = '$requirementDetail/user_profile';
-  static const String dogProfile = '$requirementDetail/dog_profile';
+  static const String userProfileFromRequirement =
+      '$requirementDetail/user_profile';
+  static const String dogProfileFromRequirement =
+      '$requirementDetail/dog_profile';
+
   static const String myApplicationList = '$allRequirement/my_application_list';
   static const String myApplicationDetail = '$myApplicationList/detail';
+  static const String userProfileFromApplication =
+      '$myApplicationDetail/user_profile';
+  static const String dogProfileFromApplication =
+      '$myApplicationDetail/dog_profile';
 
   //my requirement tree
   static const String myRequirement = '/home/my_requirement_list';
