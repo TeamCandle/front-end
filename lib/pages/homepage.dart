@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
             child: const Text("current process & chatting"),
           ),
           ElevatedButton(
-            onPressed: () => context.go(RouterPath.allRequest),
+            onPressed: () => context.go(RouterPath.allRequirement),
             child: const Text('goto search page and apply'),
             //all request list, my apply list
           ),

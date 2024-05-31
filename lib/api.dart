@@ -44,9 +44,9 @@ class AuthApi {
     //서버에 fcm token을 등록한다(설치 등으로 바뀌는 케이스 있으므로 매 로그인마다 실행)
     await _registFcmTokenToServer(tokens['accessToken']);
 
-    debugPrint('[log] got login');
-    debugPrint('[log] access token : $_accessToken');
-    debugPrint('[log] refresh token : $_refreshToken');
+    debugPrint('!!! got login');
+    debugPrint('!!! access token : $_accessToken');
+    debugPrint('!!! refresh token : $_refreshToken');
     return;
   }
 
@@ -81,7 +81,7 @@ class AuthApi {
     );
 
     if (response?.statusCode != 200) {
-      debugPrint('[log] fcm token regist fail');
+      debugPrint('!!! fcm token regist fail');
     }
     return;
   }
@@ -95,13 +95,13 @@ class AuthApi {
       var response = await http.post(url, headers: header, body: body);
       if (response.statusCode != 200) {
         debugPrint(
-            "[log] reissue AccToken fail, code : ${response.statusCode}, ${response.body}");
+            "[!!!] reissue AccToken fail, code : ${response.statusCode}, ${response.body}");
         return null;
       }
-      debugPrint("[log] reissue AccToken success");
+      debugPrint("[!!!] reissue AccToken success");
       return response;
     } catch (e) {
-      debugPrint('[log] reissue AccToken error : $e');
+      debugPrint('[!!!] reissue AccToken error : $e');
       return null;
     }
   }
@@ -113,19 +113,19 @@ class HttpMethod {
     required Uri url,
     required Map<String, String> header,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
       http.Response? response = await http.get(url, headers: header);
       if (response.statusCode != 200) {
-        debugPrint("[log] fail ${response.statusCode}");
-        debugPrint("[log] body ${response.body}");
+        debugPrint("[!!!] fail ${response.statusCode}");
+        debugPrint("[!!!] body ${response.body}");
         return null;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return response;
     } catch (e) {
-      debugPrint('[log] error $title: $e');
+      debugPrint('[!!!] error $title: $e');
       return null;
     }
   }
@@ -136,20 +136,20 @@ class HttpMethod {
     required Map<String, String> header,
     required Map<String, dynamic> body,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
       var response =
           await http.post(url, headers: header, body: jsonEncode(body));
       if (response.statusCode != 200) {
-        debugPrint("[log] fail code ${response.statusCode}");
-        debugPrint("[log] fail body ${response.body}");
+        debugPrint("[!!!] fail code ${response.statusCode}");
+        debugPrint("[!!!] fail body ${response.body}");
         return null;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return response;
     } catch (e) {
-      debugPrint('[log] error $title: $e');
+      debugPrint('[!!!] error $title: $e');
       return null;
     }
   }
@@ -160,20 +160,20 @@ class HttpMethod {
     required Map<String, String> header,
     required Map<String, dynamic> body,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
       var response =
           await http.patch(url, headers: header, body: json.encode(body));
       if (response.statusCode != 200) {
-        debugPrint("[log] fail ${response.statusCode}");
-        debugPrint("[log] fail body ${response.body}");
+        debugPrint("[!!!] fail ${response.statusCode}");
+        debugPrint("[!!!] fail body ${response.body}");
         return null;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return response;
     } catch (e) {
-      debugPrint('[log] error $title: $e');
+      debugPrint('[!!!] error $title: $e');
       return null;
     }
   }
@@ -183,19 +183,19 @@ class HttpMethod {
     required Uri url,
     required Map<String, String> header,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
       http.Response? response = await http.delete(url, headers: header);
       if (response.statusCode != 200) {
-        debugPrint("[log] fail ${response.statusCode}");
-        debugPrint("[log] body ${response.body}");
+        debugPrint("[!!!] fail ${response.statusCode}");
+        debugPrint("[!!!] body ${response.body}");
         return false;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return true;
     } catch (e) {
-      debugPrint('[log] error $title: $e');
+      debugPrint('[!!!] error $title: $e');
       return false;
     }
   }
@@ -205,19 +205,19 @@ class HttpMethod {
     required Uri url,
     required Map<String, String> header,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
       http.Response? response = await http.put(url, headers: header);
       if (response.statusCode != 200) {
-        debugPrint("[log] fail ${response.statusCode}");
-        debugPrint("[log] body ${response.body}");
+        debugPrint("[!!!] fail ${response.statusCode}");
+        debugPrint("[!!!] body ${response.body}");
         return null;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return response;
     } catch (e) {
-      debugPrint('[log] error $title: $e');
+      debugPrint('[!!!] error $title: $e');
       return null;
     }
   }
@@ -226,20 +226,20 @@ class HttpMethod {
     required String title,
     required http.MultipartRequest request,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
       http.StreamedResponse response = await request.send();
       if (response.statusCode != 200) {
         final responseBody = await response.stream.bytesToString();
-        debugPrint('[log] fail ${response.statusCode}');
-        debugPrint('[log] fail body: $responseBody');
+        debugPrint('[!!!] fail ${response.statusCode}');
+        debugPrint('[!!!] fail body: $responseBody');
         return false;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return true;
     } catch (e) {
-      debugPrint('[log] error $title, $e');
+      debugPrint('[!!!] error $title, $e');
       return false;
     }
   }
@@ -259,7 +259,25 @@ class ProfileApi {
     );
 
     if (response == null) {
-      debugPrint('[log] get my profile from server error!');
+      debugPrint('[!!!] get my profile from server error!');
+      return null;
+    } else {
+      return jsonDecode(response.body);
+    }
+  }
+
+  static Future<Map<String, dynamic>?> getUserProfile(
+      {required int userId}) async {
+    var url = Uri.parse('${ServerUrl.userProfileUrl}?id=$userId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get user profile",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('!!! get user profile fail');
       return null;
     } else {
       return jsonDecode(response.body);
@@ -314,15 +332,6 @@ class ProfileApi {
       request: request,
     );
   }
-
-  // static Future<dynamic> getUserProfileFromServer(
-  //     {required String userName}) async {
-  //   var url = Uri.parse('${ServerUrl.userProfileUrl}?username=$userName');
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result = await HttpMethod.tryGet(
-  //       title: "get user profile", url: url, header: header);
-  //   if (result == null) return null;
-  // }
 }
 
 class DogProfileApi {
@@ -340,11 +349,11 @@ class DogProfileApi {
     );
 
     if (response == null) {
-      debugPrint('[log] get dog profile error');
+      debugPrint('[!!!] get dog profile error');
       return null;
     }
     var data = jsonDecode(response.body);
-    debugPrint('[log] json decode $data');
+    debugPrint('[!!!] json decode $data');
     DogInfo dogInfo;
     try {
       dogInfo = DogInfo(
@@ -363,7 +372,7 @@ class DogProfileApi {
       );
       return dogInfo;
     } catch (e) {
-      debugPrint('[log] create doginfo fail');
+      debugPrint('[!!!] create doginfo fail');
       return null;
     }
   }
@@ -511,7 +520,7 @@ class RequirementApi {
       header: header,
     );
     if (response == null) {
-      debugPrint('[log] get request detail error');
+      debugPrint('[!!!] get request detail error');
       return null;
     }
 
@@ -534,7 +543,7 @@ class RequirementApi {
       );
       return requirementDetail;
     } catch (e) {
-      debugPrint('[log] decode requirement fail');
+      debugPrint('[!!!] decode requirement fail');
       return null;
     }
   }
@@ -570,7 +579,7 @@ class RequirementApi {
       header: header,
     );
     if (response == null) {
-      debugPrint('[log] response is null');
+      debugPrint('[!!!] response is null');
       return null;
     }
     return response;
@@ -612,7 +621,7 @@ class RequirementApi {
       body: body,
     );
     if (response == null || response.body.isEmpty) {
-      debugPrint('[log] regist requirement fail');
+      debugPrint('[!!!] regist requirement fail');
       return false;
     }
     return true;
@@ -628,7 +637,7 @@ class RequirementApi {
       header: header,
     );
     if (response == null) {
-      debugPrint('[log] response is null');
+      debugPrint('[!!!] response is null');
       return false;
     }
     return true;
@@ -668,7 +677,7 @@ class ApplicationApi {
       header: header,
     );
     if (response == null) {
-      debugPrint('[log] response is null');
+      debugPrint('[!!!] response is null');
       return null;
     }
 
@@ -691,7 +700,7 @@ class ApplicationApi {
       );
       return applicationDetail;
     } catch (e) {
-      debugPrint('[log] decode application fail');
+      debugPrint('[!!!] decode application fail');
       return null;
     }
   }
@@ -705,14 +714,14 @@ class ApplicationApi {
     try {
       var response = await http.post(url, headers: header);
       if (response.statusCode != 200) {
-        debugPrint("[log] apply fail code ${response.statusCode}");
-        debugPrint("[log] apply fail body ${response.body}");
+        debugPrint("[!!!] apply fail code ${response.statusCode}");
+        debugPrint("[!!!] apply fail body ${response.body}");
         return false;
       }
-      debugPrint("[log] success apply");
+      debugPrint("[!!!] success");
       return true;
     } catch (e) {
-      debugPrint('[log] error apply $e');
+      debugPrint('[!!!] error apply $e');
       return false;
     }
   }

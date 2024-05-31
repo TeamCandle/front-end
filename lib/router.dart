@@ -27,27 +27,80 @@ final GoRouter router = GoRouter(
           },
           routes: [
             GoRoute(
-              path: 'all_request',
+              path: 'all_requirement_list',
               builder: (BuildContext context, GoRouterState state) {
                 return const AllRequestPage();
               },
               routes: [
                 GoRoute(
-                  path: 'request_detail',
+                  path: 'detail',
                   builder: (BuildContext context, GoRouterState state) {
-                    var requestId = state.uri.queryParameters['requestId'];
-                    if (requestId == null) {
-                      return ErrorPage();
+                    var id = state.uri.queryParameters['requestId'];
+                    if (id == null) {
+                      return ErrorPage(err: 'all_requirement detail query');
                     }
 
-                    int requestIdInt;
+                    int idInt;
                     try {
-                      requestIdInt = int.parse(requestId);
+                      idInt = int.parse(id);
                     } catch (e) {
-                      return ErrorPage();
+                      return ErrorPage(err: 'all_requirement detail parsing');
                     }
-                    return RequirementDetailPage(requestId: requestIdInt);
+                    return RequirementDetailPage(requirementId: idInt);
                   },
+                  routes: [
+                    GoRoute(
+                      path: 'user_profile',
+                      builder: (BuildContext context, GoRouterState state) {
+                        var id = state.uri.queryParameters['userId'];
+                        var requirementId =
+                            state.uri.queryParameters['requirementId'];
+                        if (id == null || requirementId == null) {
+                          debugPrint('!!! query null');
+                          return ErrorPage(err: 'user_profile detail query');
+                        }
+
+                        int idInt;
+                        int requirementIdInt;
+                        try {
+                          idInt = int.parse(id);
+                          requirementIdInt = int.parse(requirementId);
+                        } catch (e) {
+                          debugPrint('!!! parsing error');
+                          return ErrorPage(err: 'user_profile detail parse');
+                        }
+                        return UserProfilePage(
+                          userId: idInt,
+                          requestId: requirementIdInt,
+                        );
+                      },
+                    ),
+                    GoRoute(
+                      path: 'dog_profile',
+                      builder: (BuildContext context, GoRouterState state) {
+                        var id = state.uri.queryParameters['dogId'];
+                        var requirementId =
+                            state.uri.queryParameters['requirementId'];
+                        if (id == null || requirementId == null) {
+                          debugPrint('!!! query null');
+                          return ErrorPage(err: 'dog_profile detail query');
+                        }
+
+                        int idInt;
+                        int requirementIdInt;
+                        try {
+                          idInt = int.parse(id);
+                          requirementIdInt = int.parse(requirementId);
+                        } catch (e) {
+                          return ErrorPage(err: 'dog_profile detail parse');
+                        }
+                        return UserDogProfile(
+                          dogId: idInt,
+                          requestId: requirementIdInt,
+                        );
+                      },
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: 'my_application_list',
@@ -60,14 +113,16 @@ final GoRouter router = GoRouter(
                       builder: (context, state) {
                         var id = state.uri.queryParameters['applicationId'];
                         if (id == null) {
-                          return ErrorPage();
+                          return ErrorPage(
+                              err: 'my_application_list detail query');
                         }
 
                         int idInt;
                         try {
                           idInt = int.parse(id);
                         } catch (e) {
-                          return ErrorPage();
+                          return ErrorPage(
+                              err: 'my_application_list detail parse');
                         }
                         return MyApplicationDetailPage(applicationId: idInt);
                       },
@@ -88,38 +143,38 @@ final GoRouter router = GoRouter(
                     var requirementId =
                         state.uri.queryParameters['requirementId'];
                     if (requirementId == null) {
-                      return ErrorPage();
+                      return ErrorPage(err: 'my_requirement_list detail query');
                     }
 
                     int requirementIdInt;
                     try {
                       requirementIdInt = int.parse(requirementId);
                     } catch (e) {
-                      return ErrorPage();
+                      return ErrorPage(err: 'my_requirement_list detail parse');
                     }
                     return MyRequirementDetailPage(
                         requirementId: requirementIdInt);
                   },
                 ),
                 GoRoute(
-                  path: 'select_requirement_dog',
+                  path: 'select_dog',
                   builder: (BuildContext context, GoRouterState state) {
                     return const SelectDogInRequirementPage();
                   },
                   routes: [
                     GoRoute(
-                      path: 'registform_requirement',
+                      path: 'registform',
                       builder: (BuildContext context, GoRouterState state) {
                         var dogId = state.uri.queryParameters['dogId'];
                         if (dogId == null) {
-                          return ErrorPage();
+                          return ErrorPage(err: 'registform query');
                         }
 
                         int dogIdInt;
                         try {
                           dogIdInt = int.parse(dogId);
                         } catch (e) {
-                          return ErrorPage();
+                          return ErrorPage(err: 'registform parse');
                         }
                         return RequestRegistrationFormPage(dogId: dogIdInt);
                       },
@@ -135,24 +190,24 @@ final GoRouter router = GoRouter(
               },
               routes: [
                 GoRoute(
-                    path: 'my_review',
+                    path: 'review',
                     builder: (BuildContext context, GoRouterState state) {
                       return const MyReviewPage();
                     }),
                 GoRoute(
                     path: 'dog_profile',
                     builder: (BuildContext context, GoRouterState state) {
-                      var dogId = state.uri.queryParameters['dogId'];
-                      int dogIdInt;
-                      if (dogId == null) {
-                        return ErrorPage();
+                      var id = state.uri.queryParameters['dogId'];
+                      if (id == null) {
+                        return ErrorPage(err: 'mydog_profile query');
                       }
+                      int idInt;
                       try {
-                        dogIdInt = int.parse(dogId);
+                        idInt = int.parse(id);
                       } catch (e) {
-                        return ErrorPage();
+                        return ErrorPage(err: 'mydog_profile parse');
                       }
-                      return DogProfilePage(dogId: dogIdInt);
+                      return DogProfilePage(dogId: idInt);
                     }),
                 GoRoute(
                     path: 'dog_registration',
@@ -162,7 +217,7 @@ final GoRouter router = GoRouter(
                 GoRoute(
                     path: 'modify_myprofile',
                     builder: (BuildContext context, GoRouterState state) {
-                      return ProfileModifyPage();
+                      return const ProfileModifyPage();
                     }),
               ],
             ),
@@ -180,11 +235,14 @@ final GoRouter router = GoRouter(
 );
 
 class ErrorPage extends StatelessWidget {
+  final String err;
+  const ErrorPage({super.key, required this.err});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Error')),
-      body: Center(child: Text('query Error!')),
+      appBar: AppBar(title: const Text('Error')),
+      body: Center(child: Text(err)),
     );
   }
 }
@@ -194,37 +252,25 @@ class RouterPath {
 
   //profile tree
   static const String myProfile = '/home/my_profile';
-  static const String myReview = '/home/my_profile/my_review';
-  static const String myDogProfile = '/home/my_profile/dog_profile';
-  static const String myDogRegistraion = '/home/my_profile/dog_registration';
-  static const String profileModify = '/home/my_profile/modify_myprofile';
+  static const String myReview = '$myProfile/review';
+  static const String myDogProfile = '$myProfile/dog_profile';
+  static const String myDogRegistraion = '$myProfile/dog_registration';
+  static const String myProfileModification = '$myProfile/modify_myprofile';
 
   //search tree
-  static const String allRequest = '/home/all_request';
-  static const String requestDetail = '/home/all_request/request_detail';
-  static const String myApplicationList =
-      '/home/all_request/my_application_list';
-  static const String myApplicationDetail =
-      '/home/all_request/my_application_list/detail';
+  static const String allRequirement = '/home/all_requirement_list';
+  static const String requirementDetail = '$allRequirement/detail';
+  static const String userProfile = '$requirementDetail/user_profile';
+  static const String dogProfile = '$requirementDetail/dog_profile';
+  static const String myApplicationList = '$allRequirement/my_application_list';
+  static const String myApplicationDetail = '$myApplicationList/detail';
 
   //my requirement tree
   static const String myRequirement = '/home/my_requirement_list';
-  static const String myRequirementDetail = '/home/my_requirement_list/detail';
-  static const String selectDog =
-      '/home/my_requirement_list/select_requirement_dog';
-  static const String requirementRegistForm =
-      '/home/my_requirement_list/select_requirement_dog/registform_requirement';
+  static const String myRequirementDetail = '$myRequirement/detail';
+  static const String selectDog = '$myRequirement/select_dog';
+  static const String requirementRegistForm = '$selectDog/registform';
 
   //match tree
   static const String matching = '/home/matching';
-
-  //죽일 경로들
-  static const String applySuccess =
-      '/home/matching/request_detail/apply_success';
-  static const String myRequestList = '/home/matching/my_request_list';
-  static const String requestRegistrationForm =
-      '/home/matching/my_request_list/form';
-  static const String matchLog = '/home/matching/match_log';
-  static const String chatting = '/home/matching/chatting';
-  static const String requestSearch = '/home/matching/request_search';
 }

@@ -106,7 +106,8 @@ class _AllRequestPageState extends State<AllRequestPage> {
           title: Text('$breed\t$careType'),
           subtitle: Text(time),
           trailing: Text(status),
-          onTap: () => context.go('${RouterPath.requestDetail}?requestId=$id'),
+          onTap: () =>
+              context.go('${RouterPath.requirementDetail}?requestId=$id'),
         );
       },
     );
@@ -115,8 +116,8 @@ class _AllRequestPageState extends State<AllRequestPage> {
 
 // request detail -> success page
 class RequirementDetailPage extends StatefulWidget {
-  final int requestId;
-  const RequirementDetailPage({super.key, required this.requestId});
+  final int requirementId;
+  const RequirementDetailPage({super.key, required this.requirementId});
 
   @override
   State<RequirementDetailPage> createState() => _RequirementDetailPageState();
@@ -133,7 +134,7 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
 
     //요청 세부사항을 가져온다.
     _requirementDetail =
-        await RequirementApi.getRequirementDetail(id: widget.requestId);
+        await RequirementApi.getRequirementDetail(id: widget.requirementId);
     if (_requirementDetail == null) return false;
 
     //요청자의 좌표를 표시한다.
@@ -226,11 +227,17 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
                           flex: 1,
                           child: Column(children: [
                             ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                context.go(
+                                    '${RouterPath.userProfile}?userId=$userId&requirementId=${widget.requirementId}');
+                              },
                               child: const Text('owner'),
                             ),
                             ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                context.go(
+                                    '${RouterPath.dogProfile}?dogId=$dogId&requirementId=${widget.requirementId}');
+                              },
                               child: const Text('dog'),
                             ),
                           ]),
@@ -255,50 +262,46 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
           ),
         ),
         ElevatedButton(
-            onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('check'),
-                      content: const Text('are you sure?'),
-                      actions: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            await ApplicationApi.apply(widget.requestId)
-                                .then((bool result) {
-                              if (result == true) {
-                                context.go(RouterPath.allRequest);
-                              }
-                            });
-                          },
-                          child: const Text("ok"),
-                        )
-                      ],
-                    );
-                  });
+            onPressed: () async {
+              await ApplicationApi.apply(widget.requirementId)
+                  .then((bool result) {
+                _showFailDialog(context, result);
+              });
             },
             child: const Text('apply')),
       ],
     );
   }
-}
 
-class ApplySuccessPage extends StatelessWidget {
-  const ApplySuccessPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("success page")),
-      body: Center(
-          child: ElevatedButton(
-        onPressed: () {
-          context.go(RouterPath.matching);
-        },
-        child: const Text('success'),
-      )),
-    );
+  Future<dynamic> _showFailDialog(BuildContext context, bool result) {
+    String title;
+    String content;
+    if (result == true) {
+      title = '신청 성공!';
+      content = '수락이 되면 알려드릴게요!';
+    } else {
+      title = '신청 실패!';
+      content = '이미 신청하진 않으셨나요?';
+    }
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  if (result != true) {
+                    Navigator.of(context).pop();
+                  }
+                  context.go(RouterPath.allRequirement);
+                },
+                child: const Text("ok"),
+              )
+            ],
+          );
+        });
   }
 }
 
@@ -354,8 +357,8 @@ class MyApplicationListPage extends StatelessWidget {
             title: Text('$breed\t$careType'),
             subtitle: Text(time),
             trailing: Text(status),
-            onTap: () =>
-                context.go('${RouterPath.requestDetail}?applicatgionId=$id'),
+            onTap: () => context
+                .go('${RouterPath.requirementDetail}?applicatgionId=$id'),
           );
         });
   }
