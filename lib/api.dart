@@ -362,7 +362,7 @@ class DogProfileApi {
         data['gender'],
         data['image'] == null ? null : base64Decode(data['image']),
         data['owner'],
-        true,
+        data['neutered'],
         data['age'],
         //TODO: 고치기
         data['size'],

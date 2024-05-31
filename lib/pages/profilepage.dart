@@ -529,6 +529,9 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
                   if (_isGender == null) {
                     return;
                   }
+                  if (_isNeutered == null) {
+                    return;
+                  }
                   String size;
                   if (_isSizeSelected[0] == true) {
                     size = DogSize.small;
