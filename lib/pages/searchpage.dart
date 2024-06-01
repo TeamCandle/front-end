@@ -37,7 +37,8 @@ class _AllRequestPageState extends State<AllRequestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("all request")),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -45,14 +46,19 @@ class _AllRequestPageState extends State<AllRequestPage> {
               Expanded(
                 child: TextField(
                   controller: _searchController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     label: Text('Enter Text'),
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                    ),
                   ),
                 ),
               ),
               IconButton(
                 onPressed: () {},
+                style: const ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(Color(0xFFC7F3D0)),
+                ),
                 icon: const Icon(Icons.filter_list_rounded),
               ),
             ]),
@@ -66,7 +72,7 @@ class _AllRequestPageState extends State<AllRequestPage> {
               onPressed: () {
                 context.go(RouterPath.myApplicationList);
               },
-              child: Text('my applications'),
+              child: const Text('my applications'),
             ),
           ],
         ),
@@ -104,23 +110,33 @@ class _AllRequestPageState extends State<AllRequestPage> {
         String status =
             context.watch<InfinitList>().allRequestList[index]['status'];
 
-        return Padding(
-          padding: const EdgeInsets.all(3.0),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black38, width: 1),
-              borderRadius: BorderRadius.circular(12.0),
+        return Container(
+          margin: const EdgeInsets.fromLTRB(3, 0, 3, 8),
+          padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 1,
+                blurRadius: 1,
+                offset: const Offset(1, 1),
+              ),
+            ],
+          ),
+          child: ListTile(
+            leading: image,
+            title: Text('$breed\t$careType'),
+            subtitle: Container(
+              margin: const EdgeInsets.only(top: 5),
+              child: Text(time),
             ),
-            child: ListTile(
-              leading: image,
-              title: Text('$breed\t$careType'),
-              subtitle: Text(time),
-              trailing: Text(status),
-              visualDensity: VisualDensity.compact,
-              shape: const RoundedRectangleBorder(),
-              onTap: () => context
-                  .go('${RouterPath.requirementDetail}?requirementId=$id'),
-            ),
+            trailing: Text(status),
+            visualDensity: VisualDensity.compact,
+            shape: const RoundedRectangleBorder(),
+            onTap: () =>
+                context.go('${RouterPath.requirementDetail}?requirementId=$id'),
           ),
         );
       },
