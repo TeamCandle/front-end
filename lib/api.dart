@@ -386,7 +386,6 @@ class DogProfileApi {
         data['owner'],
         data['neutered'],
         data['age'],
-        //TODO: 고치기
         data['size'],
         1.1,
         data['breed'],
@@ -419,7 +418,7 @@ class DogProfileApi {
     request.fields['size'] = doginfo.size;
     request.fields['weight'] = doginfo.weight.toString();
     request.fields['breed'] = doginfo.breed;
-    request.fields['description'] = doginfo.description;
+    request.fields['description'] = doginfo.description!;
     if (doginfo.dogImage != null) {
       var multipartFile = http.MultipartFile.fromBytes(
         'image',
@@ -458,7 +457,7 @@ class DogProfileApi {
     request.fields['size'] = doginfo.size.toString();
     request.fields['weight'] = doginfo.weight.toString();
     request.fields['breed'] = doginfo.breed;
-    request.fields['description'] = doginfo.description;
+    request.fields['description'] = doginfo.description!;
     if (doginfo.dogImage != null) {
       var multipartFile = http.MultipartFile.fromBytes(
         'image',

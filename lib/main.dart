@@ -5,6 +5,7 @@ import 'package:flutter_doguber_frontend/firebase_options.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:provider/provider.dart';
 import 'package:localstorage/localstorage.dart';
+import 'package:google_fonts/google_fonts.dart';
 //files
 import 'router.dart';
 import 'datamodels.dart';
@@ -74,6 +75,7 @@ class _DogUberAppState extends State<DogUberApp> {
             shadowColor: Colors.black,
             elevation: 10.0,
           ),
+          textTheme: GoogleFonts.juaTextTheme(),
         ),
       ),
     );

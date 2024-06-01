@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
 import 'package:go_router/go_router.dart';
@@ -35,7 +36,7 @@ class _AllRequestPageState extends State<AllRequestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("all request")),
+      appBar: AppBar(title: Text("all request")),
       body: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -44,9 +45,9 @@ class _AllRequestPageState extends State<AllRequestPage> {
               Expanded(
                 child: TextField(
                   controller: _searchController,
-                  decoration: const InputDecoration(
-                    labelText: 'Enter Text',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    label: Text('Enter Text'),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -65,7 +66,7 @@ class _AllRequestPageState extends State<AllRequestPage> {
               onPressed: () {
                 context.go(RouterPath.myApplicationList);
               },
-              child: const Text('my applications'),
+              child: Text('my applications'),
             ),
           ],
         ),
@@ -103,13 +104,24 @@ class _AllRequestPageState extends State<AllRequestPage> {
         String status =
             context.watch<InfinitList>().allRequestList[index]['status'];
 
-        return ListTile(
-          leading: image,
-          title: Text('$breed\t$careType'),
-          subtitle: Text(time),
-          trailing: Text(status),
-          onTap: () =>
-              context.go('${RouterPath.requirementDetail}?requirementId=$id'),
+        return Padding(
+          padding: const EdgeInsets.all(3.0),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black38, width: 1),
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            child: ListTile(
+              leading: image,
+              title: Text('$breed\t$careType'),
+              subtitle: Text(time),
+              trailing: Text(status),
+              visualDensity: VisualDensity.compact,
+              shape: const RoundedRectangleBorder(),
+              onTap: () => context
+                  .go('${RouterPath.requirementDetail}?requirementId=$id'),
+            ),
+          ),
         );
       },
     );
@@ -150,7 +162,7 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("request detail page")),
+      appBar: AppBar(title: Text("request detail page")),
       body: FutureBuilder(
         future: initRequirementDetailPage(),
         builder: buildRequirementDetail,
@@ -233,14 +245,14 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
                                 context.go(
                                     '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.requirementId}');
                               },
-                              child: const Text('owner'),
+                              child: Text('owner'),
                             ),
                             ElevatedButton(
                               onPressed: () {
                                 context.go(
                                     '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.requirementId}');
                               },
-                              child: const Text('dog'),
+                              child: Text('dog'),
                             ),
                           ]),
                         ),
@@ -270,7 +282,7 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
                 _showResult(context, result);
               });
             },
-            child: const Text('apply')),
+            child: Text('apply')),
       ],
     );
   }
@@ -306,7 +318,7 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
                     Navigator.of(context).pop();
                   }
                 },
-                child: const Text("ok"),
+                child: Text("ok"),
               )
             ],
           );
@@ -321,7 +333,7 @@ class MyApplicationListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("my application")),
+      appBar: AppBar(title: Text("my application")),
       body: FutureBuilder(
         future: context.read<InfinitList>().updateMyApplicationList(),
         builder: buildMyApplicationList,
@@ -407,7 +419,7 @@ class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('my application detail')),
+      appBar: AppBar(title: Text('my application detail')),
       body: FutureBuilder(
         future: initRequirementDetailPage(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -486,14 +498,14 @@ class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
                                       context.go(
                                           '${RouterPath.userProfileFromApplication}?userId=$userId&detailId=${widget.applicationId}');
                                     },
-                                    child: const Text('owner'),
+                                    child: Text('owner'),
                                   ),
                                   ElevatedButton(
                                     onPressed: () {
                                       context.go(
                                           '${RouterPath.userProfileFromApplication}?dogId=$dogId&detailId=${widget.applicationId}');
                                     },
-                                    child: const Text('dog'),
+                                    child: Text('dog'),
                                   ),
                                 ]),
                               ),
@@ -521,7 +533,7 @@ class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
                     await ApplicationApi.cancel(applicationId)
                         .then((bool result) => _showResult(context, result));
                   },
-                  child: const Text('cancel')),
+                  child: Text('cancel')),
             ],
           );
         },
@@ -560,7 +572,7 @@ class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
                     Navigator.of(context).pop();
                   }
                 },
-                child: const Text("ok"),
+                child: Text("ok"),
               )
             ],
           );

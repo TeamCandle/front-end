@@ -33,9 +33,12 @@ class ProfilePage extends StatelessWidget {
           String gender =
               context.watch<UserInfo>().gender == "male" ? "남성" : "여성";
           String age = context.watch<UserInfo>().age.toString();
-          String description = context.watch<UserInfo>().description == null
+          var txtcon = TextEditingController();
+          txtcon.text = context.watch<UserInfo>().description == null
               ? "자기소개를 입력해주세요"
               : context.watch<UserInfo>().description!;
+          txtcon.text =
+              "안녕하세요 저는 트위치에서 활동을 하고 있는 스트리머 케인입니다. 먼저 저의 말과 행동으로 인해 큰 피해를 끼친 시청자분들, 그리고 샌드백님께 죄송합니다. 지금부터는 제가 준비한";
           List<Map<String, dynamic>> dogs =
               context.watch<UserInfo>().ownDogList;
 
@@ -48,29 +51,30 @@ class ProfilePage extends StatelessWidget {
                   radius: width / 4,
                   backgroundImage: image,
                 ),
-                Center(
-                  child: Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                    ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 15.0),
+                  child: Center(
+                    child: Text(name, style: const TextStyle(fontSize: 50)),
                   ),
                 ),
                 Center(
                   child: Text(
                     '$gender\t\t\t$age세',
-                    style: const TextStyle(fontSize: 20.0),
+                    style: const TextStyle(fontSize: 25),
                   ),
                 ),
-                SizedBox(
-                  height: width / 4,
-                  child: Card.outlined(
-                    elevation: 0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(description),
-                    ),
+                TextField(
+                  controller: txtcon,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    height: 1.2,
+                  ),
+                  maxLines: 4,
+                  minLines: 4,
+                  enabled: false,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
                   ),
                 ),
                 const Divider(thickness: 2),
@@ -87,7 +91,7 @@ class ProfilePage extends StatelessWidget {
                             '${RouterPath.myDogProfile}?dogId=${dog["id"]}',
                           );
                         },
-                        child: const Text('detail'),
+                        child: Text('detail'),
                       ),
                     );
                   }).toList(),
@@ -95,19 +99,19 @@ class ProfilePage extends StatelessWidget {
                 const Divider(thickness: 2),
                 ElevatedButton(
                   onPressed: () => context.go(RouterPath.myDogRegistraion),
-                  child: const Text("regist dog"),
+                  child: Text("regist dog"),
                 ),
                 ElevatedButton(
                   onPressed: () => context.go(RouterPath.myReview),
-                  child: const Text("view my reivew"),
+                  child: Text("view my reivew"),
                 ),
                 ElevatedButton(
                   onPressed: () => context.go(RouterPath.myProfileModification),
-                  child: const Text("modify my info"),
+                  child: Text("modify my info"),
                 ),
                 ElevatedButton(
                   onPressed: () {},
-                  child: const Text('setting'),
+                  child: Text('setting'),
                 ),
               ],
             ),
@@ -216,7 +220,13 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
                   height: width / 4,
                   child: TextField(
                     controller: _descriptionCtrl,
-                    maxLines: 5,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      height: 1.2,
+                    ),
+                    maxLines: 4,
+                    minLines: 4,
                     decoration: const InputDecoration(
                       hintText: '자기소개를 입력해주세요',
                       border: OutlineInputBorder(),
@@ -250,9 +260,8 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
 
 // Dog pages
 class DogProfilePage extends StatelessWidget {
-  final int dogId;
-
   const DogProfilePage({required this.dogId, super.key});
+  final int dogId;
 
   @override
   Widget build(BuildContext context) {
@@ -284,7 +293,7 @@ class DogProfilePage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text("dog id : $dogId")),
+      appBar: AppBar(title: const Text("Dog profile")),
       body: Center(
         child: FutureBuilder(
           future: DogProfileApi.getDogProfile(id: dogId),
@@ -297,25 +306,67 @@ class DogProfilePage extends StatelessWidget {
               return Text('snapshot has Error: ${snapshot.error}');
             }
 
-            DogInfo dogInfo = snapshot.data!;
+            int dogId = snapshot.data!.dogId!;
+            dynamic image = snapshot.data!.dogImage == null
+                ? const AssetImage('assets/images/profile_test.png')
+                : MemoryImage(snapshot.data!.dogImage!);
+            String dogName = snapshot.data!.dogName;
+            String dogGender = snapshot.data!.dogGender == "male" ? "남성" : "여성";
+            int age = snapshot.data!.age;
+            String description = snapshot.data!.description == null
+                ? ""
+                : context.watch<UserInfo>().description!;
+            bool neutered = snapshot.data!.neutered;
+            String breed = snapshot.data!.breed;
+            String size = snapshot.data!.size;
+
             return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(dogInfo.dogId.toString()),
-                Text(dogInfo.dogName),
-                Text(dogInfo.dogGender),
-                Text(dogInfo.ownerId.toString()),
-                Text(dogInfo.neutered.toString()),
-                Text(dogInfo.age.toString()),
-                Text(dogInfo.size.toString()),
-                Text(dogInfo.weight.toString()),
-                Text(dogInfo.breed),
-                Text(dogInfo.description),
-                ElevatedButton(
-                  onPressed: () => buildDeleteDialog(context, dogInfo.dogId!),
-                  child: const Text('remove'),
+                Expanded(
+                  flex: 1,
+                  child: Image(
+                    image: image,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Column(children: [
+                    Text('이름 : $dogName'),
+                    Text('성별 : $dogGender'),
+                    Text(neutered == true ? '중성화 완료' : '중성화 안함'),
+                    Text('${age.toString()}살'),
+                    Text('$size견'),
+                    Text('품종 : $breed'),
+                    Text(description),
+                    ElevatedButton(
+                      onPressed: () => buildDeleteDialog(context, dogId),
+                      child: const Text('remove'),
+                    ),
+                  ]),
                 ),
               ],
             );
+
+            // return Column(
+            //   children: [
+            //     Text(dogInfo.dogId.toString()),
+            //     Text(dogInfo.dogName),
+            //     Text(dogInfo.dogGender),
+            //     Text(dogInfo.ownerId.toString()),
+            //     Text(dogInfo.neutered.toString()),
+            //     Text(dogInfo.age.toString()),
+            //     Text(dogInfo.size.toString()),
+            //     Text(dogInfo.weight.toString()),
+            //     Text(dogInfo.breed),
+            //     Text(dogInfo.description),
+            //     ElevatedButton(
+            //       onPressed: () => buildDeleteDialog(context, dogInfo.dogId!),
+            //       child: const Text('remove'),
+            //     ),
+            //   ],
+            // );
           },
         ),
       ),

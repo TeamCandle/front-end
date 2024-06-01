@@ -161,7 +161,7 @@ class DogInfo {
   String size;
   double weight;
   String breed;
-  String description;
+  String? description;
   Uint8List? dogImage;
 
   DogInfo(
