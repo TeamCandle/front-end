@@ -66,7 +66,6 @@ class _DogUberAppState extends State<DogUberApp> {
             selectedItemColor: Color(0xFF77D970),
             //unselectedItemColor: Colors.grey,
           ),
-          buttonTheme: const ButtonThemeData(buttonColor: Color(0xFF77D970)),
           floatingActionButtonTheme: const FloatingActionButtonThemeData(
               backgroundColor: Color(0xFF77D970)),
           dialogTheme: const DialogTheme(backgroundColor: Colors.white),
@@ -75,7 +74,13 @@ class _DogUberAppState extends State<DogUberApp> {
             shadowColor: Colors.black,
             elevation: 10.0,
           ),
-          textTheme: GoogleFonts.juaTextTheme(),
+          textTheme: GoogleFonts.notoSansKrTextTheme(),
+          elevatedButtonTheme: const ElevatedButtonThemeData(
+            style: ButtonStyle(
+              foregroundColor: WidgetStatePropertyAll<Color>(Colors.black),
+              backgroundColor: WidgetStatePropertyAll<Color>(Color(0xFFC7F3D0)),
+            ),
+          ),
         ),
       ),
     );

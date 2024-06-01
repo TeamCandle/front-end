@@ -61,6 +61,9 @@ class InfinitList extends ChangeNotifier {
   int _matchingLogOffset = 1;
   List<dynamic> matchingLogList = [];
 
+  int _reviewOffset = 1;
+  List<dynamic> reviewList = [];
+
   Future<void> updateAllRequestList() async {
     List<dynamic>? data =
         await RequirementApi.getAllRequirementList(offset: _allRequestOffset);
@@ -129,6 +132,25 @@ class InfinitList extends ChangeNotifier {
     }
   }
 
+  Future<void> updateReviewList({required int userId}) async {
+    List<dynamic>? data = await ReviewApi.getReviewList(
+      userId: userId,
+      offset: _reviewOffset,
+    );
+    if (data == null) {
+      debugPrint('[log] null from updateReviewList');
+      return;
+    } else if (data.isEmpty) {
+      debugPrint('[log] empty from updateReviewList');
+      return;
+    } else {
+      reviewList.addAll(data);
+      ++_reviewOffset;
+      notifyListeners();
+      return;
+    }
+  }
+
   void releaseList() {
     _allRequestOffset = 1;
     allRequestList = [];
@@ -138,6 +160,8 @@ class InfinitList extends ChangeNotifier {
     myApplicationList = [];
     _matchingLogOffset = 1;
     matchingLogList = [];
+    _reviewOffset = 1;
+    reviewList = [];
     notifyListeners();
     return;
   }

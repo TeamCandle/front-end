@@ -786,6 +786,24 @@ class ApplicationApi {
 class MatchingLogApi {
   static final AuthApi _auth = AuthApi();
 
+  static Future<Map<String, dynamic>?> getUpcoming() async {
+    var url = Uri.parse('${ServerUrl.matchUrl}/upcoming');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get match log list",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    return tempMap;
+  }
+
   //매칭 로그 조회
   static Future<List<dynamic>?> getMatchingLogList(int offset) async {
     var url = Uri.parse('${ServerUrl.matchUrl}/list?offset=$offset');
@@ -882,6 +900,9 @@ class MatchingLogApi {
   }
 }
 
+//TODO: 맨위에 현재 매칭에서는 다음과 같이 할 것. 디테일 받아오고 상태 표시하고,
+//TODO: 지금 생각으로는 매칭 로그에는 리뷰 버튼만 맹글고 결제같은 로직은 현재 매칭에서 구현하면 될듯?
+
 class PaymentApi {
   AuthApi _auth = AuthApi();
 
@@ -891,4 +912,70 @@ class PaymentApi {
 
 class ChattingApi {}
 
-class ReviewApi {}
+class ReviewApi {
+  static final AuthApi _auth = AuthApi();
+
+  //리뷰 내역 출력
+  static Future<List<dynamic>?> getReviewList({
+    required int userId,
+    required int offset,
+  }) async {
+    var url =
+        Uri.parse('${ServerUrl.reviewUrl}/list?userId=$userId&offset=$offset');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get review list",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    List<dynamic> tempList = tempMap['reviews'];
+    return tempList;
+  }
+
+  //특정 리뷰 조회 -> 필요 시 제작
+
+  //리뷰 등록
+  static Future<bool> regist({
+    required int matchId,
+    required int rating,
+    required String text,
+  }) async {
+    var url = Uri.parse(ServerUrl.reviewUrl);
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    var body = {'id': matchId, 'rating': rating, 'text': text};
+
+    http.Response? response = await HttpMethod.tryPost(
+      title: "regist review",
+      url: url,
+      header: header,
+      body: body,
+    );
+
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return false;
+    }
+    return true;
+  }
+
+  //리뷰 삭제
+  static Future<bool> delete(int reviewId) async {
+    var url = Uri.parse('${ServerUrl.reviewUrl}?id=$reviewId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    bool result = await HttpMethod.tryDelete(
+      title: "delete review",
+      url: url,
+      header: header,
+    );
+
+    return result;
+  }
+}

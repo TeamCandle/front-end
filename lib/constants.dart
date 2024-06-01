@@ -76,4 +76,6 @@ class ServerUrl {
   static const String matchUrl = '$serverUrl/match';
 
   static const String paymentUrl = '$serverUrl/payment';
+
+  static const String reviewUrl = '$serverUrl/review';
 }

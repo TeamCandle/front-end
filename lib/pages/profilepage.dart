@@ -37,10 +37,9 @@ class ProfilePage extends StatelessWidget {
           txtcon.text = context.watch<UserInfo>().description == null
               ? "자기소개를 입력해주세요"
               : context.watch<UserInfo>().description!;
-          txtcon.text =
-              "안녕하세요 저는 트위치에서 활동을 하고 있는 스트리머 케인입니다. 먼저 저의 말과 행동으로 인해 큰 피해를 끼친 시청자분들, 그리고 샌드백님께 죄송합니다. 지금부터는 제가 준비한";
           List<Map<String, dynamic>> dogs =
               context.watch<UserInfo>().ownDogList;
+          debugPrint('$dogs');
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(8.0),
@@ -81,9 +80,9 @@ class ProfilePage extends StatelessWidget {
                 Column(
                   children: dogs.map((dog) {
                     return ListTile(
-                      leading: dog['dogImage'] == null
+                      leading: dog['image'] == null
                           ? Image.asset('assets/images/profile_test.png')
-                          : Image.memory(dog['dogImage']),
+                          : Image.memory(base64Decode(dog['image'])),
                       title: Text(dog["name"]),
                       trailing: ElevatedButton(
                         onPressed: () {
@@ -91,7 +90,7 @@ class ProfilePage extends StatelessWidget {
                             '${RouterPath.myDogProfile}?dogId=${dog["id"]}',
                           );
                         },
-                        child: Text('detail'),
+                        child: const Icon(Icons.login_rounded),
                       ),
                     );
                   }).toList(),
