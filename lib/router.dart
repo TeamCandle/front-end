@@ -22,6 +22,12 @@ final GoRouter router = GoRouter(
       },
       routes: [
         GoRoute(
+          path: 'login_direct',
+          builder: (context, state) {
+            return const WebViewPage();
+          },
+        ),
+        GoRoute(
           path: 'home',
           builder: (BuildContext context, GoRouterState state) {
             return const HomePage();
@@ -305,6 +311,7 @@ class ErrorPage extends StatelessWidget {
 
 class RouterPath {
   static const String home = '/home';
+  static const String loginDirect = '/login_direct';
 
   //profile tree
   static const String myProfile = '/home/my_profile';

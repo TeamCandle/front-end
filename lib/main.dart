@@ -11,6 +11,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'router.dart';
 import 'datamodels.dart';
 import 'notification.dart';
+//TODO: floatingActionButtonLocation:
+// FloatingActionButtonLocation.miniCenterDocked,
+
+//CarouselSlider
+//petItem으로 펫 슬라디잉
+//전체적인 배경을 appBgColor(컬러그거에있음)으로 하고 요소들을 화이트로
+//모든 텍스트박스를 custom textbox로
+//0xFFC7F3D0
 
 Future<void> main() async {
   //init flutter engine
@@ -60,16 +68,11 @@ class _DogUberAppState extends State<DogUberApp> {
       child: MaterialApp.router(
         routerConfig: router,
         theme: ThemeData(
-          scaffoldBackgroundColor: Colors.white,
-          appBarTheme: const AppBarTheme(backgroundColor: Colors.white),
-          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-            backgroundColor: Colors.white,
-            selectedItemColor: Color(0xFFC7F3D0),
-            //unselectedItemColor: Colors.grey,
-          ),
+          scaffoldBackgroundColor: const Color(0xFFF7F7F7),
+          appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFF7F7F7)),
           floatingActionButtonTheme: const FloatingActionButtonThemeData(
               backgroundColor: Color(0xFFC7F3D0)),
-          dialogTheme: const DialogTheme(backgroundColor: Colors.white),
+          dialogTheme: const DialogTheme(backgroundColor: Color(0xFFF7F7F7)),
           cardTheme: const CardTheme(
             color: Colors.white,
             shadowColor: Colors.black,

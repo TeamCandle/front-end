@@ -16,6 +16,7 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 //files
 import '../datamodels.dart';
 import '../constants.dart';
+import '../router.dart';
 
 class LogInPage extends StatelessWidget {
   const LogInPage({super.key});
@@ -34,10 +35,7 @@ class LogInPage extends StatelessWidget {
                 margin: const EdgeInsets.all(20),
                 width: double.infinity,
                 child: InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const WebViewPage()));
-                  },
+                  onTap: () => context.go(RouterPath.loginDirect),
                   child: Image.asset('assets/images/icon_kakao_login.png'),
                 ),
               ),

@@ -36,20 +36,35 @@ class _AllRequestPageState extends State<AllRequestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("all request")),
+      appBar: AppBar(title: const Text("all request")),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(children: [
               Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  decoration: const InputDecoration(
-                    label: Text('Enter Text'),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                child: Container(
+                  height: 50,
+                  margin: const EdgeInsets.fromLTRB(3, 0, 3, 8),
+                  padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 1,
+                        blurRadius: 1,
+                        offset: const Offset(1, 1),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter Text',
+                      border: InputBorder.none,
                     ),
                   ),
                 ),
@@ -68,15 +83,22 @@ class _AllRequestPageState extends State<AllRequestPage> {
                 builder: buildAllRequirementList,
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                context.go(RouterPath.myApplicationList);
-              },
-              child: const Text('my applications'),
-            ),
           ],
         ),
       ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 6, 24, 6),
+        child: Row(children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => context.go(RouterPath.myApplicationList),
+              child: const Text('my applications'),
+            ),
+          ),
+        ]),
+      ),
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.miniCenterDocked,
     );
   }
 
