@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
@@ -96,21 +97,37 @@ class ProfilePage extends StatelessWidget {
                   }).toList(),
                 ),
                 const Divider(thickness: 2),
-                ElevatedButton(
-                  onPressed: () => context.go(RouterPath.myDogRegistraion),
-                  child: Text("regist dog"),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+                  child: ElevatedButton(
+                    onPressed: () => context.go(RouterPath.myDogRegistraion),
+                    child: const Text(
+                      "regist dog",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () => context.go(RouterPath.myReview),
-                  child: Text("view my reivew"),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+                  child: ElevatedButton(
+                    onPressed: () => context.go(RouterPath.myReview),
+                    child: Text("view my reivew"),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () => context.go(RouterPath.myProfileModification),
-                  child: Text("modify my info"),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+                  child: ElevatedButton(
+                    onPressed: () =>
+                        context.go(RouterPath.myProfileModification),
+                    child: Text("modify my info"),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () {},
-                  child: Text('setting'),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    child: Text('setting'),
+                  ),
                 ),
               ],
             ),

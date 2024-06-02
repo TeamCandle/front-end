@@ -1,6 +1,7 @@
 //dependencies
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_doguber_frontend/firebase_options.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:provider/provider.dart';
@@ -63,11 +64,11 @@ class _DogUberAppState extends State<DogUberApp> {
           appBarTheme: const AppBarTheme(backgroundColor: Colors.white),
           bottomNavigationBarTheme: const BottomNavigationBarThemeData(
             backgroundColor: Colors.white,
-            selectedItemColor: Color(0xFF77D970),
+            selectedItemColor: Color(0xFFC7F3D0),
             //unselectedItemColor: Colors.grey,
           ),
           floatingActionButtonTheme: const FloatingActionButtonThemeData(
-              backgroundColor: Color(0xFF77D970)),
+              backgroundColor: Color(0xFFC7F3D0)),
           dialogTheme: const DialogTheme(backgroundColor: Colors.white),
           cardTheme: const CardTheme(
             color: Colors.white,
@@ -75,10 +76,21 @@ class _DogUberAppState extends State<DogUberApp> {
             elevation: 10.0,
           ),
           textTheme: GoogleFonts.notoSansKrTextTheme(),
-          elevatedButtonTheme: const ElevatedButtonThemeData(
+          elevatedButtonTheme: ElevatedButtonThemeData(
             style: ButtonStyle(
-              foregroundColor: WidgetStatePropertyAll<Color>(Colors.black),
-              backgroundColor: WidgetStatePropertyAll<Color>(Color(0xFFC7F3D0)),
+              textStyle: WidgetStatePropertyAll<TextStyle>(
+                GoogleFonts.notoSansKr(
+                  //fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+              padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                EdgeInsets.all(8),
+              ),
+              foregroundColor:
+                  const WidgetStatePropertyAll<Color>(Colors.black),
+              backgroundColor:
+                  const WidgetStatePropertyAll<Color>(Color(0xFFC7F3D0)),
             ),
           ),
         ),

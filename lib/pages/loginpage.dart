@@ -4,6 +4,7 @@
 
 //dependencies
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_doguber_frontend/api.dart';
 import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -23,9 +24,10 @@ class LogInPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Center(
-          child: Column(
-            children: [
+        backgroundColor: const Color(0xFF005f4d),
+        body: Stack(children: [
+          Center(
+            child: Column(children: [
               const Spacer(),
               Container(
                 padding: const EdgeInsets.all(20),
@@ -39,13 +41,28 @@ class LogInPage extends StatelessWidget {
                   child: Image.asset('assets/images/icon_kakao_login.png'),
                 ),
               ),
-            ],
+            ]),
           ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => {context.go('/home')},
-          child: const Text('dev\nhome'),
-        ),
+          LayoutBuilder(builder: (context, constraints) {
+            double radius = constraints.maxWidth / 3;
+            return Stack(
+              children: [
+                Center(
+                    child: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  radius: radius,
+                )),
+                Center(
+                  child: Image.asset(
+                    'assets/images/carrotBowLogo.png',
+                    width: radius,
+                    height: radius,
+                  ),
+                ),
+              ],
+            );
+          }),
+        ]),
       ),
     );
   }
