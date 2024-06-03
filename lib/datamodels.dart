@@ -48,7 +48,7 @@ class UserInfo extends ChangeNotifier {
   }
 }
 
-class InfinitList extends ChangeNotifier {
+class InfiniteList extends ChangeNotifier {
   int _allRequestOffset = 1;
   List<dynamic> allRequestList = [];
 
@@ -215,6 +215,7 @@ class DetailInfo {
   int dogId;
   int reward;
   String status;
+  bool? requester;
 
   DetailInfo(
     this.detailId,
@@ -229,4 +230,6 @@ class DetailInfo {
     this.reward,
     this.status,
   );
+
+  void setRequester(bool isRequester) => requester = isRequester;
 }

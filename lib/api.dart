@@ -105,6 +105,26 @@ class AuthApi {
       return null;
     }
   }
+
+  Future<bool> getDummy() async {
+    var url = Uri.parse('${ServerUrl.serverUrl}/user/dummy?id=19'); //1~50
+
+    try {
+      http.Response? response = await http.get(url);
+      if (response.statusCode != 200) {
+        debugPrint("[!!!] dummy fail : ${response.body}");
+        return false;
+      }
+      String token = response.body;
+      _accessToken = token;
+      _isLogined = true;
+      await _registFcmTokenToServer(_accessToken!);
+      return true;
+    } catch (e) {
+      debugPrint('[!!!] dummy error ');
+      return false;
+    }
+  }
 }
 
 class HttpMethod {
@@ -858,6 +878,7 @@ class MatchingLogApi {
         data['details']['reward'],
         data['details']['status'],
       );
+      matchingLogDetail.setRequester(data['requester']);
       return matchingLogDetail;
     } catch (e) {
       debugPrint('[!!!] decode matching log fail');
@@ -903,14 +924,17 @@ class MatchingLogApi {
 //TODO: 맨위에 현재 매칭에서는 다음과 같이 할 것. 디테일 받아오고 상태 표시하고,
 //TODO: 지금 생각으로는 매칭 로그에는 리뷰 버튼만 맹글고 결제같은 로직은 현재 매칭에서 구현하면 될듯?
 
+class ChattingApi {
+  //채팅 연결
+  //채팅 내역 가져오기 (다시 들어갔을 때)
+}
+
 class PaymentApi {
   AuthApi _auth = AuthApi();
 
   //결제 요청
   //결제 취소 = 매칭이 NOT_COMPLETED 상태일 때 취소 동작
 }
-
-class ChattingApi {}
 
 class ReviewApi {
   static final AuthApi _auth = AuthApi();

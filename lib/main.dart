@@ -63,7 +63,8 @@ class _DogUberAppState extends State<DogUberApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<UserInfo>(create: (context) => UserInfo()),
-        ChangeNotifierProvider<InfinitList>(create: (context) => InfinitList()),
+        ChangeNotifierProvider<InfiniteList>(
+            create: (context) => InfiniteList()),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -71,7 +72,7 @@ class _DogUberAppState extends State<DogUberApp> {
           scaffoldBackgroundColor: const Color(0xFFF7F7F7),
           appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFF7F7F7)),
           floatingActionButtonTheme: const FloatingActionButtonThemeData(
-              backgroundColor: Color(0xFFC7F3D0)),
+              backgroundColor: Color(0xFFa2e1a6)),
           dialogTheme: const DialogTheme(backgroundColor: Color(0xFFF7F7F7)),
           cardTheme: const CardTheme(
             color: Colors.white,
@@ -83,7 +84,7 @@ class _DogUberAppState extends State<DogUberApp> {
             style: ButtonStyle(
               textStyle: WidgetStatePropertyAll<TextStyle>(
                 GoogleFonts.notoSansKr(
-                  //fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   fontSize: 20,
                 ),
               ),
@@ -93,7 +94,7 @@ class _DogUberAppState extends State<DogUberApp> {
               foregroundColor:
                   const WidgetStatePropertyAll<Color>(Colors.black),
               backgroundColor:
-                  const WidgetStatePropertyAll<Color>(Color(0xFFC7F3D0)),
+                  const WidgetStatePropertyAll<Color>(Color(0xFFa2e1a6)),
             ),
           ),
         ),

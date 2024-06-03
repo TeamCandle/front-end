@@ -10,6 +10,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 //files
 import '../constants.dart';
+import '../customwidgets.dart';
 import '../mymap.dart';
 import '../api.dart';
 import '../router.dart';
@@ -29,7 +30,7 @@ class _AllRequestPageState extends State<AllRequestPage> {
 
   @override
   void dispose() {
-    context.read<InfinitList>().releaseList();
+    context.read<InfiniteList>().releaseList();
     super.dispose();
   }
 
@@ -44,22 +45,7 @@ class _AllRequestPageState extends State<AllRequestPage> {
           children: [
             Row(children: [
               Expanded(
-                child: Container(
-                  height: 50,
-                  margin: const EdgeInsets.fromLTRB(3, 0, 3, 8),
-                  padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 1,
-                        blurRadius: 1,
-                        offset: const Offset(1, 1),
-                      ),
-                    ],
-                  ),
+                child: customSearchField(
                   child: TextField(
                     controller: _searchController,
                     decoration: const InputDecoration(
@@ -72,14 +58,14 @@ class _AllRequestPageState extends State<AllRequestPage> {
               IconButton(
                 onPressed: () {},
                 style: const ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(Color(0xFFC7F3D0)),
+                  backgroundColor: WidgetStatePropertyAll(Color(0xFFa2e1a6)),
                 ),
                 icon: const Icon(Icons.filter_list_rounded),
               ),
             ]),
             Expanded(
               child: FutureBuilder(
-                future: context.read<InfinitList>().updateAllRequestList(),
+                future: context.read<InfiniteList>().updateAllRequestList(),
                 builder: buildAllRequirementList,
               ),
             ),
@@ -110,56 +96,36 @@ class _AllRequestPageState extends State<AllRequestPage> {
     }
 
     return ListView.builder(
-      itemCount: context.watch<InfinitList>().allRequestList.length,
+      itemCount: context.watch<InfiniteList>().allRequestList.length,
       itemBuilder: (BuildContext context, int index) {
-        if (index == context.watch<InfinitList>().allRequestList.length - 3) {
-          context.read<InfinitList>().updateAllRequestList();
+        if (index == context.watch<InfiniteList>().allRequestList.length - 3) {
+          context.read<InfiniteList>().updateAllRequestList();
         }
 
-        var image = context.watch<InfinitList>().allRequestList[index]
+        var image = context.watch<InfiniteList>().allRequestList[index]
                     ['image'] ==
                 null
             ? Image.asset('assets/images/empty_image.png')
             : Image.memory(base64Decode(
-                context.read<InfinitList>().allRequestList[index]['image']));
-        int id = context.read<InfinitList>().allRequestList[index]['id'];
+                context.read<InfiniteList>().allRequestList[index]['image']));
+        int id = context.read<InfiniteList>().allRequestList[index]['id'];
         String careType =
-            context.watch<InfinitList>().allRequestList[index]['careType'];
+            context.watch<InfiniteList>().allRequestList[index]['careType'];
         String time =
-            context.watch<InfinitList>().allRequestList[index]['time'];
+            context.watch<InfiniteList>().allRequestList[index]['time'];
         String breed =
-            context.watch<InfinitList>().allRequestList[index]['breed'];
+            context.watch<InfiniteList>().allRequestList[index]['breed'];
         String status =
-            context.watch<InfinitList>().allRequestList[index]['status'];
+            context.watch<InfiniteList>().allRequestList[index]['status'];
 
-        return Container(
-          margin: const EdgeInsets.fromLTRB(3, 0, 3, 8),
-          padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
-                spreadRadius: 1,
-                blurRadius: 1,
-                offset: const Offset(1, 1),
-              ),
-            ],
-          ),
-          child: ListTile(
-            leading: image,
-            title: Text('$breed\t$careType'),
-            subtitle: Container(
-              margin: const EdgeInsets.only(top: 5),
-              child: Text(time),
-            ),
-            trailing: Text(status),
-            visualDensity: VisualDensity.compact,
-            shape: const RoundedRectangleBorder(),
-            onTap: () =>
-                context.go('${RouterPath.requirementDetail}?requirementId=$id'),
-          ),
+        return customListTile(
+          leading: image,
+          title: Text('$breed\t$careType'),
+          subtitle: Text(time),
+          trailing: Text(status),
+          onTap: () {
+            context.go('${RouterPath.requirementDetail}?requirementId=$id');
+          },
         );
       },
     );
@@ -200,7 +166,7 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("request detail page")),
+      appBar: AppBar(title: const Text("request detail page")),
       body: FutureBuilder(
         future: initRequirementDetailPage(),
         builder: buildRequirementDetail,
@@ -249,78 +215,90 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
               double height = constraints.maxHeight;
               double width = constraints.maxWidth;
 
-              return Card(
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: SizedBox(
-                            height: height / 2,
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: CircleAvatar(
-                                maxRadius: (height / 4),
-                                backgroundImage: image,
+              return cunstomContainer(
+                child: Column(children: [
+                  Expanded(
+                    child: Row(children: [
+                      Expanded(
+                        child: Center(
+                          child: CircleAvatar(
+                            maxRadius: (height / 4),
+                            backgroundImage: image,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(children: [
+                          Text('종류 : $careType'),
+                          Text('보상 : $reward'),
+                          Text('현재 $status'),
+                        ]),
+                      ),
+                      Expanded(
+                        child: Column(children: [
+                          Expanded(
+                            child: Center(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.all(0),
+                                ),
+                                onPressed: () {
+                                  context.go(
+                                      '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.requirementId}');
+                                },
+                                child: const Padding(
+                                  padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
+                                  child: Text('보호자'),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Column(children: [
-                            Text('종류 : $careType'),
-                            Text('보상 : $reward'),
-                            Text('현재 $status'),
-                          ]),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Column(children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                context.go(
-                                    '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.requirementId}');
-                              },
-                              child: Text('owner'),
+                          Expanded(
+                            child: Center(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.all(0),
+                                ),
+                                onPressed: () {
+                                  context.go(
+                                      '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.requirementId}');
+                                },
+                                child: const Padding(
+                                  padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
+                                  child: Text('강아지'),
+                                ),
+                              ),
                             ),
-                            ElevatedButton(
-                              onPressed: () {
-                                context.go(
-                                    '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.requirementId}');
-                              },
-                              child: Text('dog'),
-                            ),
-                          ]),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      width: width,
-                      height: (height / 2.5),
-                      child: Card.outlined(
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Text(description),
-                        ),
+                          ),
+                        ]),
+                      ),
+                    ]),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: customCard(
+                        width: width,
+                        height: (height / 2.5),
+                        child: Text(description),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ]),
               );
             },
           ),
         ),
-        ElevatedButton(
-            onPressed: () async {
-              await ApplicationApi.apply(widget.requirementId)
-                  .then((bool result) {
-                _showResult(context, result);
-              });
-            },
-            child: Text('apply')),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          child: ElevatedButton(
+              onPressed: () async {
+                await ApplicationApi.apply(widget.requirementId)
+                    .then((bool result) {
+                  _showResult(context, result);
+                });
+              },
+              child: const Text('apply')),
+        ),
       ],
     );
   }
@@ -345,9 +323,9 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (result == true) {
-                    context.read<InfinitList>().clearMyApplicationOnly();
+                    context.read<InfiniteList>().clearMyApplicationOnly();
                     await context
-                        .read<InfinitList>()
+                        .read<InfiniteList>()
                         .updateMyApplicationList()
                         .then((_) {
                       context.go(RouterPath.allRequirement);
@@ -372,9 +350,12 @@ class MyApplicationListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("my application")),
-      body: FutureBuilder(
-        future: context.read<InfinitList>().updateMyApplicationList(),
-        builder: buildMyApplicationList,
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: FutureBuilder(
+          future: context.read<InfiniteList>().updateMyApplicationList(),
+          builder: buildMyApplicationList,
+        ),
       ),
     );
   }
@@ -387,31 +368,32 @@ class MyApplicationListPage extends StatelessWidget {
     }
 
     return ListView.builder(
-        itemCount: context.watch<InfinitList>().myApplicationList.length,
+        itemCount: context.watch<InfiniteList>().myApplicationList.length,
         itemBuilder: (BuildContext context, int index) {
           if (index ==
-              context.watch<InfinitList>().myApplicationList.length - 3) {
-            context.read<InfinitList>().updateMyApplicationList();
+              context.watch<InfiniteList>().myApplicationList.length - 3) {
+            context.read<InfiniteList>().updateMyApplicationList();
           }
 
-          var image = context.watch<InfinitList>().myApplicationList[index]
+          var image = context.watch<InfiniteList>().myApplicationList[index]
                       ['image'] ==
                   null
               ? Image.asset('assets/images/empty_image.png')
               : Image.memory(base64Decode(context
-                  .read<InfinitList>()
+                  .read<InfiniteList>()
                   .myApplicationList[index]['image']));
-          int id = context.watch<InfinitList>().myApplicationList[index]['id'];
-          String careType =
-              context.watch<InfinitList>().myApplicationList[index]['careType'];
+          int id = context.watch<InfiniteList>().myApplicationList[index]['id'];
+          String careType = context
+              .watch<InfiniteList>()
+              .myApplicationList[index]['careType'];
           String time =
-              context.watch<InfinitList>().myApplicationList[index]['time'];
+              context.watch<InfiniteList>().myApplicationList[index]['time'];
           String breed =
-              context.watch<InfinitList>().myApplicationList[index]['breed'];
+              context.watch<InfiniteList>().myApplicationList[index]['breed'];
           String status =
-              context.watch<InfinitList>().myApplicationList[index]['status'];
+              context.watch<InfiniteList>().myApplicationList[index]['status'];
 
-          return ListTile(
+          return customListTile(
             leading: image,
             title: Text('$breed\t$careType'),
             subtitle: Text(time),
@@ -599,9 +581,9 @@ class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (result == true) {
-                    context.read<InfinitList>().clearMyApplicationOnly();
+                    context.read<InfiniteList>().clearMyApplicationOnly();
                     await context
-                        .read<InfinitList>()
+                        .read<InfiniteList>()
                         .updateMyApplicationList()
                         .then((_) {
                       context.go(RouterPath.myApplicationList);

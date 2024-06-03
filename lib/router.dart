@@ -284,10 +284,24 @@ final GoRouter router = GoRouter(
               ],
             ),
             GoRoute(
-              path: 'matchLog',
+              path: 'matchingLog',
               builder: (BuildContext context, GoRouterState state) {
                 return const MatchingLogPage();
               },
+              routes: [
+                GoRoute(
+                  path: 'detail',
+                  builder: (BuildContext context, GoRouterState state) {
+                    int? id = int.tryParse(
+                      state.uri.queryParameters['matchingId']!,
+                    );
+                    if (id == null) {
+                      return const ErrorPage(err: 'parsing err');
+                    }
+                    return MatchingLogDetailPage(matchingId: id);
+                  },
+                )
+              ],
             ),
           ],
         ),
@@ -342,5 +356,6 @@ class RouterPath {
   static const String requirementRegistForm = '$selectDog/registform';
 
   //match tree
-  static const String matchLog = '/home/matchLog';
+  static const String matchingLog = '/home/matchingLog';
+  static const String matchLogDetail = '$matchingLog/detail';
 }

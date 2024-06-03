@@ -1,5 +1,4 @@
 //constant
-import 'package:flutter/material.dart';
 
 class ApiKeys {
   static const String kakaoNativeAppKey = '8826eec5f744658162616455cf5361ad';
@@ -28,24 +27,13 @@ class CareType {
   static const String etc = "ETC";
 }
 
-class RequirementStatus {
-  static const String matched = 'MATCHED';
-  static const String recruiting = 'RECRUITING';
-  static const String cancelled = 'CANCELLED';
-  static const String expired = 'EXPIRED';
-}
-
-class ApplicationStatus {
-  static const String matched = 'MATCHED';
-  static const String waiting = 'WAITING';
-  static const String rejected = 'REJECTED';
-  static const String cancelled = 'CANCELLED';
-}
-
-class MatchingStatus {
-  static const String completed = 'COMPLETED';
-  static const String inProgress = 'IN_PROGRESS';
-  static const String cancelled = 'CANCELLED';
+class Status {
+  static const String waiting = '결제 대기중';
+  static const String notCompleted = '미완료';
+  static const String completed = '완료';
+  static const String canceled = '취소됨';
+  static const String matched = '매칭 완료';
+  static const String notMatched = '매칭 실패';
 }
 
 class ServerUrl {

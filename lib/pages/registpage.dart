@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_doguber_frontend/api.dart';
+import 'package:flutter_doguber_frontend/customwidgets.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -27,7 +28,7 @@ class MyRequestListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("my request list")),
       body: FutureBuilder(
-        future: context.read<InfinitList>().updateMyRequestList(),
+        future: context.read<InfiniteList>().updateMyRequestList(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const CircularProgressIndicator();
@@ -36,47 +37,47 @@ class MyRequestListPage extends StatelessWidget {
           }
 
           return ListView.builder(
-            itemCount: context.watch<InfinitList>().myRequestList.length,
+            itemCount: context.watch<InfiniteList>().myRequestList.length,
             itemBuilder: (BuildContext context, int index) {
               //이미지, 견종, 날짜, 케어타입, 등록상태
               return ListTile(
                 leading: CircleAvatar(
                   radius: 30.0,
-                  child: context.watch<InfinitList>().myRequestList[index]
+                  child: context.watch<InfiniteList>().myRequestList[index]
                               ['image'] ==
                           null
                       ? Image.asset('assets/images/profile_test.png')
                       : Image.memory(base64Decode(context
-                          .watch<InfinitList>()
+                          .watch<InfiniteList>()
                           .myRequestList[index]['image'])),
                 ),
                 title: Row(
                   children: [
                     Text(
-                      context.watch<InfinitList>().myRequestList[index]
+                      context.watch<InfiniteList>().myRequestList[index]
                           ['breed'],
                     ),
                     const Spacer(),
                     Text(
-                      context.watch<InfinitList>().myRequestList[index]
+                      context.watch<InfiniteList>().myRequestList[index]
                           ['careType'],
                     ),
                   ],
                 ),
                 subtitle: Text(
-                  context.watch<InfinitList>().myRequestList[index]['time'],
+                  context.watch<InfiniteList>().myRequestList[index]['time'],
                 ),
                 trailing: Text(
-                  context.watch<InfinitList>().myRequestList[index]['status'],
+                  context.watch<InfiniteList>().myRequestList[index]['status'],
                 ),
                 onTap: () {
-                  if (context.read<InfinitList>().myRequestList[index]
+                  if (context.read<InfiniteList>().myRequestList[index]
                           ['status'] ==
                       '취소됨') {
                     return;
                   } else {
                     context.go(
-                        '${RouterPath.myRequirementDetail}?requirementId=${context.read<InfinitList>().myRequestList[index]['id']}');
+                        '${RouterPath.myRequirementDetail}?requirementId=${context.read<InfiniteList>().myRequestList[index]['id']}');
                   }
                 },
               );
@@ -102,8 +103,8 @@ class MyRequirementDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Future<void> goBack() async {
-      context.read<InfinitList>().releaseList();
-      await context.read<InfinitList>().updateMyRequestList().then((_) {
+      context.read<InfiniteList>().releaseList();
+      await context.read<InfiniteList>().updateMyRequestList().then((_) {
         context.go(RouterPath.myRequirement);
       });
     }
@@ -125,19 +126,30 @@ class MyRequirementDetailPage extends StatelessWidget {
           var data = jsonDecode(snapshot.data!.body);
           Map<String, dynamic> detail = data['details'];
           List<dynamic> applicants = data['applications'];
+
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CircleAvatar(
-                radius: 30.0,
-                child: detail['dogImage'] == null
-                    ? Image.asset('assets/images/profile_test.png')
-                    : Image.memory(base64Decode(detail['dogImage'])),
-              ),
-              Text('${detail['careType']}'),
-              Text('${detail['description']}'),
-              Text('${detail['status']}'),
-              Text(detail['reward'].toString()),
               Expanded(
+                flex: 1,
+                child: customDetail(
+                  child: Row(children: [
+                    CircleAvatar(
+                      radius: 30.0,
+                      child: detail['dogImage'] == null
+                          ? Image.asset('assets/images/profile_test.png')
+                          : Image.memory(base64Decode(detail['dogImage'])),
+                    ),
+                    Text('${detail['careType']}'),
+                    Text('${detail['description']}'),
+                    Text('${detail['status']}'),
+                    Text(detail['reward'].toString()),
+                    Text('신청자 리스트 클릭하고 화면 넘어가지면 수락된거임'),
+                  ]),
+                ),
+              ),
+              Expanded(
+                flex: 4,
                 child: ListView.builder(
                     itemCount: applicants.length,
                     itemBuilder: (BuildContext context, int index) {
@@ -151,6 +163,16 @@ class MyRequirementDetailPage extends StatelessWidget {
                         title: Text(applicants[index]['name']),
                         subtitle: Text(applicants[index]['gender']),
                         trailing: Text('${applicants[index]['rating']}'),
+                        onTap: () async {
+                          await ApplicationApi.accept(
+                            requirementId,
+                            applicants[index]['id'],
+                          ).then((bool result) {
+                            if (result == true) {
+                              context.go(RouterPath.myRequirement);
+                            }
+                          });
+                        },
                       );
                     }),
               ),
@@ -278,8 +300,8 @@ class _RequestRegistrationFormPageState
   @override
   Widget build(BuildContext context) {
     Future<void> goBack() async {
-      context.read<InfinitList>().releaseList();
-      await context.read<InfinitList>().updateMyRequestList().then((_) {
+      context.read<InfiniteList>().releaseList();
+      await context.read<InfiniteList>().updateMyRequestList().then((_) {
         context.go(RouterPath.myRequirement);
       });
     }
@@ -398,9 +420,9 @@ class _RequestRegistrationFormPageState
               ElevatedButton(
                 onPressed: () async {
                   if (result == true) {
-                    context.read<InfinitList>().releaseList();
+                    context.read<InfiniteList>().releaseList();
                     await context
-                        .read<InfinitList>()
+                        .read<InfiniteList>()
                         .updateMyRequestList()
                         .then((_) {
                       context.go(RouterPath.myRequirement);
