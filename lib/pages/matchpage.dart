@@ -139,23 +139,13 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     String reward = _matchingDetail!.reward.toString();
     String status = _matchingDetail!.status;
     bool isRequester = _matchingDetail!.requester!;
-    debugPrint('!!! match log detail userId : $userId');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           flex: 2,
-          child: GoogleMap(
-            onMapCreated: (GoogleMapController controller) {
-              _mapController.setMapController(ctrl: controller);
-            },
-            initialCameraPosition: CameraPosition(
-              target: _matchingDetail!.careLoaction,
-              zoom: 15,
-            ),
-            markers: _mapController.markers,
-          ),
+          child: buildGoogleMap(),
         ),
         Expanded(
           flex: 1,
@@ -164,161 +154,144 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
               double height = constraints.maxHeight;
               double width = constraints.maxWidth;
 
-              return cunstomContainer(
-                child: Column(children: [
-                  Expanded(
-                    child: Row(children: [
-                      Expanded(
-                        child: Center(
-                          child: CircleAvatar(
-                            maxRadius: (height / 4),
+              return SingleChildScrollView(
+                child: cunstomContainer(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            maxRadius: (height / 5),
                             backgroundImage: image,
                           ),
-                        ),
+                          Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(children: [
+                              Text('종류 : $careType'),
+                              Text('보상 : $reward'),
+                              Text('현재 $status'),
+                            ]),
+                          ),
+                          buildInfoButton(context, userId, dogId, isRequester),
+                        ],
                       ),
-                      Expanded(
-                        child: Column(children: [
-                          Text('종류 : $careType'),
-                          Text('보상 : $reward'),
-                          Text('현재 $status'),
-                        ]),
-                      ),
-                      buildInfoButton(context, userId, dogId, isRequester),
-                    ]),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: customCard(
+                      customCard(
                         width: width,
                         height: (height / 2.5),
                         child: Text(description),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            context.go(
+                                '${RouterPath.chatPage}?matchId=${widget.matchingId}');
+                          },
+                          child: const Text('chatting'),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                        child: buildMatchingLogButton(isRequester, status),
+                      ),
+                    ],
                   ),
-                ]),
+                ),
               );
             },
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          child: buildMatchingLogButton(isRequester, status),
         ),
       ],
     );
   }
 
-  Expanded buildInfoButton(
+  GoogleMap buildGoogleMap() {
+    return GoogleMap(
+      onMapCreated: (GoogleMapController controller) {
+        _mapController.setMapController(ctrl: controller);
+      },
+      initialCameraPosition: CameraPosition(
+        target: _matchingDetail!.careLoaction,
+        zoom: 15,
+      ),
+      markers: _mapController.markers,
+    );
+  }
+
+  Widget buildInfoButton(
     BuildContext context,
     int userId,
     int dogId,
     bool isRequester,
   ) {
     if (isRequester == true) {
-      return Expanded(
-        child: Column(children: [
-          Expanded(
-            child: Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.all(0),
-                ),
-                onPressed: () {
-                  context.go(
-                      '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchingId}');
-                },
-                child: const Padding(
-                  padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
-                  child: Text('신청자'),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.all(0),
-                ),
-                onPressed: () {
-                  context.go(
-                      '${RouterPath.chatPage}?matchId=${widget.matchingId}');
-                },
-                child: const Padding(
-                  padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
-                  child: Text('채팅F'),
-                ),
-              ),
-            ),
-          ),
-        ]),
+      return ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.all(0),
+        ),
+        onPressed: () {
+          context.go(
+            '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchingId}',
+          );
+        },
+        child: const Padding(
+          padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
+          child: Text('신청자'),
+        ),
       );
     } else {
-      return Expanded(
-        child: Column(children: [
-          Expanded(
-            child: Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.all(0),
-                ),
-                onPressed: () {
-                  context.go(
-                      '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchingId}');
-                },
-                child: const Padding(
-                  padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
-                  child: Text('보호자'),
-                ),
-              ),
-            ),
+      return Column(children: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.all(0),
           ),
-          Expanded(
-            child: Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.all(0),
-                ),
-                onPressed: () {
-                  context.go(
-                      '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.matchingId}');
-                },
-                child: const Padding(
-                  padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
-                  child: Text('강아지'),
-                ),
-              ),
-            ),
+          onPressed: () {
+            context.go(
+                '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchingId}');
+          },
+          child: const Padding(
+            padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
+            child: Text('보호자'),
           ),
-        ]),
-      );
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.all(0),
+          ),
+          onPressed: () {
+            context.go(
+                '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.matchingId}');
+          },
+          child: const Padding(
+            padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
+            child: Text('강아지'),
+          ),
+        ),
+      ]);
     }
   }
 
-  Widget? buildMatchingLogButton(bool isRequester, String status) {
+  Widget buildMatchingLogButton(bool isRequester, String status) {
     debugPrint('!!! status : $status');
     if (isRequester == true) {
       switch (status) {
         case Status.waiting:
-          return Row(
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: ElevatedButton(
-                    onPressed: () async {},
-                    child: const Text('결제하기'),
-                  ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ElevatedButton(
+                  onPressed: () async {},
+                  child: const Text('결제하기'),
                 ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: ElevatedButton(
-                    onPressed: () async {},
-                    child: const Text('매칭 취소'),
-                  ),
-                ),
+              ElevatedButton(
+                onPressed: () async {},
+                child: const Text('매칭 취소'),
               ),
             ],
           );
@@ -334,8 +307,8 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
           );
         default:
           return ElevatedButton(
-            onPressed: () async {},
-            child: Text('$status...'),
+            onPressed: null,
+            child: Text('현재 $status...'),
           );
       }
     } else {
@@ -347,8 +320,8 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
           );
         default:
           return ElevatedButton(
-            onPressed: () async {},
-            child: Text(status),
+            onPressed: null,
+            child: Text('현재 $status'),
           );
       }
     }

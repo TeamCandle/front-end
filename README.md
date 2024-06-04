@@ -240,6 +240,135 @@ defaultConfig{minSdkVersion 21}
 https://medium.com/nerd-for-tech/do-not-use-buildcontext-in-async-gaps-why-and-how-to-handle-flutter-context-correctly-870b924eb42e
 await ~ then ~  
 
+- 채팅 연결 오류
+1. dummy -> user 로그
+I/flutter ( 5288): !!! beforeConnect: headers: {Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY2Nlc3N0b2tlbiIsImV4cCI6MTcxNzUwODQ0NywidXNlcm5hbWUiOiJ1c2VyXzUifQ.sTVnQU7PFqpmocWUpFTFnnunwDjBIC_eyk7UoX4FeLXxBeJFmz98ArMqVXeP8bWhfJBnLYGHfb3DfByPqRb1gQ}
+I/flutter ( 5288): !!! beforeConnect: URL: ws://13.209.220.187/ws
+I/flutter ( 5288): !!! beforeConnect: matchId: 67
+I/flutter ( 5288): !!! beforeConnect: starting connection
+I/flutter ( 5288): !!! beforeConnect: headers: {Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY2Nlc3N0b2tlbiIsImV4cCI6MTcxNzUwODQ0NywidXNlcm5hbWUiOiJ1c2VyXzUifQ.sTVnQU7PFqpmocWUpFTFnnunwDjBIC_eyk7UoX4FeLXxBeJFmz98ArMqVXeP8bWhfJBnLYGHfb3DfByPqRb1gQ}
+I/flutter ( 5288): !!! beforeConnect: URL: ws://13.209.220.187/ws
+I/flutter ( 5288): !!! beforeConnect: matchId: 67
+I/flutter ( 5288): !!! activated stomp client
+W/WindowOnBackDispatcher( 5288): sendCancelIfRunning: isInProgress=falsecallback=io.flutter.embedding.android.FlutterActivity$1@edda457
+I/flutter ( 5288): [!!!] start get chat log
+I/flutter ( 5288): !!! beforeConnect: delay finished, attempting to connect...
+I/flutter ( 5288): [log] marking my location LatLng(36.1385317, 128.4108633)
+I/flutter ( 5288): [!!!] start get matching log detail
+I/flutter ( 5288): [!!!] success get chat log
+I/flutter ( 5288): [{message: hi there, sender: user_5, createAt: 2024-06-04T12:30:59.176631}]
+I/flutter ( 5288): [!!!] success get matching log detail
+I/flutter ( 5288): {requester: true, details: {id: 67, dogImage: null, careType: 산책, startTime: 2024-06-13T11:15:55.985803, endTime: 2024-06-17T11:15:55.985803, careLocation: {x: 128.34, y: 36.14}, description: req_4, userId: 51, reward: 1004, dogId: 4, status: 결제 대기중}}
+I/flutter ( 5288): requester in api true
+I/flutter ( 5288): [log] marked at 36.14, 128.34
+I/flutter ( 5288): !!! current userId : 51
+I/flutter ( 5288): !!! requester bool : true
+I/flutter ( 5288): !!! successfully connected
+I/flutter ( 5288): !!! subscribed to destination
+
+2. user -> dummy 로그
+W/WindowOnBackDispatcher( 5288): sendCancelIfRunning: isInProgress=falsecallback=android.app.Dialog$$ExternalSyntheticLambda2@1368f5f
+I/BpBinder( 5288): onLastStrongRef automatically unlinking death recipients:
+Restarted application in 2,052ms.
+I/FLTFireMsgService( 5288): FlutterFirebaseMessagingBackgroundService started!
+I/flutter ( 5288): [log] fcm token : es5CWuipRjy7Y0yI3zHTJs:APA91bEKG3os02LWeVmsR19hZWmxw0_Vge5aO4Khi81dm2gPQMA3fqb0a7EFrlxl4fZzegVzFnSOZuU_F2fm6L9eIMbE9f-Cx_p6-WXWVjrY1qNR6KpZZqFG9MbU_IPcV75MeQYfFpSX
+W/FLTFireMsgService( 5288): Attempted to start a duplicate background isolate. Returning...
+I/flutter ( 5288): [log] User granted notification permission
+I/flutter ( 5288): [log] User granted fcm permission
+I/flutter ( 5288): [log] AuthorizationStatus.authorized
+W/WindowOnBackDispatcher( 5288): sendCancelIfRunning: isInProgress=falsecallback=io.flutter.embedding.android.FlutterActivity$1@edda457
+D/EGL_emulation( 5288): app_time_stats: avg=18257.15ms min=13.96ms max=255392.91ms count=14
+D/EGL_emulation( 5288): app_time_stats: avg=1057.43ms min=99.65ms max=2015.20ms count=2
+W/WindowOnBackDispatcher( 5288): sendCancelIfRunning: isInProgress=falsecallback=io.flutter.embedding.android.FlutterActivity$1@edda457
+I/PlatformViewsController( 5288): Hosting view in view hierarchy for platform view: 0
+I/PlatformViewsController( 5288): PlatformView is using SurfaceProducer backend
+E/FrameEvents( 5288): updateAcquireFence: Did not find frame.
+D/EGL_emulation( 5288): app_time_stats: avg=14132.60ms min=1.00ms max=268458.69ms count=19
+E/FrameEvents( 5288): updateAcquireFence: Did not find frame.
+I/flutter ( 5288): [!!!] start regist fcm token
+I/flutter ( 5288): [!!!] success regist fcm token
+I/flutter ( 5288): !!! got login
+I/flutter ( 5288): !!! access token : eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY2Nlc3N0b2tlbiIsImV4cCI6MTcxNzUwODcxNSwidXNlcm5hbWUiOiJrYWthb18zNDE5MDcxMzE5In0.fwb7FUZMkELWR5zvSp6zlNsjyxIXI7WEp0AJlxNrfYkMjCRUQ7B5tucIUghsPmTq14Kw5vABq4DC5XWa_T99Bw
+I/flutter ( 5288): !!! refresh token : eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJyZWZyZXNodG9rZW4iLCJleHAiOjE3MTc1MTk1MTUsInVzZXJuYW1lIjoia2FrYW9fMzQxOTA3MTMxOSJ9.4aA5kbt8EerRsm5_Dd3-j4gp7_Q9QsrC0lAzJix85PMEbYDFcAXXWzrMP3qRRkCmEKbAKoQwfdyr5o16b8k4sw
+I/flutter ( 5288): [!!!] start get my profile
+I/flutter ( 5288): [!!!] success get my profile
+I/flutter ( 5288): [log] success get my profile
+I/flutter ( 5288): [log] login success!
+I/flutter ( 5288): [!!!] start get match log list
+I/flutter ( 5288): !!! get upcoming of 이재형, id : 51
+D/EGL_emulation( 5288): app_time_stats: avg=62.34ms min=0.97ms max=708.06ms count=15
+E/FrameEvents( 5288): updateAcquireFence: Did not find frame.
+I/flutter ( 5288): [!!!] success get match log list
+I/flutter ( 5288): !!! get upcoming of 이재형, id : 51
+W/WindowOnBackDispatcher( 5288): sendCancelIfRunning: isInProgress=falsecallback=io.flutter.embedding.android.FlutterActivity$1@edda457
+D/EGL_emulation( 5288): app_time_stats: avg=495.69ms min=18.98ms max=2300.09ms count=5
+D/EGL_emulation( 5288): app_time_stats: avg=6.10ms min=1.62ms max=29.54ms count=59
+D/EGL_emulation( 5288): app_time_stats: avg=3.52ms min=1.11ms max=6.67ms count=61
+D/EGL_emulation( 5288): app_time_stats: avg=3.00ms min=1.29ms max=8.81ms count=60
+D/EGL_emulation( 5288): app_time_stats: avg=3.19ms min=1.42ms max=6.97ms count=61
+I/flutter ( 5288): [log] marking my location LatLng(36.1385317, 128.4108633)
+I/flutter ( 5288): [!!!] start get matching log detail
+I/flutter ( 5288): [!!!] success get matching log detail
+I/flutter ( 5288): {requester: false, details: {id: 67, dogImage: null, careType: 산책, startTime: 2024-06-13T11:15:55.985803, endTime: 2024-06-17T11:15:55.985803, careLocation: {x: 128.34, y: 36.14}, description: req_4, userId: 5, reward: 1004, dogId: 4, status: 결제 대기중}}
+I/flutter ( 5288): requester in api false
+I/flutter ( 5288): [log] marked at 36.14, 128.34
+I/flutter ( 5288): !!! current userId : 5
+I/flutter ( 5288): !!! requester bool : false
+D/MapsInitializer( 5288): preferredRenderer: null
+D/zzcc    ( 5288): preferredRenderer: null
+I/Google Maps Android API( 5288): Google Play services package version: 231818044
+I/Google Maps Android API( 5288): Google Play services maps renderer version(legacy): 203115000
+I/PlatformViewsController( 5288): Hosting view in a virtual display for platform view: 1
+I/PlatformViewsController( 5288): PlatformView is using SurfaceProducer backend
+D/TrafficStats( 5288): tagSocket(156) with statsTag=0x20001101, statsUid=-1
+D/TrafficStats( 5288): tagSocket(129) with statsTag=0x20001101, statsUid=-1
+I/GoogleMapController( 5288): No TextureView found. Likely using the LEGACY renderer.
+E/OpenGLRenderer( 5288): Unable to match the desired swap behavior.
+D/EGL_emulation( 5288): app_time_stats: avg=18.13ms min=2.93ms max=109.22ms count=50
+I/flutter ( 5288): !!! beforeConnect: headers: {Authorization: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY2Nlc3N0b2tlbiIsImV4cCI6MTcxNzUwODcxNSwidXNlcm5hbWUiOiJrYWthb18zNDE5MDcxMzE5In0.fwb7FUZMkELWR5zvSp6zlNsjyxIXI7WEp0AJlxNrfYkMjCRUQ7B5tucIUghsPmTq14Kw5vABq4DC5XWa_T99Bw}
+I/flutter ( 5288): !!! beforeConnect: URL: ws://13.209.220.187/ws
+I/flutter ( 5288): !!! beforeConnect: matchId: 67
+I/flutter ( 5288): !!! beforeConnect: starting connection
+I/flutter ( 5288): !!! beforeConnect: headers: {Authorization: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY2Nlc3N0b2tlbiIsImV4cCI6MTcxNzUwODcxNSwidXNlcm5hbWUiOiJrYWthb18zNDE5MDcxMzE5In0.fwb7FUZMkELWR5zvSp6zlNsjyxIXI7WEp0AJlxNrfYkMjCRUQ7B5tucIUghsPmTq14Kw5vABq4DC5XWa_T99Bw}
+I/flutter ( 5288): !!! beforeConnect: URL: ws://13.209.220.187/ws
+I/flutter ( 5288): !!! beforeConnect: matchId: 67
+I/flutter ( 5288): !!! activated stomp client
+W/WindowOnBackDispatcher( 5288): sendCancelIfRunning: isInProgress=falsecallback=android.app.Dialog$$ExternalSyntheticLambda2@7d3b079
+I/flutter ( 5288): [!!!] start get chat log
+W/WindowOnBackDispatcher( 5288): sendCancelIfRunning: isInProgress=falsecallback=io.flutter.embedding.android.FlutterActivity$1@edda457
+I/BpBinder( 5288): onLastStrongRef automatically unlinking death recipients:
+I/flutter ( 5288): !!! beforeConnect: delay finished, attempting to connect...
+I/flutter ( 5288): [log] marking my location LatLng(36.1385317, 128.4108633)
+I/flutter ( 5288): [!!!] start get matching log detail
+I/flutter ( 5288): [!!!] success get chat log
+I/flutter ( 5288): [{message: hi there, sender: user_5, createAt: 2024-06-04T12:30:59.176631}]
+I/flutter ( 5288): [!!!] success get matching log detail
+I/flutter ( 5288): {requester: false, details: {id: 67, dogImage: null, careType: 산책, startTime: 2024-06-13T11:15:55.985803, endTime: 2024-06-17T11:15:55.985803, careLocation: {x: 128.34, y: 36.14}, description: req_4, userId: 5, reward: 1004, dogId: 4, status: 결제 대기중}}
+I/flutter ( 5288): requester in api false
+I/flutter ( 5288): [log] marked at 36.14, 128.34
+I/flutter ( 5288): !!! current userId : 5
+I/flutter ( 5288): !!! requester bool : false
+D/MapsInitializer( 5288): preferredRenderer: null
+D/zzcc    ( 5288): preferredRenderer: null
+I/Google Maps Android API( 5288): Google Play services package version: 231818044
+I/Google Maps Android API( 5288): Google Play services maps renderer version(legacy): 203115000
+I/PlatformViewsController( 5288): Hosting view in a virtual display for platform view: 2
+I/PlatformViewsController( 5288): PlatformView is using SurfaceProducer backend
+I/GoogleMapController( 5288): No TextureView found. Likely using the LEGACY renderer.
+E/OpenGLRenderer( 5288): Unable to match the desired swap behavior.
+D/EGL_emulation( 5288): app_time_stats: avg=57.84ms min=6.02ms max=480.19ms count=17
+I/flutter ( 5288): !!! beforeConnect: starting connection
+I/flutter ( 5288): !!! beforeConnect: headers: {Authorization: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY2Nlc3N0b2tlbiIsImV4cCI6MTcxNzUwODcxNSwidXNlcm5hbWUiOiJrYWthb18zNDE5MDcxMzE5In0.fwb7FUZMkELWR5zvSp6zlNsjyxIXI7WEp0AJlxNrfYkMjCRUQ7B5tucIUghsPmTq14Kw5vABq4DC5XWa_T99Bw}
+I/flutter ( 5288): !!! beforeConnect: URL: ws://13.209.220.187/ws
+I/flutter ( 5288): !!! beforeConnect: matchId: 67
+I/flutter ( 5288): !!! beforeConnect: delay finished, attempting to connect...
+I/flutter ( 5288): !!! beforeConnect: starting connection
+I/flutter ( 5288): !!! beforeConnect: headers: {Authorization: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY2Nlc3N0b2tlbiIsImV4cCI6MTcxNzUwODcxNSwidXNlcm5hbWUiOiJrYWthb18zNDE5MDcxMzE5In0.fwb7FUZMkELWR5zvSp6zlNsjyxIXI7WEp0AJlxNrfYkMjCRUQ7B5tucIUghsPmTq14Kw5vABq4DC5XWa_T99Bw}
+I/flutter ( 5288): !!! beforeConnect: URL: ws://13.209.220.187/ws
+I/flutter ( 5288): !!! beforeConnect: matchId: 67
+I/flutter ( 5288): !!! beforeConnect: delay finished, attempting to connect...
+
+
 
 ## 기타
 ThemeData 클래스의 공식 문서 -> 디자인

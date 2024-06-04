@@ -162,7 +162,7 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
                 ),
                 onPressed: () {
                   context.go(
-                      '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchId}');
+                      '${RouterPath.userProfileFromCurrentMatch}?userId=$userId&detailId=${widget.matchId}');
                 },
                 child: const Padding(
                   padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -341,11 +341,4 @@ class _ChattingPageState extends State<ChattingPage> {
           }),
     );
   }
-}
-
-class Msg {
-  String message;
-  String sender;
-
-  Msg({required this.message, required this.sender});
 }

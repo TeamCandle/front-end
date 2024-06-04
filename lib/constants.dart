@@ -17,6 +17,7 @@ class DetailFrom {
   static const String requirement = 'requirement';
   static const String application = 'application';
   static const String matchLog = 'matchLog';
+  static const String currentMatch = 'currentMatch';
 }
 
 class CareType {

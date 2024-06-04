@@ -98,7 +98,7 @@ class _DogUberAppState extends State<DogUberApp> {
                 EdgeInsets.all(8),
               ),
               foregroundColor:
-                  const WidgetStatePropertyAll<Color>(Colors.black),
+                  const WidgetStatePropertyAll<Color>(Color(0xFF333333)),
               backgroundColor:
                   const WidgetStatePropertyAll<Color>(Color(0xFFa2e1a6)),
             ),

@@ -108,7 +108,7 @@ class AuthApi {
   }
 
   Future<bool> getDummy() async {
-    var url = Uri.parse('${ServerUrl.serverUrl}/user/dummy?id=19'); //1~50
+    var url = Uri.parse('${ServerUrl.serverUrl}/user/dummy?id=5'); //1~50
 
     try {
       http.Response? response = await http.get(url);
@@ -933,7 +933,6 @@ class ChattingApi {
   static final AuthApi _auth = AuthApi();
   static const String _connectUrl = 'ws://13.209.220.187/ws';
   static StompClient? _stompClient;
-  // 유저 -> 더미 의 경우 연결 불가
 
   //채팅 연결
   static Future<bool> connect({
@@ -941,7 +940,7 @@ class ChattingApi {
     required void Function(StompFrame) callback,
   }) async {
     //webSocketConnectHeaders: {'Authorization': 'Bearer yourToken'},
-    var stompConnectHeaders = {'Authorization': '${_auth._accessToken}'};
+    var stompConnectHeaders = {'Authorization': 'Bearer ${_auth.accessToken}'};
     String destination = '/exchange/chat.exchange/*.room.$matchId';
 
     try {
@@ -957,8 +956,13 @@ class ChattingApi {
             debugPrint('!!! subscribed to destination');
           },
           beforeConnect: () async {
+            debugPrint('!!! beforeConnect: starting connection');
+            debugPrint('!!! beforeConnect: headers: $stompConnectHeaders');
+            debugPrint('!!! beforeConnect: URL: $_connectUrl');
+            debugPrint('!!! beforeConnect: matchId: $matchId');
             await Future.delayed(const Duration(milliseconds: 100));
-            debugPrint('!!! connecting...');
+            debugPrint(
+                '!!! beforeConnect: delay finished, attempting to connect...');
           },
           onWebSocketError: (error) {
             debugPrint('!!! connect error $error');

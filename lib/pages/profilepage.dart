@@ -681,6 +681,12 @@ class UserProfilePage extends StatelessWidget {
                 context.go(
                     '${RouterPath.myApplicationDetail}?applicationId=$detailId');
                 break;
+              case DetailFrom.currentMatch:
+                context.go('${RouterPath.currentMatch}?matchId=$detailId');
+                break;
+              case DetailFrom.matchLog:
+                context.go('${RouterPath.matchLogDetail}?matchingId=$detailId');
+                break;
             }
           },
         ),
@@ -777,7 +783,7 @@ class UserDogProfile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text('$dogId and $requestId'),
+        child: Text('dogID : $dogId \n requestID : $requestId'),
       ),
     );
   }

@@ -57,7 +57,57 @@ final GoRouter router = GoRouter(
                     }
                     return ChattingPage(matchId: id);
                   },
-                )
+                ),
+                GoRoute(
+                  path: 'user_profile',
+                  builder: (BuildContext context, GoRouterState state) {
+                    var id = state.uri.queryParameters['userId'];
+                    var detailId = state.uri.queryParameters['detailId'];
+                    if (id == null || detailId == null) {
+                      debugPrint('!!! query null');
+                      return ErrorPage(err: 'user_profile detail query');
+                    }
+
+                    int idInt;
+                    int detailIdInt;
+                    try {
+                      idInt = int.parse(id);
+                      detailIdInt = int.parse(detailId);
+                    } catch (e) {
+                      debugPrint('!!! parsing error');
+                      return ErrorPage(err: 'user_profile detail parse');
+                    }
+                    return UserProfilePage(
+                      userId: idInt,
+                      detailId: detailIdInt,
+                      type: DetailFrom.currentMatch,
+                    );
+                  },
+                ),
+                GoRoute(
+                  path: 'dog_profile',
+                  builder: (BuildContext context, GoRouterState state) {
+                    var id = state.uri.queryParameters['dogId'];
+                    var detailId = state.uri.queryParameters['detailId'];
+                    if (id == null || detailId == null) {
+                      debugPrint('!!! query null');
+                      return ErrorPage(err: 'dog_profile detail query');
+                    }
+
+                    int idInt;
+                    int detailIdInt;
+                    try {
+                      idInt = int.parse(id);
+                      detailIdInt = int.parse(detailId);
+                    } catch (e) {
+                      return ErrorPage(err: 'dog_profile detail parse');
+                    }
+                    return UserDogProfile(
+                      dogId: idInt,
+                      requestId: detailIdInt,
+                    );
+                  },
+                ),
               ],
             ),
             GoRoute(
@@ -387,4 +437,6 @@ class RouterPath {
   static const String matchLogDetail = '$matchingLog/detail';
   static const String currentMatch = '$home/current_match';
   static const String chatPage = '$currentMatch/chat';
+  static const String userProfileFromCurrentMatch =
+      '$currentMatch/user_profile';
 }
