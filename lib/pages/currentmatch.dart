@@ -1,94 +1,26 @@
-//dependency
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
-//files
+import 'package:stomp_dart_client/stomp_dart_client.dart';
+
 import '../api.dart';
-import '../constants.dart';
 import '../customwidgets.dart';
 import '../datamodels.dart';
-import '../testdata.dart';
 import '../mymap.dart';
 import '../router.dart';
 
-class MatchingLogPage extends StatefulWidget {
-  const MatchingLogPage({super.key});
+class CurrentMatchPage extends StatefulWidget {
+  final int matchId;
+  const CurrentMatchPage({super.key, required this.matchId});
 
   @override
-  State<MatchingLogPage> createState() => _MatchingLogPageState();
+  State<CurrentMatchPage> createState() => _CurrentMatchPageState();
 }
 
-class _MatchingLogPageState extends State<MatchingLogPage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("매칭 기록")),
-      body: FutureBuilder(
-        future: context.read<InfiniteList>().updateMatchingLogList(),
-        builder: buildMatchingLogList,
-      ),
-    );
-  }
-
-  Widget buildMatchingLogList(BuildContext context, AsyncSnapshot snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (snapshot.hasError) {
-      return const Center(child: Text('error!'));
-    }
-
-    return ListView.builder(
-        itemCount: context.watch<InfiniteList>().matchingLogList.length,
-        itemBuilder: (BuildContext context, int index) {
-          if (index ==
-              context.watch<InfiniteList>().matchingLogList.length - 3) {
-            context.read<InfiniteList>().updateMyApplicationList();
-          }
-
-          var image = context.watch<InfiniteList>().matchingLogList[index]
-                      ['image'] ==
-                  null
-              ? Image.asset('assets/images/empty_image.png')
-              : Image.memory(
-                  base64Decode(
-                    context.read<InfiniteList>().matchingLogList[index]
-                        ['image'],
-                  ),
-                );
-          int id = context.watch<InfiniteList>().matchingLogList[index]['id'];
-          String careType =
-              context.watch<InfiniteList>().matchingLogList[index]['careType'];
-          String time =
-              context.watch<InfiniteList>().matchingLogList[index]['time'];
-          String breed =
-              context.watch<InfiniteList>().matchingLogList[index]['breed'];
-          String status =
-              context.watch<InfiniteList>().matchingLogList[index]['status'];
-
-          return ListTile(
-            leading: image,
-            title: Text('$breed\t$careType'),
-            subtitle: Text(time),
-            trailing: Text(status),
-            onTap: () =>
-                context.go('${RouterPath.matchLogDetail}?matchingId=$id'),
-          );
-        });
-  }
-}
-
-class MatchingLogDetailPage extends StatefulWidget {
-  final int matchingId;
-  const MatchingLogDetailPage({super.key, required this.matchingId});
-
-  @override
-  State<MatchingLogDetailPage> createState() => _MatchingLogDetailPageState();
-}
-
-class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
+class _CurrentMatchPageState extends State<CurrentMatchPage> {
   final MyMap _mapController = MyMap();
   late DetailInfo? _matchingDetail;
 
@@ -98,8 +30,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     if (result == false) return false;
 
     //요청 세부사항을 가져온다.
-    _matchingDetail =
-        await MatchingLogApi.getMatchingLogDetail(widget.matchingId);
+    _matchingDetail = await MatchingLogApi.getMatchingLogDetail(widget.matchId);
     if (_matchingDetail == null) return false;
 
     //요청자의 좌표를 표시한다.
@@ -113,7 +44,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("matching log detail page")),
+      appBar: AppBar(title: const Text("current matching page")),
       body: FutureBuilder(
         future: initDetailPage(),
         builder: buildDetail,
@@ -139,7 +70,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     String reward = _matchingDetail!.reward.toString();
     String status = _matchingDetail!.status;
     bool isRequester = _matchingDetail!.requester!;
-    debugPrint('!!! match log detail userId : $userId');
+    debugPrint('!!! current userId : $userId');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -202,7 +133,12 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          child: buildMatchingLogButton(isRequester, status),
+          child: ElevatedButton(
+            onPressed: () {
+              context.go('${RouterPath.chatPage}?matchId=${widget.matchId}');
+            },
+            child: const Text('chatting'),
+          ),
         ),
       ],
     );
@@ -214,6 +150,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     int dogId,
     bool isRequester,
   ) {
+    debugPrint('!!! requester bool : $isRequester');
     if (isRequester == true) {
       return Expanded(
         child: Column(children: [
@@ -225,7 +162,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                 ),
                 onPressed: () {
                   context.go(
-                      '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchingId}');
+                      '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchId}');
                 },
                 child: const Padding(
                   padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -241,8 +178,8 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                   padding: const EdgeInsets.all(0),
                 ),
                 onPressed: () {
-                  context.go(
-                      '${RouterPath.chatPage}?matchId=${widget.matchingId}');
+                  context
+                      .go('${RouterPath.chatPage}?matchId=${widget.matchId}');
                 },
                 child: const Padding(
                   padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -264,7 +201,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                 ),
                 onPressed: () {
                   context.go(
-                      '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchingId}');
+                      '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchId}');
                 },
                 child: const Padding(
                   padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -281,7 +218,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                 ),
                 onPressed: () {
                   context.go(
-                      '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.matchingId}');
+                      '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.matchId}');
                 },
                 child: const Padding(
                   padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -294,101 +231,121 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
       );
     }
   }
+}
 
-  Widget? buildMatchingLogButton(bool isRequester, String status) {
-    debugPrint('!!! status : $status');
-    if (isRequester == true) {
-      switch (status) {
-        case Status.waiting:
-          return Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: ElevatedButton(
-                    onPressed: () async {},
-                    child: const Text('결제하기'),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: ElevatedButton(
-                    onPressed: () async {},
-                    child: const Text('매칭 취소'),
-                  ),
-                ),
-              ),
-            ],
-          );
-        case Status.notCompleted:
-          return ElevatedButton(
-            onPressed: () async {},
-            child: const Text('완료하기'),
-          );
-        case Status.completed:
-          return ElevatedButton(
-            onPressed: () async {},
-            child: const Text('리뷰'),
-          );
-        default:
-          return ElevatedButton(
-            onPressed: () async {},
-            child: Text('$status...'),
-          );
-      }
-    } else {
-      switch (status) {
-        case Status.completed:
-          return ElevatedButton(
-            onPressed: () async {},
-            child: const Text('리뷰'),
-          );
-        default:
-          return ElevatedButton(
-            onPressed: () async {},
-            child: Text(status),
-          );
-      }
-    }
+class ChattingPage extends StatefulWidget {
+  final int matchId;
+  const ChattingPage({super.key, required this.matchId});
+
+  @override
+  State<ChattingPage> createState() => _ChattingPageState();
+}
+
+class _ChattingPageState extends State<ChattingPage> {
+  late StompClient stompClient;
+  ScrollController _scrollController = ScrollController();
+  TextEditingController _textController = TextEditingController();
+
+  void callback(StompFrame frame) {
+    //List<dynamic>? result = json.decode(frame.body!);
+    Map<String, dynamic> obj = json.decode(frame.body!);
+    Map<String, dynamic> message = {
+      'message': obj['message'],
+      'sender': obj['sender'],
+    };
+
+    setState(() {
+      context.read<ChatData>().add(message);
+    });
   }
 
-  Future<dynamic> _showResult(BuildContext context, bool result) {
-    String title;
-    String content;
-    if (result == true) {
-      title = '신청 성공!';
-      content = '수락이 되면 알려드릴게요!';
-    } else {
-      title = '신청 실패!';
-      content = '이미 신청하진 않으셨나요?';
-    }
-    return showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text(title),
-            content: Text(content),
-            actions: [
-              ElevatedButton(
-                onPressed: () async {
-                  if (result == true) {
-                    context.read<InfiniteList>().clearMyApplicationOnly();
-                    await context
-                        .read<InfiniteList>()
-                        .updateMyApplicationList()
-                        .then((_) {
-                      context.go(RouterPath.allRequirement);
-                    });
-                  } else {
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: Text("ok"),
-              )
-            ],
-          );
-        });
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   ChattingApi.connect(matchId: widget.matchId, callback: callback);
+  // }
+
+  @override
+  void dispose() {
+    super.dispose();
+    ChattingApi.disconnect();
+    _textController.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) {
+    Future<bool> initChatting() async {
+      bool result = await ChattingApi.connect(
+        matchId: widget.matchId,
+        callback: callback,
+      );
+      if (result == false) return false;
+      return await context.read<ChatData>().initChatting(widget.matchId);
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('widget.title')),
+      body: FutureBuilder(
+          future: initChatting(),
+          builder: (context, snapshot) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: context.watch<ChatData>().messages.length,
+                    itemBuilder: (context, index) {
+                      if (context.read<ChatData>().messages[index]['sender'] ==
+                          context.read<UserInfo>().name) {
+                        return Row(children: [
+                          const Spacer(),
+                          Text(context.watch<ChatData>().messages[index]
+                              ['message']),
+                        ]);
+                      } else {
+                        return Row(children: [
+                          Text(context.watch<ChatData>().messages[index]
+                              ['message']),
+                          const Spacer(),
+                        ]);
+                      }
+                    },
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _textController,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter your message',
+                        ),
+                      ),
+                    ),
+                    // 전송 버튼
+                    IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: () async {
+                        ChattingApi.send(_textController.text, widget.matchId);
+                        context.read<ChatData>().update(
+                              _textController.text,
+                              context.read<UserInfo>().name,
+                            );
+                        _textController.clear();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            );
+          }),
+    );
+  }
+}
+
+class Msg {
+  String message;
+  String sender;
+
+  Msg({required this.message, required this.sender});
 }

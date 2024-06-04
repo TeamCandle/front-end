@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 //files
@@ -821,6 +822,7 @@ class MatchingLogApi {
     }
 
     Map<String, dynamic> tempMap = jsonDecode(response.body);
+
     return tempMap;
   }
 
@@ -870,8 +872,10 @@ class MatchingLogApi {
         data['details']['careType'],
         data['details']['startTime'].toString(),
         data['details']['endTime'].toString(),
-        LatLng(data['details']['careLocation']['y'],
-            data['details']['careLocation']['x']),
+        LatLng(
+          data['details']['careLocation']['y'],
+          data['details']['careLocation']['x'],
+        ),
         data['details']['description'], //TODO: null 조심
         data['details']['userId'],
         data['details']['dogId'],
@@ -879,6 +883,7 @@ class MatchingLogApi {
         data['details']['status'],
       );
       matchingLogDetail.setRequester(data['requester']);
+      debugPrint('requester in api ${data['requester']}');
       return matchingLogDetail;
     } catch (e) {
       debugPrint('[!!!] decode matching log fail');
@@ -925,8 +930,86 @@ class MatchingLogApi {
 //TODO: 지금 생각으로는 매칭 로그에는 리뷰 버튼만 맹글고 결제같은 로직은 현재 매칭에서 구현하면 될듯?
 
 class ChattingApi {
+  static final AuthApi _auth = AuthApi();
+  static const String _connectUrl = 'ws://13.209.220.187/ws';
+  static StompClient? _stompClient;
+  // 유저 -> 더미 의 경우 연결 불가
+
   //채팅 연결
+  static Future<bool> connect({
+    required int matchId,
+    required void Function(StompFrame) callback,
+  }) async {
+    //webSocketConnectHeaders: {'Authorization': 'Bearer yourToken'},
+    var stompConnectHeaders = {'Authorization': '${_auth._accessToken}'};
+    String destination = '/exchange/chat.exchange/*.room.$matchId';
+
+    try {
+      _stompClient = StompClient(
+        config: StompConfig(
+          url: _connectUrl,
+          onConnect: (frame) {
+            debugPrint('!!! successfully connected');
+            _stompClient!.subscribe(
+              destination: destination,
+              callback: callback,
+            );
+            debugPrint('!!! subscribed to destination');
+          },
+          beforeConnect: () async {
+            await Future.delayed(const Duration(milliseconds: 100));
+            debugPrint('!!! connecting...');
+          },
+          onWebSocketError: (error) {
+            debugPrint('!!! connect error $error');
+          },
+          stompConnectHeaders: stompConnectHeaders,
+        ),
+      );
+
+      _stompClient!.activate();
+      debugPrint('!!! activated stomp client');
+      return true;
+    } catch (e) {
+      debugPrint('!!! activated error on stomp client');
+      return false;
+    }
+  }
+
+  static void disconnect() {
+    _stompClient!.deactivate();
+    debugPrint('!!! deactivate stomp client');
+  }
+
   //채팅 내역 가져오기 (다시 들어갔을 때)
+  static Future<List<dynamic>?> getChattingLog(int matchId) async {
+    var url = Uri.parse('${ServerUrl.serverUrl}/chat/history?roomId=$matchId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get chat log",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return null;
+    }
+
+    var data = jsonDecode(response.body);
+    List<dynamic> chatList = data['messages'];
+    debugPrint('$chatList');
+    return chatList;
+  }
+
+  //메시지 보내기
+  static bool send(String message, int matchId) {
+    if (message.isEmpty) return false;
+
+    String destination = '/send/chat.talk.$matchId';
+    _stompClient!.send(destination: destination, body: message);
+    return true;
+  }
 }
 
 class PaymentApi {

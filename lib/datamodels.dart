@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'constants.dart';
 import 'api.dart';
 
-//provider class
+//data model with provider
 class UserInfo extends ChangeNotifier {
   int _id = -1;
   String _name = '_name';
@@ -170,6 +170,32 @@ class InfiniteList extends ChangeNotifier {
     //왜? 내 신청 페이지의 root가 allrequest라서
     _myApplicationOffset = 1;
     myApplicationList = [];
+    notifyListeners();
+  }
+}
+
+class ChatData extends ChangeNotifier {
+  List<dynamic> messages = [];
+
+  Future<bool> initChatting(int matchId) async {
+    List<dynamic>? data = await ChattingApi.getChattingLog(matchId);
+    if (data == null) {
+      debugPrint('!!! get chatting fail');
+      return false;
+    }
+
+    messages = data;
+    notifyListeners();
+    return true;
+  }
+
+  void add(Map<String, dynamic> message) {
+    messages.add(message);
+    notifyListeners();
+  }
+
+  void update(String text, String sender) {
+    messages.add({'message': text, 'sender': sender});
     notifyListeners();
   }
 }

@@ -62,9 +62,15 @@ class _DogUberAppState extends State<DogUberApp> {
     //router.dart파일의 화면 트리로 이동.
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<UserInfo>(create: (context) => UserInfo()),
+        ChangeNotifierProvider<UserInfo>(
+          create: (context) => UserInfo(),
+        ),
         ChangeNotifierProvider<InfiniteList>(
-            create: (context) => InfiniteList()),
+          create: (context) => InfiniteList(),
+        ),
+        ChangeNotifierProvider<ChatData>(
+          create: (context) => ChatData(),
+        ),
       ],
       child: MaterialApp.router(
         routerConfig: router,

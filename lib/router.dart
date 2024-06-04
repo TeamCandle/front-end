@@ -9,6 +9,7 @@ import 'pages/profilepage.dart';
 import 'pages/searchpage.dart';
 import 'pages/registpage.dart';
 import 'constants.dart';
+import 'pages/currentmatch.dart';
 
 //화면이동 담당 파일.
 //생략 항목(무시해도 됨) routes: <RouteBase>[...
@@ -33,6 +34,32 @@ final GoRouter router = GoRouter(
             return const HomePage();
           },
           routes: [
+            GoRoute(
+              path: 'current_match',
+              builder: (context, state) {
+                int? id = int.tryParse(
+                  state.uri.queryParameters['matchId']!,
+                );
+                if (id == null) {
+                  return const ErrorPage(err: 'parsing err');
+                }
+                return CurrentMatchPage(matchId: id);
+              },
+              routes: [
+                GoRoute(
+                  path: 'chat',
+                  builder: (context, state) {
+                    int? id = int.tryParse(
+                      state.uri.queryParameters['matchId']!,
+                    );
+                    if (id == null) {
+                      return const ErrorPage(err: 'parsing err');
+                    }
+                    return ChattingPage(matchId: id);
+                  },
+                )
+              ],
+            ),
             GoRoute(
               path: 'all_requirement_list',
               builder: (BuildContext context, GoRouterState state) {
@@ -356,6 +383,8 @@ class RouterPath {
   static const String requirementRegistForm = '$selectDog/registform';
 
   //match tree
-  static const String matchingLog = '/home/matchingLog';
+  static const String matchingLog = '$home/matchingLog';
   static const String matchLogDetail = '$matchingLog/detail';
+  static const String currentMatch = '$home/current_match';
+  static const String chatPage = '$currentMatch/chat';
 }

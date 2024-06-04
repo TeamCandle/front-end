@@ -132,7 +132,7 @@ class MyRequirementDetailPage extends StatelessWidget {
             children: [
               Expanded(
                 flex: 1,
-                child: customDetail(
+                child: customCard(
                   child: Row(children: [
                     CircleAvatar(
                       radius: 30.0,
