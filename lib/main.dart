@@ -91,7 +91,7 @@ class _DogUberAppState extends State<DogUberApp> {
               textStyle: WidgetStatePropertyAll<TextStyle>(
                 GoogleFonts.notoSansKr(
                   fontWeight: FontWeight.w600,
-                  fontSize: 20,
+                  fontSize: 15,
                 ),
               ),
               padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(

@@ -102,11 +102,11 @@ class _AllRequestPageState extends State<AllRequestPage> {
           context.read<InfiniteList>().updateAllRequestList();
         }
 
-        var image = context.watch<InfiniteList>().allRequestList[index]
+        dynamic image = context.watch<InfiniteList>().allRequestList[index]
                     ['image'] ==
                 null
-            ? Image.asset('assets/images/empty_image.png')
-            : Image.memory(base64Decode(
+            ? const AssetImage('assets/images/empty_image.png')
+            : MemoryImage(base64Decode(
                 context.read<InfiniteList>().allRequestList[index]['image']));
         int id = context.read<InfiniteList>().allRequestList[index]['id'];
         String careType =
@@ -119,7 +119,10 @@ class _AllRequestPageState extends State<AllRequestPage> {
             context.watch<InfiniteList>().allRequestList[index]['status'];
 
         return customListTile(
-          leading: image,
+          leading: CircleAvatar(
+            radius: 30,
+            backgroundImage: image,
+          ),
           title: Text('$breed\t$careType'),
           subtitle: Text(time),
           trailing: Text(status),
@@ -215,7 +218,7 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
               double height = constraints.maxHeight;
               double width = constraints.maxWidth;
 
-              return cunstomContainer(
+              return customContainer(
                 child: Column(children: [
                   Expanded(
                     child: Row(children: [

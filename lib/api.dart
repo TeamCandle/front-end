@@ -221,6 +221,28 @@ class HttpMethod {
     }
   }
 
+  static Future<http.Response?> tryPatchWithoutBody({
+    required String title,
+    required Uri url,
+    required Map<String, String> header,
+  }) async {
+    debugPrint("[!!!] start $title");
+
+    try {
+      var response = await http.patch(url, headers: header);
+      if (response.statusCode != 200) {
+        debugPrint("[!!!] fail ${response.statusCode}");
+        debugPrint("[!!!] fail body ${response.body}");
+        return null;
+      }
+      debugPrint("[!!!] success $title");
+      return response;
+    } catch (e) {
+      debugPrint('[!!!] error $title: $e');
+      return null;
+    }
+  }
+
   static Future<bool> tryDelete({
     required String title,
     required Uri url,
@@ -896,7 +918,7 @@ class MatchingLogApi {
     var url = Uri.parse('${ServerUrl.matchUrl}/complete?id=$matchingId');
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
 
-    http.Response? response = await HttpMethod.tryPut(
+    http.Response? response = await HttpMethod.tryPatchWithoutBody(
       title: "match completed",
       url: url,
       header: header,
@@ -909,11 +931,12 @@ class MatchingLogApi {
   }
 
   //매칭 취소 = 매칭이 WAITING_PAYMENT 상태일 때 취소 동작
+  //테스트 완료
   static Future<bool> cancel(int matchingId) async {
     var url = Uri.parse('${ServerUrl.matchUrl}/cancel?id=$matchingId');
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
 
-    http.Response? response = await HttpMethod.tryPut(
+    http.Response? response = await HttpMethod.tryPatchWithoutBody(
       title: "cancel this matching",
       url: url,
       header: header,
@@ -1017,9 +1040,26 @@ class ChattingApi {
 }
 
 class PaymentApi {
-  AuthApi _auth = AuthApi();
+  static final AuthApi _auth = AuthApi();
 
   //결제 요청
+  static Future<String?> pay(int matchId) async {
+    var url =
+        Uri.parse('${ServerUrl.serverUrl}/payment/ready?matchId=$matchId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    debugPrint('!!! payment start');
+    try {
+      http.Response? response = await http.get(url, headers: header);
+      String? result = response.body;
+      debugPrint('!!! payment result : $result');
+      return result;
+    } catch (e) {
+      debugPrint('!!! payment error : $e');
+      return null;
+    }
+  }
+
   //결제 취소 = 매칭이 NOT_COMPLETED 상태일 때 취소 동작
 }
 

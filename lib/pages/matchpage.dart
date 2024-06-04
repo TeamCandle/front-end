@@ -40,43 +40,50 @@ class _MatchingLogPageState extends State<MatchingLogPage> {
       return const Center(child: Text('error!'));
     }
 
-    return ListView.builder(
-        itemCount: context.watch<InfiniteList>().matchingLogList.length,
-        itemBuilder: (BuildContext context, int index) {
-          if (index ==
-              context.watch<InfiniteList>().matchingLogList.length - 3) {
-            context.read<InfiniteList>().updateMyApplicationList();
-          }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      child: ListView.builder(
+          itemCount: context.watch<InfiniteList>().matchingLogList.length,
+          itemBuilder: (BuildContext context, int index) {
+            if (index ==
+                context.watch<InfiniteList>().matchingLogList.length - 3) {
+              context.read<InfiniteList>().updateMyApplicationList();
+            }
 
-          var image = context.watch<InfiniteList>().matchingLogList[index]
-                      ['image'] ==
-                  null
-              ? Image.asset('assets/images/empty_image.png')
-              : Image.memory(
-                  base64Decode(
-                    context.read<InfiniteList>().matchingLogList[index]
-                        ['image'],
-                  ),
-                );
-          int id = context.watch<InfiniteList>().matchingLogList[index]['id'];
-          String careType =
-              context.watch<InfiniteList>().matchingLogList[index]['careType'];
-          String time =
-              context.watch<InfiniteList>().matchingLogList[index]['time'];
-          String breed =
-              context.watch<InfiniteList>().matchingLogList[index]['breed'];
-          String status =
-              context.watch<InfiniteList>().matchingLogList[index]['status'];
+            dynamic image = context.watch<InfiniteList>().matchingLogList[index]
+                        ['image'] ==
+                    null
+                ? const AssetImage('assets/images/empty_image.png')
+                : MemoryImage(
+                    base64Decode(
+                      context.read<InfiniteList>().matchingLogList[index]
+                          ['image'],
+                    ),
+                  );
+            int id = context.watch<InfiniteList>().matchingLogList[index]['id'];
+            String careType = context
+                .watch<InfiniteList>()
+                .matchingLogList[index]['careType'];
+            String time =
+                context.watch<InfiniteList>().matchingLogList[index]['time'];
+            String breed =
+                context.watch<InfiniteList>().matchingLogList[index]['breed'];
+            String status =
+                context.watch<InfiniteList>().matchingLogList[index]['status'];
 
-          return ListTile(
-            leading: image,
-            title: Text('$breed\t$careType'),
-            subtitle: Text(time),
-            trailing: Text(status),
-            onTap: () =>
-                context.go('${RouterPath.matchLogDetail}?matchingId=$id'),
-          );
-        });
+            return customListTile(
+              leading: CircleAvatar(
+                radius: 30,
+                backgroundImage: image,
+              ),
+              title: Text('$breed\t$careType'),
+              subtitle: Text(time),
+              trailing: Text(status),
+              onTap: () =>
+                  context.go('${RouterPath.matchLogDetail}?matchingId=$id'),
+            );
+          }),
+    );
   }
 }
 
@@ -113,7 +120,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("matching log detail page")),
+      appBar: AppBar(title: const Text("매칭 세부 정보")),
       body: FutureBuilder(
         future: initDetailPage(),
         builder: buildDetail,
@@ -136,7 +143,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     String description = _matchingDetail!.description;
     int userId = _matchingDetail!.userId;
     int dogId = _matchingDetail!.dogId;
-    String reward = _matchingDetail!.reward.toString();
+    int reward = _matchingDetail!.reward;
     String status = _matchingDetail!.status;
     bool isRequester = _matchingDetail!.requester!;
 
@@ -155,28 +162,47 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
               double width = constraints.maxWidth;
 
               return SingleChildScrollView(
-                child: cunstomContainer(
+                child: customContainer(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          CircleAvatar(
-                            maxRadius: (height / 5),
-                            backgroundImage: image,
+                      Container(
+                        width: width,
+                        padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+                        child: SizedBox(
+                          width: width,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              CircleAvatar(
+                                radius: (width / 10),
+                                backgroundImage: image,
+                              ),
+                              customContainer(
+                                child: Column(children: [
+                                  Text(careType),
+                                  Container(
+                                    margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                                    height: 1,
+                                    width: (width - 32) / 3,
+                                    color: Colors.grey,
+                                  ),
+                                  Text('$reward 원'),
+                                  Container(
+                                    margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                                    height: 1,
+                                    width: (width - 32) / 3,
+                                    color: Colors.grey,
+                                  ),
+                                  Text('현재 $status'),
+                                ]),
+                              ),
+                              buildInfoButton(
+                                  context, userId, dogId, isRequester),
+                            ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Column(children: [
-                              Text('종류 : $careType'),
-                              Text('보상 : $reward'),
-                              Text('현재 $status'),
-                            ]),
-                          ),
-                          buildInfoButton(context, userId, dogId, isRequester),
-                        ],
+                        ),
                       ),
                       customCard(
                         width: width,
@@ -195,7 +221,9 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                        child: buildMatchingLogButton(isRequester, status),
+                        child: isRequester
+                            ? requesterButtonSet(status, reward)
+                            : applicantButtonSet(status),
                       ),
                     ],
                   ),
@@ -274,69 +302,136 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     }
   }
 
-  Widget buildMatchingLogButton(bool isRequester, String status) {
-    debugPrint('!!! status : $status');
-    if (isRequester == true) {
-      switch (status) {
-        case Status.waiting:
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: ElevatedButton(
-                  onPressed: () async {},
-                  child: const Text('결제하기'),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () async {},
-                child: const Text('매칭 취소'),
-              ),
-            ],
-          );
-        case Status.notCompleted:
-          return ElevatedButton(
-            onPressed: () async {},
-            child: const Text('완료하기'),
-          );
-        case Status.completed:
-          return ElevatedButton(
-            onPressed: () async {},
-            child: const Text('리뷰'),
-          );
-        default:
-          return ElevatedButton(
-            onPressed: null,
-            child: Text('현재 $status...'),
-          );
-      }
-    } else {
-      switch (status) {
-        case Status.completed:
-          return ElevatedButton(
-            onPressed: () async {},
-            child: const Text('리뷰'),
-          );
-        default:
-          return ElevatedButton(
-            onPressed: null,
-            child: Text('현재 $status'),
-          );
-      }
+  Widget applicantButtonSet(String status) {
+    switch (status) {
+      case Status.completed:
+        return ElevatedButton(
+          onPressed: () async {},
+          child: const Text('리뷰'),
+        );
+      default:
+        return ElevatedButton(
+          onPressed: null,
+          child: Text('현재 $status'),
+        );
     }
   }
 
-  Future<dynamic> _showResult(BuildContext context, bool result) {
-    String title;
-    String content;
-    if (result == true) {
-      title = '신청 성공!';
-      content = '수락이 되면 알려드릴게요!';
+  Widget requesterButtonSet(String status, int reward) {
+    if (status == Status.waiting && reward == 0) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: ElevatedButton(
+              onPressed: () async {
+                await MatchingLogApi.complete(widget.matchingId)
+                    .then((bool result) {
+                  if (result == true) {
+                    _showResult(
+                      context,
+                      result,
+                      '매칭 완료',
+                      '매칭을 완료하였습니다. 리뷰를 작성하실 수 있어요',
+                    );
+                  } else {
+                    _showResult(context, result, 'fail', 'err');
+                  }
+                });
+              },
+              child: const Text('완료하기'),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await MatchingLogApi.cancel(widget.matchingId)
+                  .then((bool result) {
+                if (result == true) {
+                  _showResult(
+                    context,
+                    result,
+                    '매칭 취소',
+                    '매칭이 취소되었습니다.',
+                  );
+                } else {
+                  _showResult(context, result, 'fail', 'err');
+                }
+              });
+            },
+            child: const Text('매칭 취소'),
+          ),
+        ],
+      );
+    } else if (status == Status.waiting && reward != 0) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: ElevatedButton(
+              onPressed: () async {
+                await PaymentApi.pay(widget.matchingId);
+              },
+              child: const Text('결제하기'),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await MatchingLogApi.cancel(widget.matchingId)
+                  .then((bool result) {
+                if (result == true) {
+                  _showResult(
+                    context,
+                    result,
+                    '매칭 취소',
+                    '매칭이 취소되었습니다.',
+                  );
+                } else {
+                  _showResult(context, result, 'fail', 'err');
+                }
+              });
+            },
+            child: const Text('매칭 취소'),
+          ),
+        ],
+      );
+    } else if (status == Status.notCompleted) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: ElevatedButton(
+              onPressed: () async {},
+              child: const Text('완료하기'),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {},
+            child: const Text('결제 취소'),
+          ),
+        ],
+      );
+    } else if (status == Status.completed) {
+      return ElevatedButton(
+        onPressed: () async {},
+        child: const Text('리뷰'),
+      );
     } else {
-      title = '신청 실패!';
-      content = '이미 신청하진 않으셨나요?';
+      return ElevatedButton(
+        onPressed: null,
+        child: Text('현재 $status...'),
+      );
     }
+  }
+
+  Future<dynamic> _showResult(
+    BuildContext context,
+    bool result,
+    String title,
+    String content,
+  ) {
     return showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -347,18 +442,18 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (result == true) {
-                    context.read<InfiniteList>().clearMyApplicationOnly();
+                    context.read<InfiniteList>().releaseList();
                     await context
                         .read<InfiniteList>()
-                        .updateMyApplicationList()
+                        .updateMatchingLogList()
                         .then((_) {
-                      context.go(RouterPath.allRequirement);
+                      context.go(RouterPath.matchingLog);
                     });
                   } else {
                     Navigator.of(context).pop();
                   }
                 },
-                child: Text("ok"),
+                child: const Text("ok"),
               )
             ],
           );

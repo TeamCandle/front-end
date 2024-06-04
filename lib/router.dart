@@ -9,8 +9,6 @@ import 'pages/profilepage.dart';
 import 'pages/searchpage.dart';
 import 'pages/registpage.dart';
 import 'constants.dart';
-import 'pages/currentmatch.dart';
-
 //화면이동 담당 파일.
 //생략 항목(무시해도 됨) routes: <RouteBase>[...
 
@@ -37,13 +35,20 @@ final GoRouter router = GoRouter(
             GoRoute(
               path: 'current_match',
               builder: (context, state) {
-                int? id = int.tryParse(
-                  state.uri.queryParameters['matchId']!,
-                );
+                var id = state.uri.queryParameters['matchId'];
                 if (id == null) {
-                  return const ErrorPage(err: 'parsing err');
+                  return const ErrorPage(err: 'get err');
                 }
-                return CurrentMatchPage(matchId: id);
+
+                int idInt;
+                try {
+                  idInt = int.parse(id);
+                } catch (e) {
+                  debugPrint('!!! parsing error');
+                  return ErrorPage(err: 'user_profile detail parse');
+                }
+
+                return CurrentMatchPage(matchId: idInt);
               },
               routes: [
                 GoRoute(

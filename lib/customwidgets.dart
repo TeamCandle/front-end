@@ -39,7 +39,7 @@ Widget customListTile({
   );
 }
 
-Widget cunstomContainer({
+Widget customContainer({
   double? height,
   double? width,
   Widget? child,
@@ -49,6 +49,32 @@ Widget cunstomContainer({
     width: width,
     margin: const EdgeInsets.fromLTRB(3, 0, 3, 8),
     padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.3),
+          spreadRadius: 1,
+          blurRadius: 1,
+          offset: const Offset(1, 1),
+        ),
+      ],
+    ),
+    child: child,
+  );
+}
+
+Widget customTextField({
+  double? height,
+  double? width,
+  TextField? child,
+}) {
+  return Container(
+    height: height,
+    width: width,
+    margin: const EdgeInsets.fromLTRB(3, 0, 3, 8),
+    padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(10),

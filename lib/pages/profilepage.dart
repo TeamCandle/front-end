@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_doguber_frontend/customwidgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
@@ -26,6 +27,7 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(title: const Text('내 정보')),
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
+          //variable space
           double width = constraints.maxWidth;
           dynamic image = context.watch<UserInfo>().image == null
               ? const AssetImage('assets/images/profile_test.png')
@@ -40,10 +42,9 @@ class ProfilePage extends StatelessWidget {
               : context.watch<UserInfo>().description!;
           List<Map<String, dynamic>> dogs =
               context.watch<UserInfo>().ownDogList;
-          debugPrint('$dogs');
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -52,39 +53,44 @@ class ProfilePage extends StatelessWidget {
                   backgroundImage: image,
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 15.0),
+                  padding: const EdgeInsets.only(top: 16.0),
                   child: Center(
                     child: Text(name, style: const TextStyle(fontSize: 50)),
                   ),
                 ),
-                Center(
-                  child: Text(
-                    '$gender\t\t\t$age세',
-                    style: const TextStyle(fontSize: 25),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Center(
+                    child: Text(
+                      '$gender\t\t\t$age세',
+                      style: const TextStyle(fontSize: 25),
+                    ),
                   ),
                 ),
-                TextField(
-                  controller: txtcon,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
-                    height: 1.2,
-                  ),
-                  maxLines: 4,
-                  minLines: 4,
-                  enabled: false,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
+                customTextField(
+                  child: TextField(
+                    controller: txtcon,
+                    style: const TextStyle(color: Colors.black),
+                    maxLines: 4,
+                    minLines: 4,
+                    enabled: false,
+                    decoration: const InputDecoration(border: InputBorder.none),
                   ),
                 ),
                 const Divider(thickness: 2),
                 Column(
                   children: dogs.map((dog) {
-                    return ListTile(
-                      leading: dog['image'] == null
-                          ? Image.asset('assets/images/profile_test.png')
-                          : Image.memory(base64Decode(dog['image'])),
+                    dynamic image = dog['image'] == null
+                        ? const AssetImage('assets/images/profile_test.png')
+                        : MemoryImage(base64Decode(dog['image']));
+
+                    return customListTile(
+                      leading: CircleAvatar(
+                        radius: 30,
+                        backgroundImage: image,
+                      ),
                       title: Text(dog["name"]),
+                      subtitle: Text('breed'), //TODO: 견종 요청
                       trailing: ElevatedButton(
                         onPressed: () {
                           context.go(
@@ -98,35 +104,32 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const Divider(thickness: 2),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                   child: ElevatedButton(
                     onPressed: () => context.go(RouterPath.myDogRegistraion),
-                    child: const Text(
-                      "regist dog",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    child: const Text("반려견 등록하기"),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                   child: ElevatedButton(
                     onPressed: () => context.go(RouterPath.myReview),
-                    child: Text("view my reivew"),
+                    child: const Text("내 리뷰 보기"),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                   child: ElevatedButton(
                     onPressed: () =>
                         context.go(RouterPath.myProfileModification),
-                    child: Text("modify my info"),
+                    child: const Text("내 정보 수정"),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                   child: ElevatedButton(
                     onPressed: () {},
-                    child: Text('setting'),
+                    child: const Text('설정'),
                   ),
                 ),
               ],
@@ -664,7 +667,6 @@ class UserProfilePage extends StatelessWidget {
     required this.detailId,
     required this.type,
   });
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -692,78 +694,75 @@ class UserProfilePage extends StatelessWidget {
         ),
         title: const Text('상대 정보'),
       ),
-      body: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          double width = constraints.maxWidth;
+      body: FutureBuilder(
+        future: ProfileApi.getUserProfile(userId: userId),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError || snapshot.data == null) {
+            return const Center(child: Text('Error'));
+          }
 
-          return FutureBuilder(
-              future: ProfileApi.getUserProfile(userId: userId),
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError || snapshot.data == null) {
-                  return const Center(child: Text('Error'));
-                }
-                debugPrint('${snapshot.data}');
+          dynamic image = snapshot.data['image'] == null
+              ? const AssetImage('assets/images/profile_test.png')
+              : MemoryImage(base64Decode(snapshot.data['image']));
+          String name = snapshot.data['name'];
+          String gender = snapshot.data['gender'];
+          int age = snapshot.data['age'];
+          // TODO: 실제 완료에선 지울 것
+          // snapshot.data['description'];
+          String description = "remove later";
+          List<dynamic> dogs = snapshot.data['dogList'];
 
-                dynamic image = snapshot.data['image'] == null
-                    ? const AssetImage('assets/images/profile_test.png')
-                    : MemoryImage(base64Decode(snapshot.data['image']));
-                String name = snapshot.data['name'];
-                String gender = snapshot.data['gender'];
-                int age = snapshot.data['age'];
-                //TODO: 실제 완료에선 지울 것
-                //snapshot.data['description'];
-                String description = "remove later";
-                List<dynamic> dogs = snapshot.data['dogList'];
+          return LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              double width = constraints.maxWidth;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    CircleAvatar(
-                      radius: width / 4,
-                      backgroundImage: image,
-                    ),
-                    Center(
-                      child: Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                        ),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CircleAvatar(radius: width / 4, backgroundImage: image),
+                  Center(
+                    child: Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Center(
-                      child: Text(
-                        '$gender\t\t\t$age세',
-                        style: const TextStyle(fontSize: 20.0),
+                  ),
+                  Center(
+                    child: Text(
+                      '$gender\t\t\t$age세',
+                      style: const TextStyle(fontSize: 20.0),
+                    ),
+                  ),
+                  SizedBox(
+                    height: width / 4,
+                    child: Card.outlined(
+                      elevation: 0,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(description),
                       ),
                     ),
-                    SizedBox(
-                      height: width / 4,
-                      child: Card.outlined(
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(description),
-                        ),
-                      ),
-                    ),
-                    const Divider(thickness: 2),
-                    Column(
-                      children: dogs.map((dog) {
-                        return ListTile(
-                          leading: dog['dogImage'] == null
-                              ? Image.asset('assets/images/profile_test.png')
-                              : Image.memory(dog['dogImage']),
-                          title: Text(dog["name"]),
-                        );
-                      }).toList(),
-                    ),
-                    const Divider(thickness: 2),
-                  ],
-                );
-              });
+                  ),
+                  const Divider(thickness: 2),
+                  Column(
+                    children: dogs.map((dog) {
+                      return ListTile(
+                        leading: dog['dogImage'] == null
+                            ? Image.asset('assets/images/profile_test.png')
+                            : Image.memory(dog['dogImage']),
+                        title: Text(dog["name"]),
+                      );
+                    }).toList(),
+                  ),
+                  const Divider(thickness: 2),
+                ],
+              );
+            },
+          );
         },
       ),
     );
