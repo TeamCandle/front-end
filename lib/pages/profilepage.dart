@@ -29,6 +29,7 @@ class ProfilePage extends StatelessWidget {
         builder: (BuildContext context, BoxConstraints constraints) {
           //variable space
           double width = constraints.maxWidth;
+          int id = context.watch<UserInfo>().id;
           dynamic image = context.watch<UserInfo>().image == null
               ? const AssetImage('assets/images/profile_test.png')
               : MemoryImage(context.watch<UserInfo>().image!);
@@ -113,7 +114,9 @@ class ProfilePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                   child: ElevatedButton(
-                    onPressed: () => context.go(RouterPath.myReview),
+                    onPressed: () {
+                      context.go('${RouterPath.myReview}?userId=$id');
+                    },
                     child: const Text("내 리뷰 보기"),
                   ),
                 ),

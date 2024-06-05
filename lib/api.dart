@@ -1066,7 +1066,8 @@ class PaymentApi {
       }
 
       debugPrint('!!! url launched');
-      await launchUrl(redirectUrl);
+      await launchUrl(redirectUrl); //반환값 가져올 수 있는지
+      //만약 반환값을 가져올 수 있다면 서버에 한번 더 보내기
     } catch (e) {
       debugPrint('!!! payment error : $e');
       return null;
@@ -1126,12 +1127,15 @@ class ReviewApi {
   //리뷰 등록
   static Future<bool> regist({
     required int matchId,
-    required int rating,
+    required double rating,
     required String text,
   }) async {
     var url = Uri.parse(ServerUrl.reviewUrl);
-    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
-    var body = {'id': matchId, 'rating': rating, 'text': text};
+    var header = {
+      'Authorization': 'Bearer ${_auth.accessToken}',
+      'Content-Type': 'application/json',
+    };
+    var body = {'matchId': matchId, 'rating': rating, 'text': text};
 
     http.Response? response = await HttpMethod.tryPost(
       title: "regist review",

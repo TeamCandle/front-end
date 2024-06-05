@@ -307,7 +307,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
       case Status.completed:
         return ElevatedButton(
           onPressed: () async {},
-          child: const Text('리뷰'),
+          child: const Text('받은 리뷰 보기'),
         );
       default:
         return ElevatedButton(
@@ -415,8 +415,10 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
       );
     } else if (status == Status.completed) {
       return ElevatedButton(
-        onPressed: () async {},
-        child: const Text('리뷰'),
+        onPressed: () async {
+          context.go('${RouterPath.ReviewRegist}?matchId=${widget.matchingId}');
+        },
+        child: const Text('리뷰 쓰기'),
       );
     } else {
       return ElevatedButton(

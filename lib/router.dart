@@ -1,13 +1,14 @@
 //dependencies
 import 'package:flutter/material.dart';
 import 'package:flutter_doguber_frontend/pages/currentmatch.dart';
-import 'package:flutter_doguber_frontend/pages/etcpages.dart';
+import 'package:flutter_doguber_frontend/pages/otheruser.dart';
 import 'package:go_router/go_router.dart';
 //files
 import 'pages/homepage.dart';
 import 'pages/matchpage.dart';
 import 'pages/loginpage.dart';
 import 'pages/profilepage.dart';
+import 'pages/reviewpage.dart';
 import 'pages/searchpage.dart';
 import 'pages/registpage.dart';
 import 'constants.dart';
@@ -338,7 +339,12 @@ final GoRouter router = GoRouter(
                 GoRoute(
                     path: 'review',
                     builder: (BuildContext context, GoRouterState state) {
-                      return const MyReviewPage();
+                      if (state.uri.queryParameters['userId'] == null) {
+                        return const ErrorPage(err: 'go router null');
+                      }
+                      String id = state.uri.queryParameters['userId']!;
+                      int idInt = int.parse(id);
+                      return ReviewListPage(userId: idInt);
                     }),
                 GoRoute(
                     path: 'dog_profile',
@@ -384,6 +390,20 @@ final GoRouter router = GoRouter(
                     }
                     return MatchingLogDetailPage(matchingId: id);
                   },
+                  routes: [
+                    GoRoute(
+                      path: 'regist_review',
+                      builder: (BuildContext context, GoRouterState state) {
+                        if (state.uri.queryParameters['matchId'] == null) {
+                          return const ErrorPage(err: 'go router null');
+                        }
+                        String id = state.uri.queryParameters['matchId']!;
+                        int idInt = int.parse(id);
+                        return ReviewRegistFormPage(matchId: idInt);
+                      },
+                      routes: [],
+                    )
+                  ],
                 )
               ],
             ),
@@ -426,6 +446,7 @@ class RouterPath {
   static const String dogProfileFromRequirement =
       '$requirementDetail/dog_profile';
 
+  //application tree in search page
   static const String myApplicationList = '$allRequirement/my_application_list';
   static const String myApplicationDetail = '$myApplicationList/detail';
   static const String userProfileFromApplication =
@@ -446,4 +467,5 @@ class RouterPath {
   static const String chatPage = '$currentMatch/chat';
   static const String userProfileFromCurrentMatch =
       '$currentMatch/user_profile';
+  static const String ReviewRegist = '$matchLogDetail/regist_review';
 }

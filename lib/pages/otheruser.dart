@@ -8,18 +8,6 @@ import 'package:flutter_doguber_frontend/constants.dart';
 import 'package:flutter_doguber_frontend/router.dart';
 import 'package:go_router/go_router.dart';
 
-class MyReviewPage extends StatelessWidget {
-  const MyReviewPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("my review")),
-      body: const Center(child: Text("reviews")),
-    );
-  }
-}
-
 //other user pages
 class UserProfilePage extends StatelessWidget {
   final int userId;
