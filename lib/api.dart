@@ -2,9 +2,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_doguber_frontend/mymap.dart';
 import 'package:flutter_doguber_frontend/notification.dart';
 import 'package:flutter_doguber_frontend/pages/matchpage.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -12,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 //files
 import 'constants.dart';
@@ -1044,20 +1047,48 @@ class PaymentApi {
 
   //결제 요청
   static Future<String?> pay(int matchId) async {
-    var url =
-        Uri.parse('${ServerUrl.serverUrl}/payment/ready?matchId=$matchId');
+    var url = Uri.parse('http://13.209.220.187/payment/ready?matchId=$matchId');
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
 
     debugPrint('!!! payment start');
+    debugPrint('!!! url : $url');
+    debugPrint('!!! header : $header');
     try {
       http.Response? response = await http.get(url, headers: header);
+      debugPrint('!!! response : ${response.statusCode}');
+      debugPrint('!!! response : ${response.body}');
+
       String? result = response.body;
-      debugPrint('!!! payment result : $result');
-      return result;
+      Uri redirectUrl = Uri.parse(result);
+      if (await canLaunchUrl(redirectUrl) == false) {
+        debugPrint('!!! can not launch url');
+        return null;
+      }
+
+      debugPrint('!!! url launched');
+      await launchUrl(redirectUrl);
     } catch (e) {
       debugPrint('!!! payment error : $e');
       return null;
     }
+  }
+  // final extractedUrl = _extractRedirectUrl(result);
+
+  // if (extractedUrl == null) {
+  //   debugPrint('!!! Redirect URL not found');
+  //   return null;
+  // }
+  // String str = extractedUrl.replaceAll('intent://', 'kakaotalk://');
+  // debugPrint('!!!!!! ---------- $str');
+
+  static String? _extractRedirectUrl(String html) {
+    final regex = RegExp(r'''intent://[^\s'"]+''');
+
+    final match = regex.firstMatch(html);
+    if (match != null) {
+      return match.group(0);
+    }
+    return null;
   }
 
   //결제 취소 = 매칭이 NOT_COMPLETED 상태일 때 취소 동작

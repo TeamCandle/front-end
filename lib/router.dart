@@ -1,5 +1,7 @@
 //dependencies
 import 'package:flutter/material.dart';
+import 'package:flutter_doguber_frontend/pages/currentmatch.dart';
+import 'package:flutter_doguber_frontend/pages/etcpages.dart';
 import 'package:go_router/go_router.dart';
 //files
 import 'pages/homepage.dart';
@@ -278,7 +280,7 @@ final GoRouter router = GoRouter(
             GoRoute(
               path: 'my_requirement_list',
               builder: (BuildContext context, GoRouterState state) {
-                return const MyRequestListPage();
+                return const MyRequirementListPage();
               },
               routes: [
                 GoRoute(

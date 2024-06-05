@@ -20,8 +20,8 @@ import '../router.dart';
 //print my requirement list
 //regist my request
 
-class MyRequestListPage extends StatelessWidget {
-  const MyRequestListPage({super.key});
+class MyRequirementListPage extends StatelessWidget {
+  const MyRequirementListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
