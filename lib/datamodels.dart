@@ -10,28 +10,41 @@ import 'api.dart';
 
 //data model with provider
 class UserInfo extends ChangeNotifier {
-  int _id = -1;
-  String _name = '_name';
-  String _gender = '_gender';
-  int _age = -1;
+  bool _isLoggedIn = false;
+  int? _id = -1;
+  String? _name;
+  String? _gender;
+  int? _age;
   String? _description;
   Uint8List? _image;
   List<Map<String, dynamic>> ownDogList = [];
 
   //getter
-  int get id => _id;
-  String get name => _name;
-  String get gender => _gender;
-  int get age => _age;
+  bool get isLoggedIn => _isLoggedIn;
+  int get id => _id!;
+  String get name => _name!;
+  String get gender => _gender!;
+  int get age => _age!;
   String? get description => _description;
   Uint8List? get image => _image;
 
-  Future<void> updateMyProfile() async {
+  Future<bool> logIn() async {
+    _isLoggedIn = await updateMyProfile();
+    debugPrint('!!! is logged in : $_isLoggedIn');
+    return _isLoggedIn;
+  }
+
+  void logOut() {}
+
+  Future<bool> updateMyProfile() async {
+    //get data
     Map<String, dynamic>? data = await ProfileApi.getMyProfileFromServer();
     if (data == null || data.isEmpty) {
-      debugPrint('[log] get profile error!');
-      return;
+      debugPrint('!!! get profile error!');
+      return false;
     }
+
+    //set info
     _id = data['id'];
     _name = data['name'];
     _gender = data['gender'];
@@ -42,9 +55,8 @@ class UserInfo extends ChangeNotifier {
       _image = Uint8List.fromList(bytes);
     }
     ownDogList = data['dogList'].cast<Map<String, dynamic>>();
-    debugPrint('[log] success get my profile');
     notifyListeners();
-    return;
+    return true;
   }
 }
 

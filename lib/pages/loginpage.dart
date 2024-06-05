@@ -18,6 +18,15 @@ import '../datamodels.dart';
 import '../constants.dart';
 import '../router.dart';
 
+class CheckLocalInfoPage extends StatelessWidget {
+  const CheckLocalInfoPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+
 class LogInPage extends StatelessWidget {
   const LogInPage({super.key});
 
@@ -112,10 +121,13 @@ class _WebViewPageState extends State<WebViewPage> {
     _webViewController.addJavaScriptChannel(
       'tokenHandler',
       onMessageReceived: (JavaScriptMessage message) async {
-        await _authApi.logIn(message: message);
-        await context.read<UserInfo>().updateMyProfile().then((_) {
-          debugPrint('[log] login success!');
-          context.go('/home');
+        await _authApi.logIn(context, message).then((bool result) {
+          if (result == true) {
+            context.go('/home');
+          } else {
+            debugPrint('!!! log in failed');
+            return;
+          }
         });
       },
     );

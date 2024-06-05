@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_doguber_frontend/pages/currentmatch.dart';
 import 'package:flutter_doguber_frontend/pages/otheruser.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 //files
+import 'datamodels.dart';
 import 'pages/homepage.dart';
 import 'pages/matchpage.dart';
 import 'pages/loginpage.dart';
@@ -14,6 +16,33 @@ import 'pages/registpage.dart';
 import 'constants.dart';
 //화면이동 담당 파일.
 //생략 항목(무시해도 됨) routes: <RouteBase>[...
+
+final GoRouter NewRoot = GoRouter(
+  routes: [
+    GoRoute(
+      name: 'init',
+      path: '/',
+      builder: (context, state) => CheckLocalInfoPage(),
+      redirect: (context, state) {},
+      routes: [
+        GoRoute(
+          path: 'login',
+          builder: (context, state) => LogInPage(),
+          routes: [
+            GoRoute(
+              path: 'web_view',
+              builder: (context, state) => WebViewPage(),
+            )
+          ],
+        ),
+        GoRoute(
+          path: 'home',
+          builder: (context, state) => HomePage(),
+        ),
+      ],
+    ),
+  ],
+);
 
 final GoRouter router = GoRouter(
   routes: [

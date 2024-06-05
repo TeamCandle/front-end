@@ -170,6 +170,29 @@ key - value 형태로 간단한 정보만 저장
 -> infowindow : 마커 클릭 시 표시되는 창 
 -> snippet : subtitle
 
+#### go router
+    H
+  A   B
+AA      BB
+route list에 선언. context.go-> context.pop 시 다른 말단노드로 이동하면 그 말단노드에 연결된 경로로 백됨.
+H -> A -> AA -> BB, 이 때 pop 시
+BB -> B -> H
+
+go -> GoRoute의 path속성에 지정된 값으로 이동
+goNamed -> GoRoute의 name속성에 지정된 값으로 이동
+=> 경로상으로 직접 연결되어있지 않은 AA -> BB 이동 후 Pop 시 경로를 따라 Pop됨.
+=> 경로 형성 시 부모 노드가 단 하나이므로 가능한 이동
+
+push, pushNamed : stack에 쌓음.
+H -> A -> B -> BB 처럼 이동했다면 (경로상으로 직접 연결되어있지 않은 A B 사이 이동이 일어남) pop 시 스택에 따라 지워짐.
+BB -> B -> A -> H
+
+pop
+popuntil
+
+route : 기본. 형성할 경로 리스트?
+redirect : 함수. 조건에 따른 이동
+
 #### 변수 선언 종류
 String, int ... : classic variable type
 

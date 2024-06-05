@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,7 +24,6 @@ import 'datamodels.dart';
 class AuthApi {
   String? _accessToken;
   String? _refreshToken;
-  bool _isLogined = false;
 
   //make class to singleton
   AuthApi._privateConstructor();
@@ -33,25 +33,25 @@ class AuthApi {
   //getter
   String? get accessToken => _accessToken;
   String? get refreshToken => _refreshToken;
-  bool get isLogined => _isLogined;
 
   //function
-  Future<void> logIn({required JavaScriptMessage message}) async {
+  Future<bool> logIn(BuildContext context, JavaScriptMessage message) async {
     //login page webview로부터 응답을 받는다.
     Map<String, dynamic> tokens = jsonDecode(message.message);
 
     //로그인 정보를 갱신한다.
     _accessToken = tokens['accessToken'];
     _refreshToken = tokens['refreshToken'];
-    _isLogined = true;
-
-    //서버에 fcm token을 등록한다(설치 등으로 바뀌는 케이스 있으므로 매 로그인마다 실행)
-    await _registFcmTokenToServer(tokens['accessToken']);
-
-    debugPrint('!!! got login');
     debugPrint('!!! access token : $_accessToken');
     debugPrint('!!! refresh token : $_refreshToken');
-    return;
+
+    //서버에 fcm token을 등록한다(설치 등으로 바뀌는 케이스 있으므로 매 로그인마다 실행)
+    bool result = await _registFcmTokenToServer(tokens['accessToken']);
+    if (result == false) {
+      return false;
+    } else {
+      return await context.read<UserInfo>().logIn();
+    }
   }
 
   //setter
@@ -66,10 +66,9 @@ class AuthApi {
   void cleanUp() {
     _accessToken = null;
     _refreshToken = null;
-    _isLogined = false;
   }
 
-  Future<void> _registFcmTokenToServer(String accessToken) async {
+  Future<bool> _registFcmTokenToServer(String accessToken) async {
     var url = Uri.parse('${ServerUrl.serverUrl}/fcm/token');
     var header = {
       'Authorization': 'Bearer $accessToken',
@@ -84,10 +83,12 @@ class AuthApi {
       body: body,
     );
 
-    if (response?.statusCode != 200) {
+    if (response?.statusCode == 200) {
+      return true;
+    } else {
       debugPrint('!!! fcm token regist fail');
+      return false;
     }
-    return;
   }
 
   Future<dynamic> reissuAccessToken() async {
@@ -121,7 +122,6 @@ class AuthApi {
       }
       String token = response.body;
       _accessToken = token;
-      _isLogined = true;
       await _registFcmTokenToServer(_accessToken!);
       return true;
     } catch (e) {
