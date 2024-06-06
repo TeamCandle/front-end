@@ -18,8 +18,8 @@ import '../constants.dart';
 import '../router.dart';
 
 // profile pages
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+class MyProfilePage extends StatelessWidget {
+  const MyProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -284,8 +284,8 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
 }
 
 // Dog pages
-class DogProfilePage extends StatelessWidget {
-  const DogProfilePage({required this.dogId, super.key});
+class MyDogProfilePage extends StatelessWidget {
+  const MyDogProfilePage({required this.dogId, super.key});
   final int dogId;
 
   @override

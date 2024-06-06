@@ -21,20 +21,20 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-//TODO: 디자인
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     dynamic settingImage = context.watch<UserInfo>().image == null
         ? const AssetImage('assets/images/profile_test.png')
         : MemoryImage(context.watch<UserInfo>().image!);
+
     return Scaffold(
       appBar: AppBar(
-        leading: Image.asset('assets/images/carrotBowLogo.png'),
+        leading: Image.asset('assets/images/carrotBowOnlyLogo.png'),
         title: const Text('댕근 모멘트'),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 4.0),
+            padding: const EdgeInsets.only(bottom: 4),
             child: Builder(
               builder: (context) => GestureDetector(
                 onTap: () => Scaffold.of(context).openEndDrawer(),
@@ -45,15 +45,25 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          Container(width: 16),
         ],
       ),
       endDrawer: Drawer(
-        child: ListView(children: [
-          ListTile(title: Text('1')),
-          ListTile(title: Text('2')),
-          ListTile(title: Text('3')),
-          ListTile(title: Text('4')),
-        ]),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+          child: ListView(children: [
+            Container(
+              margin: const EdgeInsets.all(30),
+              child: CircleAvatar(
+                radius: MediaQuery.of(context).size.width / 5,
+                backgroundImage: settingImage,
+              ),
+            ),
+            customContainer(child: Text('내 프로필')),
+            customContainer(child: Text('로그아웃')),
+            customContainer(child: Text('설정')),
+          ]),
+        ),
       ),
       body: Center(
         child: Column(

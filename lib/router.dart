@@ -25,7 +25,7 @@ class RouterPath {
   //will pushed page
   static const String userProfile = '/user_profile';
   static const String reviewList = '/review_list';
-  static const String dogProfile = '/dogProfile';
+  static const String dogProfile = '/dog_profile';
   static const String chatting = '/chat';
 
   //main tree
@@ -97,12 +97,15 @@ final GoRouter NewRoot = GoRouter(
         ),
         GoRoute(
           path: 'dog_profile',
-          name: 'dog_profile',
-          builder: (context, state) => ErrorPage(err: 'empty'),
+          builder: (context, state) {
+            final Map<String, dynamic>? data =
+                state.extra as Map<String, dynamic>?;
+            final int dogId = data?['dogId'];
+            return UserDogProfile(dogId: dogId);
+          },
         ),
         GoRoute(
           path: 'chat',
-          name: 'chat',
           builder: (context, state) {
             final Map<String, dynamic>? data =
                 state.extra as Map<String, dynamic>?;
@@ -223,7 +226,7 @@ final GoRouter NewRoot = GoRouter(
             ////////////////////////////////////////////////////////////////////
             GoRoute(
               path: 'my_profile',
-              builder: (context, state) => ProfilePage(),
+              builder: (context, state) => MyProfilePage(),
               routes: [
                 GoRoute(
                   path: 'my_dog_profile',
@@ -231,7 +234,7 @@ final GoRouter NewRoot = GoRouter(
                     final Map<String, dynamic>? data =
                         state.extra as Map<String, dynamic>?;
                     final int dogId = data?['dogId'];
-                    return DogProfilePage(dogId: dogId);
+                    return MyDogProfilePage(dogId: dogId);
                   },
                   routes: [
                     GoRoute(

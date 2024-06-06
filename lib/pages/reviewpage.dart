@@ -15,7 +15,7 @@ class ReviewListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("my review")),
+      appBar: AppBar(title: const Text("리뷰 목록")),
       body: FutureBuilder(
         future: context.read<InfiniteList>().updateReviewList(userId: userId),
         builder: (context, snapshot) {
@@ -23,6 +23,10 @@ class ReviewListPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return const Center(child: Text('error!'));
+          }
+
+          if (context.watch<InfiniteList>().reviewList.isEmpty) {
+            return const Center(child: Text('받은 리뷰가 없습니다.'));
           }
 
           return ListView.builder(
