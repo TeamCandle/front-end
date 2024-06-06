@@ -39,6 +39,33 @@ Widget customListTile({
   );
 }
 
+Widget customMsgBox({
+  double? height,
+  required double maxWidth,
+  required Widget child,
+}) {
+  return SizedBox(
+    width: maxWidth,
+    child: Container(
+      margin: const EdgeInsets.fromLTRB(3, 0, 3, 8),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 1,
+            offset: const Offset(1, 1),
+          ),
+        ],
+      ),
+      child: child,
+    ),
+  );
+}
+
 Widget customContainer({
   double? height,
   double? width,

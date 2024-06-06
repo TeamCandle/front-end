@@ -7,11 +7,13 @@ environment:
   sdk: '>=3.3.2 <4.0.0'
 
 dependencies:
+  chat_bubbles: ^1.6.0
   firebase_core: ^2.32.0
   firebase_messaging: ^14.9.4
   flutter:
     sdk: flutter
     
+  flutter_chat_ui: ^1.6.13
   flutter_local_notifications: ^17.1.2
   flutter_rating_bar: ^4.0.1
   geocoding: ^3.0.0

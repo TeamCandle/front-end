@@ -25,10 +25,35 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
+    dynamic settingImage = context.watch<UserInfo>().image == null
+        ? const AssetImage('assets/images/profile_test.png')
+        : MemoryImage(context.watch<UserInfo>().image!);
     return Scaffold(
       appBar: AppBar(
-        leading: Container(),
-        title: const Text('home page'),
+        leading: Image.asset('assets/images/carrotBowLogo.png'),
+        title: const Text('댕근 모멘트'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4.0),
+            child: Builder(
+              builder: (context) => GestureDetector(
+                onTap: () => Scaffold.of(context).openEndDrawer(),
+                child: CircleAvatar(
+                  radius: 30,
+                  backgroundImage: settingImage,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      endDrawer: Drawer(
+        child: ListView(children: [
+          ListTile(title: Text('1')),
+          ListTile(title: Text('2')),
+          ListTile(title: Text('3')),
+          ListTile(title: Text('4')),
+        ]),
       ),
       body: Center(
         child: Column(
@@ -73,7 +98,10 @@ class _HomePageState extends State<HomePage> {
                       ]),
                     ),
                     onTap: () {
-                      context.go('${RouterPath.currentMatch}?matchId=$matchId');
+                      context.go(
+                        RouterPath.currentDetail,
+                        extra: {'detailId': matchId},
+                      );
                     },
                   );
                 }),
@@ -88,13 +116,19 @@ class _HomePageState extends State<HomePage> {
             cunstomHomeMenu(child: const Center(child: Text("premium"))),
             cunstomHomeMenu(child: const Center(child: Text("community"))),
             cunstomHomeMenu(
-              onTap: () => context.go(RouterPath.matchingLog),
+              onTap: () => context.go(RouterPath.matchLog),
               child: const Center(child: Text("나의 매칭 기록")),
             ),
             cunstomHomeMenu(
               onTap: () => context.go(RouterPath.myProfile),
               child: const Center(child: Text("profile")),
             ),
+            ElevatedButton(
+                onPressed: () {
+                  context.read<UserInfo>().logOut();
+                  context.go('/');
+                },
+                child: Text('log out')),
           ],
         ),
       ),

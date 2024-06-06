@@ -23,7 +23,26 @@ class CheckLocalInfoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    // 비동기 함수 호출하여 로컬 데이터 확인 후 리디렉션
+    _checkLocalInfo(context);
+    return Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  Future<void> _checkLocalInfo(BuildContext context) async {
+    // 로컬 저장소에서 데이터 가져오기
+    await Future.delayed(Duration(seconds: 2)); // 비동기 작업 예제
+    final isLoggedIn = context.read<UserInfo>().isLoggedIn;
+
+    // 결과에 따라 리디렉션
+    if (isLoggedIn) {
+      context.go('/home');
+    } else {
+      context.go('/login');
+    }
   }
 }
 
@@ -44,7 +63,7 @@ class LogInPage extends StatelessWidget {
                 margin: const EdgeInsets.all(20),
                 width: double.infinity,
                 child: InkWell(
-                  onTap: () => context.go(RouterPath.loginDirect),
+                  onTap: () => context.go(RouterPath.webView),
                   child: Image.asset('assets/images/icon_kakao_login.png'),
                 ),
               ),
@@ -96,7 +115,6 @@ class WebViewPage extends StatefulWidget {
 
 class _WebViewPageState extends State<WebViewPage> {
   late final WebViewController _webViewController;
-  final AuthApi _authApi = AuthApi();
 
   @override
   void initState() {
@@ -121,14 +139,13 @@ class _WebViewPageState extends State<WebViewPage> {
     _webViewController.addJavaScriptChannel(
       'tokenHandler',
       onMessageReceived: (JavaScriptMessage message) async {
-        await _authApi.logIn(context, message).then((bool result) {
-          if (result == true) {
-            context.go('/home');
-          } else {
-            debugPrint('!!! log in failed');
-            return;
-          }
-        });
+        await context.read<UserInfo>().logIn(message).then(
+          (bool result) {
+            if (result == true) {
+              context.go(RouterPath.home);
+            }
+          },
+        );
       },
     );
 

@@ -79,8 +79,12 @@ class _MatchingLogPageState extends State<MatchingLogPage> {
               title: Text('$breed\t$careType'),
               subtitle: Text(time),
               trailing: Text(status),
-              onTap: () =>
-                  context.go('${RouterPath.matchLogDetail}?matchingId=$id'),
+              onTap: () {
+                context.go(
+                  RouterPath.matchLogDetail,
+                  extra: {'detailId': id},
+                );
+              },
             );
           }),
     );
@@ -151,11 +155,9 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          flex: 2,
           child: buildGoogleMap(),
         ),
         Expanded(
-          flex: 1,
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               double height = constraints.maxHeight;
@@ -179,25 +181,23 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                                 radius: (width / 10),
                                 backgroundImage: image,
                               ),
-                              customContainer(
-                                child: Column(children: [
-                                  Text(careType),
-                                  Container(
-                                    margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
-                                    height: 1,
-                                    width: (width - 32) / 3,
-                                    color: Colors.grey,
-                                  ),
-                                  Text('$reward 원'),
-                                  Container(
-                                    margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
-                                    height: 1,
-                                    width: (width - 32) / 3,
-                                    color: Colors.grey,
-                                  ),
-                                  Text('현재 $status'),
-                                ]),
-                              ),
+                              Column(children: [
+                                Text(careType),
+                                Container(
+                                  margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                                  height: 1,
+                                  width: (width - 32) / 3,
+                                  color: Colors.grey[300],
+                                ),
+                                Text('$reward 원'),
+                                Container(
+                                  margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                                  height: 1,
+                                  width: (width - 32) / 3,
+                                  color: Colors.grey[300],
+                                ),
+                                Text('현재 $status'),
+                              ]),
                               buildInfoButton(
                                   context, userId, dogId, isRequester),
                             ],
@@ -206,15 +206,17 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                       ),
                       customCard(
                         width: width,
-                        height: (height / 2.5),
+                        height: (height / 3),
                         child: Text(description),
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
                         child: ElevatedButton(
                           onPressed: () {
-                            context.go(
-                                '${RouterPath.chatPage}?matchId=${widget.matchingId}');
+                            context.push(
+                              RouterPath.chatting,
+                              extra: {'matchId': widget.matchingId},
+                            );
                           },
                           child: const Text('chatting'),
                         ),
@@ -261,8 +263,9 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
           padding: const EdgeInsets.all(0),
         ),
         onPressed: () {
-          context.go(
-            '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchingId}',
+          context.push(
+            RouterPath.userProfile,
+            extra: {'userId': userId},
           );
         },
         child: const Padding(
@@ -277,8 +280,10 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
             padding: const EdgeInsets.all(0),
           ),
           onPressed: () {
-            context.go(
-                '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.matchingId}');
+            context.push(
+              RouterPath.userProfile,
+              extra: {'userId': userId},
+            );
           },
           child: const Padding(
             padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -290,8 +295,8 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
             padding: const EdgeInsets.all(0),
           ),
           onPressed: () {
-            context.go(
-                '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.matchingId}');
+            context.push(
+                '${RouterPath.dogProfile}?dogId=$dogId&detailId=${widget.matchingId}');
           },
           child: const Padding(
             padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -416,7 +421,10 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     } else if (status == Status.completed) {
       return ElevatedButton(
         onPressed: () async {
-          context.go('${RouterPath.ReviewRegist}?matchId=${widget.matchingId}');
+          context.go(
+            RouterPath.matchLogRegistReview,
+            extra: {'matchId': widget.matchingId},
+          );
         },
         child: const Text('리뷰 쓰기'),
       );
@@ -449,7 +457,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                         .read<InfiniteList>()
                         .updateMatchingLogList()
                         .then((_) {
-                      context.go(RouterPath.matchingLog);
+                      context.go(RouterPath.matchLog);
                     });
                   } else {
                     Navigator.of(context).pop();

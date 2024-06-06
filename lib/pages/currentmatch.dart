@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
+import 'package:chat_bubbles/chat_bubbles.dart';
 
 class CurrentMatchPage extends StatefulWidget {
   final int matchId;
@@ -74,11 +75,9 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          flex: 2,
           child: buildGoogleMap(),
         ),
         Expanded(
-          flex: 1,
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               double height = constraints.maxHeight;
@@ -94,31 +93,42 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           CircleAvatar(
-                            maxRadius: (height / 5),
+                            maxRadius: (width / 10),
                             backgroundImage: image,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Column(children: [
-                              Text('종류 : $careType'),
-                              Text('보상 : $reward'),
-                              Text('현재 $status'),
-                            ]),
-                          ),
+                          Column(children: [
+                            Text(careType),
+                            Container(
+                              margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                              height: 1,
+                              width: (width - 32) / 3,
+                              color: Colors.grey[300],
+                            ),
+                            Text('$reward 원'),
+                            Container(
+                              margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                              height: 1,
+                              width: (width - 32) / 3,
+                              color: Colors.grey[300],
+                            ),
+                            Text('현재 $status'),
+                          ]),
                           buildInfoButton(context, userId, dogId, isRequester),
                         ],
                       ),
                       customCard(
                         width: width,
-                        height: (height / 2.5),
+                        height: (height / 3),
                         child: Text(description),
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
                         child: ElevatedButton(
                           onPressed: () {
-                            context.go(
-                                '${RouterPath.chatPage}?matchId=${widget.matchId}');
+                            context.push(
+                              RouterPath.chatting,
+                              extra: {'matchId': widget.matchId},
+                            );
                           },
                           child: const Text('chatting'),
                         ),
@@ -165,8 +175,9 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
           padding: const EdgeInsets.all(0),
         ),
         onPressed: () {
-          context.go(
-            '${RouterPath.userProfileFromCurrentMatch}?userId=$userId&detailId=${widget.matchId}',
+          context.push(
+            RouterPath.userProfile,
+            extra: {'userId': userId},
           );
         },
         child: const Padding(
@@ -181,8 +192,10 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
             padding: const EdgeInsets.all(0),
           ),
           onPressed: () {
-            context.go(
-                '${RouterPath.userProfileFromCurrentMatch}?userId=$userId&detailId=${widget.matchId}');
+            context.push(
+              RouterPath.userProfile,
+              extra: {'userId': userId},
+            );
           },
           child: const Padding(
             padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -194,8 +207,8 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
             padding: const EdgeInsets.all(0),
           ),
           onPressed: () {
-            context.go(
-                '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.matchId}');
+            context.push(
+                '${RouterPath.dogProfile}?dogId=$dogId&detailId=${widget.matchId}');
           },
           child: const Padding(
             padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -349,7 +362,7 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
                         .read<InfiniteList>()
                         .updateMatchingLogList()
                         .then((_) {
-                      context.go(RouterPath.matchingLog);
+                      context.go(RouterPath.matchLog);
                     });
                   } else {
                     Navigator.of(context).pop();
@@ -374,8 +387,7 @@ class ChattingPage extends StatefulWidget {
 
 class _ChattingPageState extends State<ChattingPage> {
   late StompClient stompClient;
-  ScrollController _scrollController = ScrollController();
-  TextEditingController _textController = TextEditingController();
+  final TextEditingController _textController = TextEditingController();
 
   void callback(StompFrame frame) {
     //List<dynamic>? result = json.decode(frame.body!);
@@ -389,12 +401,6 @@ class _ChattingPageState extends State<ChattingPage> {
       context.read<ChatData>().add(message);
     });
   }
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   ChattingApi.connect(matchId: widget.matchId, callback: callback);
-  // }
 
   @override
   void dispose() {
@@ -414,8 +420,17 @@ class _ChattingPageState extends State<ChattingPage> {
       return await context.read<ChatData>().initChatting(widget.matchId);
     }
 
+    Future<void> sendMessage() async {
+      ChattingApi.send(_textController.text, widget.matchId);
+      context.read<ChatData>().update(
+            _textController.text,
+            context.read<UserInfo>().name,
+          );
+      _textController.clear();
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('widget.title')),
+      appBar: AppBar(title: const Text('채팅')),
       body: FutureBuilder(
           future: initChatting(),
           builder: (context, snapshot) {
@@ -428,17 +443,18 @@ class _ChattingPageState extends State<ChattingPage> {
                     itemBuilder: (context, index) {
                       if (context.read<ChatData>().messages[index]['sender'] ==
                           context.read<UserInfo>().name) {
-                        return Row(children: [
-                          const Spacer(),
-                          Text(context.watch<ChatData>().messages[index]
-                              ['message']),
-                        ]);
+                        return BubbleSpecialThree(
+                          text: context.watch<ChatData>().messages[index]
+                              ['message'],
+                          color: Color(0xFFa2e1a6),
+                        );
                       } else {
-                        return Row(children: [
-                          Text(context.watch<ChatData>().messages[index]
-                              ['message']),
-                          const Spacer(),
-                        ]);
+                        return BubbleSpecialThree(
+                          text: context.watch<ChatData>().messages[index]
+                              ['message'],
+                          color: Colors.white,
+                          isSender: false,
+                        );
                       }
                     },
                   ),
@@ -446,24 +462,30 @@ class _ChattingPageState extends State<ChattingPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: _textController,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter your message',
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 10.0),
+                        child: customSearchField(
+                          child: TextField(
+                            controller: _textController,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Enter your message',
+                            ),
+                          ),
                         ),
                       ),
                     ),
                     // 전송 버튼
-                    IconButton(
-                      icon: const Icon(Icons.send),
-                      onPressed: () async {
-                        ChattingApi.send(_textController.text, widget.matchId);
-                        context.read<ChatData>().update(
-                              _textController.text,
-                              context.read<UserInfo>().name,
-                            );
-                        _textController.clear();
-                      },
+                    Padding(
+                      padding: EdgeInsets.all(8),
+                      child: IconButton(
+                        icon: const Icon(Icons.send),
+                        style: const ButtonStyle(
+                          backgroundColor:
+                              WidgetStatePropertyAll(Color(0xFFa2e1a6)),
+                        ),
+                        onPressed: sendMessage,
+                      ),
                     ),
                   ],
                 ),

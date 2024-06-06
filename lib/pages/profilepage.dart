@@ -95,7 +95,8 @@ class ProfilePage extends StatelessWidget {
                       trailing: ElevatedButton(
                         onPressed: () {
                           context.go(
-                            '${RouterPath.myDogProfile}?dogId=${dog["id"]}',
+                            RouterPath.myDogProfile,
+                            extra: {'dogId': dog['id']},
                           );
                         },
                         child: const Icon(Icons.login_rounded),
@@ -107,7 +108,7 @@ class ProfilePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                   child: ElevatedButton(
-                    onPressed: () => context.go(RouterPath.myDogRegistraion),
+                    onPressed: () => context.go(RouterPath.myDogRegist),
                     child: const Text("반려견 등록하기"),
                   ),
                 ),
@@ -115,7 +116,10 @@ class ProfilePage extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                   child: ElevatedButton(
                     onPressed: () {
-                      context.go('${RouterPath.myReview}?userId=$id');
+                      context.push(
+                        RouterPath.reviewList,
+                        extra: {'userId': id},
+                      );
                     },
                     child: const Text("내 리뷰 보기"),
                   ),
@@ -123,8 +127,7 @@ class ProfilePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                   child: ElevatedButton(
-                    onPressed: () =>
-                        context.go(RouterPath.myProfileModification),
+                    onPressed: () => context.go(RouterPath.myProfileModify),
                     child: const Text("내 정보 수정"),
                   ),
                 ),

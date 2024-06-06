@@ -11,41 +11,11 @@ import 'package:go_router/go_router.dart';
 //other user pages
 class UserProfilePage extends StatelessWidget {
   final int userId;
-  final int detailId;
-  final String type;
-  const UserProfilePage({
-    super.key,
-    required this.userId,
-    required this.detailId,
-    required this.type,
-  });
+  const UserProfilePage({super.key, required this.userId});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            switch (type) {
-              case DetailFrom.requirement:
-                context.go(
-                    '${RouterPath.requirementDetail}?requirementId=$detailId');
-                break;
-              case DetailFrom.application:
-                context.go(
-                    '${RouterPath.myApplicationDetail}?applicationId=$detailId');
-                break;
-              case DetailFrom.currentMatch:
-                context.go('${RouterPath.currentMatch}?matchId=$detailId');
-                break;
-              case DetailFrom.matchLog:
-                context.go('${RouterPath.matchLogDetail}?matchingId=$detailId');
-                break;
-            }
-          },
-        ),
-        title: const Text('상대 정보'),
-      ),
+      appBar: AppBar(title: const Text('상대 정보')),
       body: FutureBuilder(
         future: ProfileApi.getUserProfile(userId: userId),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -123,18 +93,13 @@ class UserProfilePage extends StatelessWidget {
 
 class UserDogProfile extends StatelessWidget {
   final int dogId;
-  final int requestId;
-  const UserDogProfile({
-    super.key,
-    required this.dogId,
-    required this.requestId,
-  });
+  const UserDogProfile({super.key, required this.dogId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text('dogID : $dogId \n requestID : $requestId'),
+        child: Text('dogID : $dogId'),
       ),
     );
   }

@@ -73,13 +73,15 @@ class _DogUberAppState extends State<DogUberApp> {
         ),
       ],
       child: MaterialApp.router(
-        routerConfig: router,
+        routerConfig: NewRoot,
         theme: ThemeData(
           scaffoldBackgroundColor: const Color(0xFFF7F7F7),
           appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFF7F7F7)),
           floatingActionButtonTheme: const FloatingActionButtonThemeData(
               backgroundColor: Color(0xFFa2e1a6)),
-          dialogTheme: const DialogTheme(backgroundColor: Color(0xFFF7F7F7)),
+          dialogTheme: DialogTheme(backgroundColor: Color(0xFFF7F7F7)),
+          drawerTheme:
+              const DrawerThemeData(backgroundColor: Color(0xFFF7F7F7)),
           cardTheme: const CardTheme(
             color: Colors.white,
             shadowColor: Colors.black,

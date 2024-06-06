@@ -77,7 +77,13 @@ class MyRequirementListPage extends StatelessWidget {
                     return;
                   } else {
                     context.go(
-                        '${RouterPath.myRequirementDetail}?requirementId=${context.read<InfiniteList>().myRequestList[index]['id']}');
+                      RouterPath.myRequirementDetail,
+                      extra: {
+                        'detailId': context
+                            .read<InfiniteList>()
+                            .myRequestList[index]['id'],
+                      },
+                    );
                   }
                 },
               );
@@ -87,7 +93,7 @@ class MyRequirementListPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.go(RouterPath.selectDog);
+          context.go(RouterPath.myRequirementSelect);
         },
         child: const Text("+"),
       ),
@@ -240,7 +246,12 @@ class SelectDogInRequirementPage extends StatelessWidget {
                           trailing: ElevatedButton(
                             onPressed: () {
                               context.go(
-                                '${RouterPath.requirementRegistForm}?dogId=${context.read<UserInfo>().ownDogList[index]["id"]}',
+                                RouterPath.myRequirementForm,
+                                extra: {
+                                  'dogId': context
+                                      .read<UserInfo>()
+                                      .ownDogList[index]["id"],
+                                },
                               );
                             },
                             child: const Text('select'),

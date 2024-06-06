@@ -35,11 +35,11 @@ class AuthApi {
   String? get refreshToken => _refreshToken;
 
   //function
-  Future<bool> logIn(BuildContext context, JavaScriptMessage message) async {
-    //login page webview로부터 응답을 받는다.
+  Future<bool> registToken(JavaScriptMessage message) async {
+    //userInfo로부터 webView로 반환받은 결과를 가져온다.
     Map<String, dynamic> tokens = jsonDecode(message.message);
 
-    //로그인 정보를 갱신한다.
+    //token을 저장한다.
     _accessToken = tokens['accessToken'];
     _refreshToken = tokens['refreshToken'];
     debugPrint('!!! access token : $_accessToken');
@@ -47,11 +47,13 @@ class AuthApi {
 
     //서버에 fcm token을 등록한다(설치 등으로 바뀌는 케이스 있으므로 매 로그인마다 실행)
     bool result = await _registFcmTokenToServer(tokens['accessToken']);
-    if (result == false) {
-      return false;
-    } else {
-      return await context.read<UserInfo>().logIn();
-    }
+    return result;
+  }
+
+  void cleanUpToken() {
+    _accessToken = null;
+    _refreshToken = null;
+    debugPrint('!!! logged out');
   }
 
   //setter
@@ -61,11 +63,6 @@ class AuthApi {
 
   void setRefreshToken({required String refreshToken}) {
     _refreshToken = refreshToken;
-  }
-
-  void cleanUp() {
-    _accessToken = null;
-    _refreshToken = null;
   }
 
   Future<bool> _registFcmTokenToServer(String accessToken) async {

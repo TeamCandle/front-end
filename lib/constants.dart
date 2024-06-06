@@ -13,13 +13,6 @@ class DogSize {
   static const String large = "LARGE";
 }
 
-class DetailFrom {
-  static const String requirement = 'requirement';
-  static const String application = 'application';
-  static const String matchLog = 'matchLog';
-  static const String currentMatch = 'currentMatch';
-}
-
 class CareType {
   static const String walking = "WALKING";
   static const String boarding = "BOARDING";

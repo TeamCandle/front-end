@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:convert';
 //files
 import 'constants.dart';
@@ -10,8 +11,9 @@ import 'api.dart';
 
 //data model with provider
 class UserInfo extends ChangeNotifier {
+  final AuthApi _auth = AuthApi();
   bool _isLoggedIn = false;
-  int? _id = -1;
+  int? _id;
   String? _name;
   String? _gender;
   int? _age;
@@ -28,13 +30,27 @@ class UserInfo extends ChangeNotifier {
   String? get description => _description;
   Uint8List? get image => _image;
 
-  Future<bool> logIn() async {
+  Future<bool> logIn(JavaScriptMessage message) async {
+    await _auth.registToken(message).then((result) {
+      if (result == false) return false;
+    });
     _isLoggedIn = await updateMyProfile();
     debugPrint('!!! is logged in : $_isLoggedIn');
     return _isLoggedIn;
   }
 
-  void logOut() {}
+  void logOut() {
+    _isLoggedIn = false;
+    _auth.cleanUpToken();
+    _id = null;
+    _name = null;
+    _gender = null;
+    _age = null;
+    _description = null;
+    _image = null;
+    ownDogList = [];
+    debugPrint('!!! cleaned up info');
+  }
 
   Future<bool> updateMyProfile() async {
     //get data
@@ -211,6 +227,8 @@ class ChatData extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+class SettingData extends ChangeNotifier {}
 
 //data model
 class DogInfo {

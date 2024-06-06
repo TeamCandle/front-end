@@ -189,7 +189,7 @@ class _ReviewRegistFormPageState extends State<ReviewRegistFormPage> {
                         .read<InfiniteList>()
                         .updateMatchingLogList()
                         .then((_) {
-                      context.go(RouterPath.matchingLog);
+                      context.go(RouterPath.matchLog);
                     });
                   } else {
                     Navigator.of(context).pop();

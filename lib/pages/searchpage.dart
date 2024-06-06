@@ -77,7 +77,7 @@ class _AllRequestPageState extends State<AllRequestPage> {
         child: Row(children: [
           Expanded(
             child: ElevatedButton(
-              onPressed: () => context.go(RouterPath.myApplicationList),
+              onPressed: () => context.go(RouterPath.myApplication),
               child: const Text('my applications'),
             ),
           ),
@@ -127,7 +127,10 @@ class _AllRequestPageState extends State<AllRequestPage> {
           subtitle: Text(time),
           trailing: Text(status),
           onTap: () {
-            context.go('${RouterPath.requirementDetail}?requirementId=$id');
+            context.go(
+              RouterPath.allRequirementDetail,
+              extra: {'detailId': id},
+            );
           },
         );
       },
@@ -246,8 +249,10 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
                                   padding: const EdgeInsets.all(0),
                                 ),
                                 onPressed: () {
-                                  context.go(
-                                      '${RouterPath.userProfileFromRequirement}?userId=$userId&detailId=${widget.requirementId}');
+                                  context.push(
+                                    RouterPath.userProfile,
+                                    extra: {'userId': userId},
+                                  );
                                 },
                                 child: const Padding(
                                   padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -263,8 +268,8 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
                                   padding: const EdgeInsets.all(0),
                                 ),
                                 onPressed: () {
-                                  context.go(
-                                      '${RouterPath.dogProfileFromRequirement}?dogId=$dogId&detailId=${widget.requirementId}');
+                                  context.push(
+                                      '${RouterPath.dogProfile}?dogId=$dogId&detailId=${widget.requirementId}');
                                 },
                                 child: const Padding(
                                   padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -401,8 +406,12 @@ class MyApplicationListPage extends StatelessWidget {
             title: Text('$breed\t$careType'),
             subtitle: Text(time),
             trailing: Text(status),
-            onTap: () => context
-                .go('${RouterPath.myApplicationDetail}?applicationId=$id'),
+            onTap: () {
+              context.go(
+                RouterPath.myApplicationDetail,
+                extra: {'detailId': id},
+              );
+            },
           );
         });
   }
@@ -518,15 +527,17 @@ class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
                                 child: Column(children: [
                                   ElevatedButton(
                                     onPressed: () {
-                                      context.go(
-                                          '${RouterPath.userProfileFromApplication}?userId=$userId&detailId=${widget.applicationId}');
+                                      context.push(
+                                        RouterPath.userProfile,
+                                        extra: {'userId': userId},
+                                      );
                                     },
                                     child: Text('owner'),
                                   ),
                                   ElevatedButton(
                                     onPressed: () {
-                                      context.go(
-                                          '${RouterPath.userProfileFromApplication}?dogId=$dogId&detailId=${widget.applicationId}');
+                                      context.push(
+                                          '${RouterPath.dogProfile}?dogId=$dogId&detailId=${widget.applicationId}');
                                     },
                                     child: Text('dog'),
                                   ),
@@ -589,7 +600,7 @@ class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
                         .read<InfiniteList>()
                         .updateMyApplicationList()
                         .then((_) {
-                      context.go(RouterPath.myApplicationList);
+                      context.go(RouterPath.myApplication);
                     });
                   } else {
                     Navigator.of(context).pop();
