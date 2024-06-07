@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_doguber_frontend/customwidgets.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
@@ -37,6 +38,7 @@ class MyProfilePage extends StatelessWidget {
           String gender =
               context.watch<UserInfo>().gender == "male" ? "남성" : "여성";
           String age = context.watch<UserInfo>().age.toString();
+          double rating = context.watch<UserInfo>().rating;
           var txtcon = TextEditingController();
           txtcon.text = context.watch<UserInfo>().description == null
               ? "자기소개를 입력해주세요"
@@ -59,12 +61,23 @@ class MyProfilePage extends StatelessWidget {
                     child: Text(name, style: const TextStyle(fontSize: 50)),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Center(
-                    child: Text(
-                      '$gender\t\t\t$age세',
-                      style: const TextStyle(fontSize: 25),
+                Center(
+                  child: Text(
+                    '$gender\t\t\t$age세',
+                    style: const TextStyle(fontSize: 25),
+                  ),
+                ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+                    child: RatingBarIndicator(
+                      rating: rating,
+                      itemBuilder: (context, index) {
+                        return const Icon(Icons.star, color: Colors.amber);
+                      },
+                      itemCount: 5,
+                      itemSize: 30.0,
+                      direction: Axis.horizontal,
                     ),
                   ),
                 ),
@@ -91,7 +104,7 @@ class MyProfilePage extends StatelessWidget {
                         backgroundImage: image,
                       ),
                       title: Text(dog["name"]),
-                      subtitle: Text('breed'), //TODO: 견종 요청
+                      subtitle: Text(dog['breed']), //TODO: 견종 요청
                       trailing: ElevatedButton(
                         onPressed: () {
                           context.go(
@@ -129,13 +142,6 @@ class MyProfilePage extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () => context.go(RouterPath.myProfileModify),
                     child: const Text("내 정보 수정"),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    child: const Text('설정'),
                   ),
                 ),
               ],
@@ -296,20 +302,20 @@ class MyDogProfilePage extends StatelessWidget {
       });
     }
 
-    Future<dynamic> buildDeleteDialog(BuildContext context, int id) {
+    Future<dynamic> buildDeleteDialog(BuildContext context) {
       return showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text("remove dog profile"),
-            content: const Text("are you sure?"),
+            title: const Text("삭제"),
+            content: const Text("강아지 정보를 삭제합니다"),
             actions: [
               ElevatedButton(
                 onPressed: () async {
-                  await DogProfileApi.deleteDogProfile(id: id);
+                  await DogProfileApi.deleteDogProfile(id: dogId);
                   goBack();
                 },
-                child: const Text('yes'),
+                child: const Text('ok'),
               ),
             ],
           );
@@ -331,67 +337,99 @@ class MyDogProfilePage extends StatelessWidget {
               return Text('snapshot has Error: ${snapshot.error}');
             }
 
-            int dogId = snapshot.data!.dogId!;
-            dynamic image = snapshot.data!.dogImage == null
-                ? const AssetImage('assets/images/profile_test.png')
-                : MemoryImage(snapshot.data!.dogImage!);
-            String dogName = snapshot.data!.dogName;
-            String dogGender = snapshot.data!.dogGender == "male" ? "남성" : "여성";
-            int age = snapshot.data!.age;
-            String description = snapshot.data!.description == null
-                ? ""
-                : context.watch<UserInfo>().description!;
-            bool neutered = snapshot.data!.neutered;
-            String breed = snapshot.data!.breed;
-            String size = snapshot.data!.size;
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Image(
-                    image: image,
+            DogInfo dogInfo = snapshot.data!;
+            var image = dogInfo.dogImage == null
+                ? Image.asset(
+                    'assets/images/empty_image.png',
                     fit: BoxFit.cover,
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Column(children: [
-                    Text('이름 : $dogName'),
-                    Text('성별 : $dogGender'),
-                    Text(neutered == true ? '중성화 완료' : '중성화 안함'),
-                    Text('${age.toString()}살'),
-                    Text('$size견'),
-                    Text('품종 : $breed'),
-                    Text(description),
-                    ElevatedButton(
-                      onPressed: () => buildDeleteDialog(context, dogId),
-                      child: const Text('remove'),
-                    ),
-                  ]),
-                ),
-              ],
-            );
+                  )
+                : Image.memory(
+                    dogInfo.dogImage!,
+                    fit: BoxFit.cover,
+                  );
 
-            // return Column(
-            //   children: [
-            //     Text(dogInfo.dogId.toString()),
-            //     Text(dogInfo.dogName),
-            //     Text(dogInfo.dogGender),
-            //     Text(dogInfo.ownerId.toString()),
-            //     Text(dogInfo.neutered.toString()),
-            //     Text(dogInfo.age.toString()),
-            //     Text(dogInfo.size.toString()),
-            //     Text(dogInfo.weight.toString()),
-            //     Text(dogInfo.breed),
-            //     Text(dogInfo.description),
-            //     ElevatedButton(
-            //       onPressed: () => buildDeleteDialog(context, dogInfo.dogId!),
-            //       child: const Text('remove'),
-            //     ),
-            //   ],
-            // );
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                      child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: image,
+                  )),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          customContainer(
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Text(dogInfo.dogName),
+                                    Text('${dogInfo.age}살'),
+                                  ],
+                                ),
+                                const Divider(),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Text(dogInfo.breed),
+                                    Text('${dogInfo.size}견'),
+                                  ],
+                                ),
+                                const Divider(),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Text(
+                                      dogInfo.dogGender == 'male' ? '남아' : '여아',
+                                    ),
+                                    Text(
+                                      dogInfo.neutered == true
+                                          ? '중성화 완료됨'
+                                          : '중성화 안함',
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          customContainer(
+                            height: MediaQuery.of(context).size.width / 4,
+                            width: double.maxFinite,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+                              child: Text(dogInfo.description!),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              context.push(
+                                RouterPath.myDogModify,
+                                extra: {'dogInfo': dogInfo},
+                              );
+                            },
+                            child: const Text('수정'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => buildDeleteDialog(context),
+                            child: const Text('삭제'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
           },
         ),
       ),
@@ -446,7 +484,6 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
   final TextEditingController breedController = TextEditingController();
   final TextEditingController neuteredController = TextEditingController();
   final TextEditingController sizeController = TextEditingController();
-  final TextEditingController weightController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
   late DogInfo _dogInfo;
@@ -586,11 +623,6 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
                 );
               }),
               TextField(
-                controller: weightController,
-                decoration: const InputDecoration(labelText: '무게'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
                 controller: descriptionController,
                 decoration: const InputDecoration(labelText: '설명'),
                 maxLines: 3,
@@ -627,7 +659,6 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
                     _isNeutered!, //불리안 선택
                     int.parse(ageController.text), //숫자만  가능한 필드로
                     size,
-                    1.1, //더블만 가능한 필드로
                     breedController.text,
                     descriptionController.text,
                   );

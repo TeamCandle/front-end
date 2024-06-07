@@ -75,10 +75,26 @@ class _DogUberAppState extends State<DogUberApp> {
       child: MaterialApp.router(
         routerConfig: NewRoot,
         theme: ThemeData(
+          //Color(0xFFa2e1a6)
+          //Colors.black
+          colorScheme: const ColorScheme(
+            brightness: Brightness.light,
+            primary: Color(0xFF005f4d),
+            onPrimary: Colors.white,
+            secondary: Color(0xFFa2e1a6),
+            onSecondary: Colors.black,
+            error: Color(0xFFF7F7F7),
+            onError: Colors.black,
+            surface: Color(0xFFF7F7F7),
+            onSurface: Colors.black,
+          ),
+          dialogBackgroundColor: Color(0xFFF7F7F7),
           scaffoldBackgroundColor: const Color(0xFFF7F7F7),
           appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFF7F7F7)),
           floatingActionButtonTheme: const FloatingActionButtonThemeData(
-              backgroundColor: Color(0xFFa2e1a6)),
+            backgroundColor: Color(0xFFa2e1a6),
+            foregroundColor: Colors.black,
+          ),
           dialogTheme: DialogTheme(backgroundColor: Color(0xFFF7F7F7)),
           drawerTheme:
               const DrawerThemeData(backgroundColor: Color(0xFFF7F7F7)),
@@ -94,6 +110,7 @@ class _DogUberAppState extends State<DogUberApp> {
                 GoogleFonts.notoSansKr(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
+                  color: Colors.black,
                 ),
               ),
               padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
@@ -104,6 +121,15 @@ class _DogUberAppState extends State<DogUberApp> {
               backgroundColor:
                   const WidgetStatePropertyAll<Color>(Color(0xFFa2e1a6)),
             ),
+          ),
+          timePickerTheme: const TimePickerThemeData(
+            //backgroundColor: Color(0xFFF7F7F7),
+            dialBackgroundColor: Color(0xFFF0F0F0),
+            //dialHandColor: Color(0xFF005f4d),
+            //dayPeriodColor: Color(0xFFa2e1a6),
+            hourMinuteColor: Color(0xFFF0F0F0),
+            dayPeriodTextColor: Colors.black,
+            hourMinuteTextColor: Colors.black,
           ),
         ),
       ),

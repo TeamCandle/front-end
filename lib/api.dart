@@ -430,7 +430,6 @@ class DogProfileApi {
         data['neutered'],
         data['age'],
         data['size'],
-        1.1,
         data['breed'],
         data['description'],
       );
@@ -459,7 +458,6 @@ class DogProfileApi {
     request.fields['neutered'] = doginfo.neutered.toString();
     request.fields['age'] = doginfo.age.toString();
     request.fields['size'] = doginfo.size;
-    request.fields['weight'] = doginfo.weight.toString();
     request.fields['breed'] = doginfo.breed;
     request.fields['description'] = doginfo.description!;
     if (doginfo.dogImage != null) {
@@ -498,7 +496,6 @@ class DogProfileApi {
     request.fields['neutered'] = doginfo.neutered.toString();
     request.fields['age'] = doginfo.age.toString();
     request.fields['size'] = doginfo.size.toString();
-    request.fields['weight'] = doginfo.weight.toString();
     request.fields['breed'] = doginfo.breed;
     request.fields['description'] = doginfo.description!;
     if (doginfo.dogImage != null) {

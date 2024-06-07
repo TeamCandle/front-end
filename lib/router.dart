@@ -229,7 +229,7 @@ final GoRouter NewRoot = GoRouter(
               builder: (context, state) => MyProfilePage(),
               routes: [
                 GoRoute(
-                  path: 'my_dog_profile',
+                  path: 'dog_profile',
                   builder: (context, state) {
                     final Map<String, dynamic>? data =
                         state.extra as Map<String, dynamic>?;
@@ -239,7 +239,12 @@ final GoRouter NewRoot = GoRouter(
                   routes: [
                     GoRoute(
                       path: 'modify',
-                      builder: (context, state) => ErrorPage(err: 'empty'),
+                      builder: (context, state) {
+                        final Map<String, dynamic>? data =
+                            state.extra as Map<String, dynamic>?;
+                        final DogInfo dogInfo = data?['dogInfo'];
+                        return DogModifyPage(dogInfo: dogInfo);
+                      },
                     ),
                   ],
                 ),

@@ -17,6 +17,7 @@ class UserInfo extends ChangeNotifier {
   String? _name;
   String? _gender;
   int? _age;
+  double? _rating;
   String? _description;
   Uint8List? _image;
   List<Map<String, dynamic>> ownDogList = [];
@@ -27,6 +28,7 @@ class UserInfo extends ChangeNotifier {
   String get name => _name!;
   String get gender => _gender!;
   int get age => _age!;
+  double get rating => _rating!;
   String? get description => _description;
   Uint8List? get image => _image;
 
@@ -66,6 +68,10 @@ class UserInfo extends ChangeNotifier {
     _gender = data['gender'];
     _age = data['age'];
     _description = data['description'];
+    _rating = data['rating'];
+    if (_rating == -1) {
+      _rating = 0;
+    }
     if (data['image'] != null) {
       List<int> bytes = base64Decode(data['image']);
       _image = Uint8List.fromList(bytes);
@@ -239,7 +245,6 @@ class DogInfo {
   bool neutered;
   int age;
   String size;
-  double weight;
   String breed;
   String? description;
   Uint8List? dogImage;
@@ -253,7 +258,6 @@ class DogInfo {
     this.neutered,
     this.age,
     this.size,
-    this.weight,
     this.breed,
     this.description,
   );

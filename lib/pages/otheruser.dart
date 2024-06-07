@@ -104,6 +104,7 @@ class UserProfilePage extends StatelessWidget {
                                 ? Image.asset('assets/images/profile_test.png')
                                 : Image.memory(dog['dogImage']),
                             title: Text(dog["name"]),
+                            subtitle: Text(dog['breed']),
                             trailing: ElevatedButton(
                               onPressed: () {
                                 context.push(
