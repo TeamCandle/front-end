@@ -183,16 +183,20 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
     }
 
     void pickImageFromGallery() async {
+      XFile? tempPickedFile;
       try {
-        pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
-        if (pickedFile == null) {
+        tempPickedFile =
+            await _imagePicker.pickImage(source: ImageSource.gallery);
+        if (tempPickedFile == null) {
           return;
         }
       } catch (e) {
         debugPrint("[!!!] Error picking image: $e");
         return;
       }
-      //setState(() {});
+      setState(() {
+        pickedFile = tempPickedFile;
+      });
     }
 
     Future<bool> modifyMyDescription() async {
@@ -219,7 +223,7 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
           String age = context.read<UserInfo>().age.toString();
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -247,20 +251,22 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
                     style: const TextStyle(fontSize: 20.0),
                   ),
                 ),
-                SizedBox(
-                  height: width / 4,
-                  child: TextField(
-                    controller: _descriptionCtrl,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 20,
-                      height: 1.2,
-                    ),
-                    maxLines: 4,
-                    minLines: 4,
-                    decoration: const InputDecoration(
-                      hintText: '자기소개를 입력해주세요',
-                      border: OutlineInputBorder(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+                  child: customTextField(
+                    child: TextField(
+                      controller: _descriptionCtrl,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        height: 1.2,
+                      ),
+                      maxLines: 4,
+                      minLines: 4,
+                      decoration: const InputDecoration(
+                        hintText: '자기소개를 입력해주세요',
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
                 ),

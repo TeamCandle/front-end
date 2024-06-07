@@ -375,8 +375,11 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: ElevatedButton(
-              onPressed: () async {
-                await PaymentApi.pay(widget.matchingId);
+              onPressed: () {
+                context.push(
+                  RouterPath.paymentProcess,
+                  extra: {'matchId': widget.matchingId},
+                );
               },
               child: const Text('결제하기'),
             ),
@@ -408,7 +411,22 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: ElevatedButton(
-              onPressed: () async {},
+              onPressed: () async {
+                await MatchingLogApi.complete(widget.matchingId).then(
+                  (bool result) {
+                    if (result == true) {
+                      _showResult(
+                        context,
+                        result,
+                        '매칭 완료',
+                        '매칭을 완료하였습니다. 리뷰를 작성하실 수 있어요',
+                      );
+                    } else {
+                      _showResult(context, result, 'fail', 'err');
+                    }
+                  },
+                );
+              },
               child: const Text('완료하기'),
             ),
           ),
@@ -421,7 +439,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     } else if (status == Status.completed) {
       return ElevatedButton(
         onPressed: () async {
-          context.go(
+          context.push(
             RouterPath.matchLogRegistReview,
             extra: {'matchId': widget.matchingId},
           );
@@ -468,5 +486,87 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
             ],
           );
         });
+  }
+}
+
+class PaymentProcessPage extends StatelessWidget {
+  final int matchId;
+  const PaymentProcessPage({super.key, required this.matchId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: FutureBuilder(
+        future: PaymentApi.pay(matchId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError || snapshot.data == false) {
+            return const Center(child: Text('error!'));
+          }
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('결제 진행 중...', style: TextStyle(fontSize: 30)),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    context.push(
+                      RouterPath.paymentResult,
+                      extra: {'matchId': matchId},
+                    );
+                  },
+                  child: const Text('결제 완료 후 버튼을 눌러주세요'),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class PaymentResultPage extends StatelessWidget {
+  final int matchId;
+  const PaymentResultPage({super.key, required this.matchId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: FutureBuilder(
+        future: PaymentApi.approve(matchId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError || snapshot.data == false) {
+            return const Center(child: Text('something wrong'));
+          }
+
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('임금 지불 완료!', style: TextStyle(fontSize: 30)),
+                Text(
+                  '해당 유저에게 솔직한 리뷰를 써 주세요!',
+                  style: TextStyle(fontSize: 20),
+                ),
+                ElevatedButton(
+                  onPressed: () => context.go(RouterPath.home),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+                    child: Text('홈으로'),
+                  ),
+                )
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }

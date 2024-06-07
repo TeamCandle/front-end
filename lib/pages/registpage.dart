@@ -71,13 +71,13 @@ class MyRequirementListPage extends StatelessWidget {
                   subtitle: Text(time),
                   trailing: Text(status),
                   onTap: () {
-                    if (status == '취소됨') {
-                      return;
-                    } else {
+                    if (status == '모집중') {
                       context.go(
                         RouterPath.myRequirementDetail,
                         extra: {'detailId': detailId},
                       );
+                    } else {
+                      return;
                     }
                   },
                 );
@@ -90,7 +90,10 @@ class MyRequirementListPage extends StatelessWidget {
         onPressed: () {
           context.go(RouterPath.myRequirementSelect);
         },
-        child: const Text("+"),
+        child: const Text(
+          '+',
+          style: TextStyle(fontSize: 30),
+        ),
       ),
     );
   }
@@ -101,15 +104,72 @@ class MyRequirementDetailPage extends StatelessWidget {
   final int requirementId;
   const MyRequirementDetailPage({super.key, required this.requirementId});
 
+  Future<void> goBack(BuildContext context) async {
+    context.read<InfiniteList>().releaseList();
+    await context
+        .read<InfiniteList>()
+        .updateMyRequestList()
+        .then((_) => context.go(RouterPath.myRequirement));
+  }
+
+  Future<dynamic> checkCancel(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('등록 취소'),
+            content: const Text('등록된 요구를 취소하시겠습니까?'),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('아니오'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await RequirementApi.cancelMyRequirement(requirementId)
+                      .then((bool result) {
+                    if (result == true) {
+                      return goBack(context);
+                    }
+                  });
+                },
+                child: const Text("네"),
+              )
+            ],
+          );
+        });
+  }
+
+  Future<dynamic> checkAccept(BuildContext context, int userId) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('신청자 선택'),
+            content: const Text('이 신청자를 선택하시겠습니까?'),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('아니오'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await ApplicationApi.accept(requirementId, userId)
+                      .then((bool result) {
+                    if (result == true) {
+                      return goBack(context);
+                    }
+                  });
+                },
+                child: const Text("네"),
+              )
+            ],
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
-    Future<void> goBack() async {
-      context.read<InfiniteList>().releaseList();
-      await context.read<InfiniteList>().updateMyRequestList().then((_) {
-        context.go(RouterPath.myRequirement);
-      });
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text('신청자 확인')),
       body: FutureBuilder(
@@ -165,14 +225,13 @@ class MyRequirementDetailPage extends StatelessWidget {
                       style: TextStyle(fontSize: 20),
                     ),
                   ),
-                  Expanded(child: buildApplicantsList(applicants)),
+                  Expanded(
+                    child: applicants.isEmpty
+                        ? const Center(child: Text('현재 신청자가 없습니다'))
+                        : buildApplicantsList(applicants),
+                  ),
                   ElevatedButton(
-                    onPressed: () async {
-                      bool result = await RequirementApi.cancelMyRequirement(
-                          requirementId);
-                      if (result == false) return;
-                      await goBack();
-                    },
+                    onPressed: () => checkCancel(context),
                     child: const Text('요청 등록 취소'),
                   ),
                 ],
@@ -188,10 +247,6 @@ class MyRequirementDetailPage extends StatelessWidget {
     return ListView.builder(
         itemCount: applicants.length,
         itemBuilder: (BuildContext context, int index) {
-          if (applicants.isEmpty) {
-            return const Center(child: Text('현재 신청자가 없습니다'));
-          }
-
           dynamic image = applicants[index]['image'] == null
               ? const AssetImage('assets/images/profile_test.png')
               : MemoryImage(
@@ -213,19 +268,10 @@ class MyRequirementDetailPage extends StatelessWidget {
                 return const Icon(Icons.star, color: Colors.amber);
               },
               itemCount: 5,
-              itemSize: 30.0,
+              itemSize: 20,
               direction: Axis.horizontal,
             ),
-            onTap: () async {
-              await ApplicationApi.accept(
-                requirementId,
-                applicants[index]['id'],
-              ).then((bool result) {
-                if (result == true) {
-                  context.go(RouterPath.myRequirement);
-                }
-              });
-            },
+            onTap: () async => checkAccept(context, applicants[index]['id']),
           );
         });
   }

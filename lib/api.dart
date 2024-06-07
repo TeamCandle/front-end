@@ -692,7 +692,7 @@ class RequirementApi {
   static Future<bool> cancelMyRequirement(int requirementId) async {
     var url = Uri.parse('${ServerUrl.requirementUrl}/cancel?id=$requirementId');
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
-    http.Response? response = await HttpMethod.tryPut(
+    http.Response? response = await HttpMethod.tryPatchWithoutBody(
       title: "my requirement",
       url: url,
       header: header,
@@ -1040,50 +1040,53 @@ class PaymentApi {
   static final AuthApi _auth = AuthApi();
 
   //결제 요청
-  static Future<String?> pay(int matchId) async {
-    var url = Uri.parse('http://13.209.220.187/payment/ready?matchId=$matchId');
+  static Future<bool> pay(int matchId) async {
+    var url = Uri.parse('${ServerUrl.paymentUrl}/ready?matchId=$matchId');
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
 
     debugPrint('!!! payment start');
     debugPrint('!!! url : $url');
     debugPrint('!!! header : $header');
+
+    // 1. 결제 url 받아오기
+    String? paymentUrl;
     try {
       http.Response? response = await http.get(url, headers: header);
       debugPrint('!!! response : ${response.statusCode}');
       debugPrint('!!! response : ${response.body}');
-
-      String? result = response.body;
-      Uri redirectUrl = Uri.parse(result);
-      if (await canLaunchUrl(redirectUrl) == false) {
-        debugPrint('!!! can not launch url');
-        return null;
-      }
-
-      debugPrint('!!! url launched');
-      await launchUrl(redirectUrl); //반환값 가져올 수 있는지
-      //만약 반환값을 가져올 수 있다면 서버에 한번 더 보내기
+      paymentUrl = response.body;
     } catch (e) {
       debugPrint('!!! payment error : $e');
-      return null;
+      return false;
     }
+
+    //2. 해당 url로 redirect
+    Uri redirectUrl = Uri.parse(paymentUrl);
+    if (await canLaunchUrl(redirectUrl) == false) {
+      debugPrint('!!! can not launch url');
+      return false;
+    }
+    debugPrint('!!! url launched');
+    return await launchUrl(redirectUrl);
   }
-  // final extractedUrl = _extractRedirectUrl(result);
 
-  // if (extractedUrl == null) {
-  //   debugPrint('!!! Redirect URL not found');
-  //   return null;
-  // }
-  // String str = extractedUrl.replaceAll('intent://', 'kakaotalk://');
-  // debugPrint('!!!!!! ---------- $str');
+  //결제 승인
+  static Future<bool> approve(int matchId) async {
+    var url = Uri.parse(
+        '${ServerUrl.paymentUrl}/approve/alternative?matchId=$matchId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
 
-  static String? _extractRedirectUrl(String html) {
-    final regex = RegExp(r'''intent://[^\s'"]+''');
-
-    final match = regex.firstMatch(html);
-    if (match != null) {
-      return match.group(0);
+    http.Response? response = await HttpMethod.tryPatchWithoutBody(
+      title: "approve payment",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return false;
     }
-    return null;
+    debugPrint('!!! payment approved');
+    return true;
   }
 
   //결제 취소 = 매칭이 NOT_COMPLETED 상태일 때 취소 동작

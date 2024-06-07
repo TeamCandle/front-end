@@ -44,7 +44,7 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("current matching page")),
+      appBar: AppBar(title: const Text("현재 진행 중인 매칭")),
       body: FutureBuilder(
         future: initDetailPage(),
         builder: buildDetail,
@@ -318,7 +318,22 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: ElevatedButton(
-              onPressed: () async {},
+              onPressed: () async {
+                await MatchingLogApi.complete(widget.matchId).then(
+                  (bool result) {
+                    if (result == true) {
+                      _showResult(
+                        context,
+                        result,
+                        '매칭 완료',
+                        '매칭을 완료하였습니다. 리뷰를 작성하실 수 있어요',
+                      );
+                    } else {
+                      _showResult(context, result, 'fail', 'err');
+                    }
+                  },
+                );
+              },
               child: const Text('완료하기'),
             ),
           ),

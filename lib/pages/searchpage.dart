@@ -37,7 +37,7 @@ class _AllRequestPageState extends State<AllRequestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("all request")),
+      appBar: AppBar(title: const Text("모든 요청사항")),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
         child: Column(
@@ -73,15 +73,14 @@ class _AllRequestPageState extends State<AllRequestPage> {
         ),
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 6, 24, 6),
-        child: Row(children: [
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => context.go(RouterPath.myApplication),
-              child: const Text('my applications'),
-            ),
+        padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
+        child: ElevatedButton(
+          onPressed: () => context.go(RouterPath.myApplication),
+          child: const Padding(
+            padding: EdgeInsets.fromLTRB(48, 0, 48, 0),
+            child: Text('내 신청 현황'),
           ),
-        ]),
+        ),
       ),
       floatingActionButtonLocation:
           FloatingActionButtonLocation.miniCenterDocked,
@@ -222,28 +221,41 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
               double width = constraints.maxWidth;
 
               return customContainer(
-                child: Column(children: [
-                  Expanded(
-                    child: Row(children: [
-                      Expanded(
-                        child: Center(
-                          child: CircleAvatar(
-                            maxRadius: (height / 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      width: width,
+                      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            radius: (width / 10),
                             backgroundImage: image,
                           ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(children: [
-                          Text('종류 : $careType'),
-                          Text('보상 : $reward'),
-                          Text('현재 $status'),
-                        ]),
-                      ),
-                      Expanded(
-                        child: Column(children: [
-                          Expanded(
-                            child: Center(
+                          Column(
+                            children: [
+                              Text(careType),
+                              Container(
+                                margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                                height: 1,
+                                width: (width - 32) / 3,
+                                color: Colors.grey[300],
+                              ),
+                              Text('$reward 원'),
+                              Container(
+                                margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                                height: 1,
+                                width: (width - 32) / 3,
+                                color: Colors.grey[300],
+                              ),
+                              Text('현재 $status'),
+                            ],
+                          ),
+                          Column(children: [
+                            Center(
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.all(0),
@@ -260,9 +272,7 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
                                 ),
                               ),
                             ),
-                          ),
-                          Expanded(
-                            child: Center(
+                            Center(
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.all(0),
@@ -279,21 +289,19 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
                                 ),
                               ),
                             ),
-                          ),
-                        ]),
+                          ]),
+                        ],
                       ),
-                    ]),
-                  ),
-                  Expanded(
-                    child: Center(
+                    ),
+                    Center(
                       child: customCard(
                         width: width,
                         height: (height / 2.5),
                         child: Text(description),
                       ),
                     ),
-                  ),
-                ]),
+                  ],
+                ),
               );
             },
           ),
@@ -301,13 +309,14 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
           child: ElevatedButton(
-              onPressed: () async {
-                await ApplicationApi.apply(widget.requirementId)
-                    .then((bool result) {
-                  _showResult(context, result);
-                });
-              },
-              child: const Text('apply')),
+            onPressed: () async {
+              await ApplicationApi.apply(widget.requirementId)
+                  .then((bool result) {
+                _showResult(context, result);
+              });
+            },
+            child: const Text('신청하기'),
+          ),
         ),
       ],
     );
@@ -361,7 +370,7 @@ class MyApplicationListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text("my application")),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(16),
         child: FutureBuilder(
           future: context.read<InfiniteList>().updateMyApplicationList(),
           builder: buildMyApplicationList,
@@ -385,13 +394,11 @@ class MyApplicationListPage extends StatelessWidget {
             context.read<InfiniteList>().updateMyApplicationList();
           }
 
-          var image = context.watch<InfiniteList>().myApplicationList[index]
-                      ['image'] ==
-                  null
-              ? Image.asset('assets/images/empty_image.png')
-              : Image.memory(base64Decode(context
-                  .read<InfiniteList>()
-                  .myApplicationList[index]['image']));
+          var imageData =
+              context.watch<InfiniteList>().myApplicationList[index]['image'];
+          dynamic image = imageData == null
+              ? const AssetImage('assets/images/empty_image.png')
+              : MemoryImage(base64Decode(imageData));
           int id = context.watch<InfiniteList>().myApplicationList[index]['id'];
           String careType = context
               .watch<InfiniteList>()
@@ -404,7 +411,10 @@ class MyApplicationListPage extends StatelessWidget {
               context.watch<InfiniteList>().myApplicationList[index]['status'];
 
           return customListTile(
-            leading: image,
+            leading: CircleAvatar(
+              radius: 30,
+              backgroundImage: image,
+            ),
             title: Text('$breed\t$careType'),
             subtitle: Text(time),
             trailing: Text(status),
@@ -453,7 +463,7 @@ class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('my application detail')),
+      appBar: AppBar(title: Text('상세 정보')),
       body: FutureBuilder(
         future: initRequirementDetailPage(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -498,64 +508,86 @@ class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
                     double height = constraints.maxHeight;
                     double width = constraints.maxWidth;
 
-                    return Card(
+                    return customContainer(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: SizedBox(
-                                  height: height / 2,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: CircleAvatar(
-                                      maxRadius: (height / 4),
-                                      backgroundImage: image,
+                          Container(
+                            width: width,
+                            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                CircleAvatar(
+                                  radius: (width / 10),
+                                  backgroundImage: image,
+                                ),
+                                Column(
+                                  children: [
+                                    Text(careType),
+                                    Container(
+                                      margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                                      height: 1,
+                                      width: (width - 32) / 3,
+                                      color: Colors.grey[300],
+                                    ),
+                                    Text('$reward 원'),
+                                    Container(
+                                      margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                                      height: 1,
+                                      width: (width - 32) / 3,
+                                      color: Colors.grey[300],
+                                    ),
+                                    Text('현재 $status'),
+                                  ],
+                                ),
+                                Column(children: [
+                                  Center(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.all(0),
+                                      ),
+                                      onPressed: () {
+                                        context.push(
+                                          RouterPath.userProfile,
+                                          extra: {'userId': userId},
+                                        );
+                                      },
+                                      child: const Padding(
+                                        padding:
+                                            EdgeInsets.fromLTRB(25, 0, 25, 0),
+                                        child: Text('보호자'),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                child: Column(children: [
-                                  Text('종류 : $careType'),
-                                  Text('보상 : $reward'),
-                                  Text('현재 $status'),
-                                ]),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                child: Column(children: [
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      context.push(
-                                        RouterPath.userProfile,
-                                        extra: {'userId': userId},
-                                      );
-                                    },
-                                    child: Text('owner'),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      context.push(
-                                          '${RouterPath.dogProfile}?dogId=$dogId&detailId=${widget.applicationId}');
-                                    },
-                                    child: Text('dog'),
+                                  Center(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.all(0),
+                                      ),
+                                      onPressed: () {
+                                        context.push(
+                                          RouterPath.dogProfile,
+                                          extra: {'dogId': dogId},
+                                        );
+                                      },
+                                      child: const Padding(
+                                        padding:
+                                            EdgeInsets.fromLTRB(25, 0, 25, 0),
+                                        child: Text('강아지'),
+                                      ),
+                                    ),
                                   ),
                                 ]),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                          SizedBox(
-                            width: width,
-                            height: (height / 2.5),
-                            child: Card.outlined(
-                              elevation: 0,
-                              child: Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: Text(description),
-                              ),
+                          Center(
+                            child: customCard(
+                              width: width,
+                              height: (height / 2.5),
+                              child: Text(description),
                             ),
                           ),
                         ],
@@ -564,12 +596,15 @@ class _MyApplicationDetailPageState extends State<MyApplicationDetailPage> {
                   },
                 ),
               ),
-              ElevatedButton(
-                  onPressed: () async {
-                    await ApplicationApi.cancel(applicationId)
-                        .then((bool result) => _showResult(context, result));
-                  },
-                  child: Text('cancel')),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                child: ElevatedButton(
+                    onPressed: () async {
+                      await ApplicationApi.cancel(applicationId)
+                          .then((bool result) => _showResult(context, result));
+                    },
+                    child: const Text('신청 취소')),
+              ),
             ],
           );
         },

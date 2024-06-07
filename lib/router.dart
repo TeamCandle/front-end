@@ -47,6 +47,8 @@ class RouterPath {
   static const String matchLog = '$home/match_log';
   static const String matchLogDetail = '$matchLog/detail';
   static const String matchLogRegistReview = '$matchLogDetail/regist_review';
+  static const String paymentProcess = '$matchLogDetail/payment_process';
+  static const String paymentResult = '$paymentProcess/payment_result';
 
   static const String myProfile = '$home/my_profile';
   static const String myDogProfile = '$myProfile/dog_profile';
@@ -76,7 +78,7 @@ final GoRouter NewRoot = GoRouter(
         //     )
         //   ],
         // ),
-        //will pushed page
+        //must be pushed page
         GoRoute(
           path: 'user_profile',
           builder: (context, state) {
@@ -218,6 +220,26 @@ final GoRouter NewRoot = GoRouter(
                         final int matchId = data?['matchId'];
                         return ReviewRegistFormPage(matchId: matchId);
                       },
+                    ),
+                    GoRoute(
+                      path: 'payment_process',
+                      builder: (context, state) {
+                        final Map<String, dynamic>? data =
+                            state.extra as Map<String, dynamic>?;
+                        final int matchId = data?['matchId'];
+                        return PaymentProcessPage(matchId: matchId);
+                      },
+                      routes: [
+                        GoRoute(
+                          path: 'payment_result',
+                          builder: (context, state) {
+                            final Map<String, dynamic>? data =
+                                state.extra as Map<String, dynamic>?;
+                            final int matchId = data?['matchId'];
+                            return PaymentResultPage(matchId: matchId);
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
