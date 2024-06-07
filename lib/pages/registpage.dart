@@ -2,10 +2,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_doguber_frontend/api.dart';
 import 'package:flutter_doguber_frontend/customwidgets.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -26,7 +29,7 @@ class MyRequirementListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("my request list")),
+      appBar: AppBar(title: const Text("내 요청 목록")),
       body: FutureBuilder(
         future: context.read<InfiniteList>().updateMyRequestList(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -36,58 +39,50 @@ class MyRequirementListPage extends StatelessWidget {
             return const Center(child: Text('error!'));
           }
 
-          return ListView.builder(
-            itemCount: context.watch<InfiniteList>().myRequestList.length,
-            itemBuilder: (BuildContext context, int index) {
-              //이미지, 견종, 날짜, 케어타입, 등록상태
-              return ListTile(
-                leading: CircleAvatar(
-                  radius: 30.0,
-                  child: context.watch<InfiniteList>().myRequestList[index]
-                              ['image'] ==
-                          null
-                      ? Image.asset('assets/images/profile_test.png')
-                      : Image.memory(base64Decode(context
-                          .watch<InfiniteList>()
-                          .myRequestList[index]['image'])),
-                ),
-                title: Row(
-                  children: [
-                    Text(
-                      context.watch<InfiniteList>().myRequestList[index]
-                          ['breed'],
-                    ),
-                    const Spacer(),
-                    Text(
-                      context.watch<InfiniteList>().myRequestList[index]
-                          ['careType'],
-                    ),
-                  ],
-                ),
-                subtitle: Text(
-                  context.watch<InfiniteList>().myRequestList[index]['time'],
-                ),
-                trailing: Text(
-                  context.watch<InfiniteList>().myRequestList[index]['status'],
-                ),
-                onTap: () {
-                  if (context.read<InfiniteList>().myRequestList[index]
-                          ['status'] ==
-                      '취소됨') {
-                    return;
-                  } else {
-                    context.go(
-                      RouterPath.myRequirementDetail,
-                      extra: {
-                        'detailId': context
-                            .read<InfiniteList>()
-                            .myRequestList[index]['id'],
-                      },
-                    );
-                  }
-                },
-              );
-            },
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ListView.builder(
+              itemCount: context.watch<InfiniteList>().myRequestList.length,
+              itemBuilder: (BuildContext context, int index) {
+                var imageSource =
+                    context.watch<InfiniteList>().myRequestList[index]['image'];
+                dynamic image = imageSource == null
+                    ? const AssetImage('assets/images/empty_image.png')
+                    : MemoryImage(base64Decode(imageSource));
+                int detailId =
+                    context.read<InfiniteList>().myRequestList[index]['id'];
+                String breed =
+                    context.watch<InfiniteList>().myRequestList[index]['breed'];
+                String careType = context
+                    .watch<InfiniteList>()
+                    .myRequestList[index]['careType'];
+                String time =
+                    context.watch<InfiniteList>().myRequestList[index]['time'];
+                String status = context
+                    .watch<InfiniteList>()
+                    .myRequestList[index]['status'];
+
+                return customListTile(
+                  leading: CircleAvatar(
+                    radius: 30,
+                    backgroundImage: image,
+                  ),
+                  title: Text('$breed\t$careType'),
+                  subtitle: Text(time),
+                  trailing: Text(status),
+                  onTap: () {
+                    if (status == '취소됨') {
+                      return;
+                    } else {
+                      context.go(
+                        RouterPath.myRequirementDetail,
+                        extra: {'detailId': detailId},
+                      );
+                    }
+                  },
+                );
+              },
+            ),
           );
         },
       ),
@@ -116,12 +111,12 @@ class MyRequirementDetailPage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('my requirement')),
+      appBar: AppBar(title: const Text('신청자 확인')),
       body: FutureBuilder(
-        future:
-            RequirementApi.getMyRequirementDetail(requirementId: requirementId),
-        builder:
-            (BuildContext context, AsyncSnapshot<http.Response?> snapshot) {
+        future: RequirementApi.getMyRequirementDetail(
+          requirementId: requirementId,
+        ),
+        builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const CircularProgressIndicator();
           } else if (snapshot.hasError) {
@@ -129,73 +124,110 @@ class MyRequirementDetailPage extends StatelessWidget {
           } else if (!snapshot.hasData || snapshot.data == null) {
             return const Center(child: Text('No data available'));
           }
+
           var data = jsonDecode(snapshot.data!.body);
           Map<String, dynamic> detail = data['details'];
           List<dynamic> applicants = data['applications'];
+          dynamic image = detail['dogImage'] == null
+              ? const AssetImage('assets/images/profile_test.png')
+              : MemoryImage(base64Decode(detail['dogImage']));
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                flex: 1,
-                child: customCard(
-                  child: Row(children: [
-                    CircleAvatar(
-                      radius: 30.0,
-                      child: detail['dogImage'] == null
-                          ? Image.asset('assets/images/profile_test.png')
-                          : Image.memory(base64Decode(detail['dogImage'])),
+          return LayoutBuilder(builder: (context, constraints) {
+            double width = constraints.maxWidth;
+
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  customListTile(
+                    leading: CircleAvatar(
+                      radius: 30,
+                      backgroundImage: image,
                     ),
-                    Text('${detail['careType']}'),
-                    Text('${detail['description']}'),
-                    Text('${detail['status']}'),
-                    Text(detail['reward'].toString()),
-                    Text('신청자 리스트 클릭하고 화면 넘어가지면 수락된거임'),
-                  ]),
-                ),
+                    title: Text('${detail['careType']}'),
+                    subtitle: Text('${detail['reward']} 원'),
+                    trailing: Text(
+                      '${detail['status']}',
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                    onTap: null,
+                  ),
+                  customContainer(
+                    height: width / 4,
+                    child: Text('${detail['description']}'),
+                  ),
+                  const Divider(color: Colors.grey),
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      '신청자 목록',
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ),
+                  Expanded(child: buildApplicantsList(applicants)),
+                  ElevatedButton(
+                    onPressed: () async {
+                      bool result = await RequirementApi.cancelMyRequirement(
+                          requirementId);
+                      if (result == false) return;
+                      await goBack();
+                    },
+                    child: const Text('요청 등록 취소'),
+                  ),
+                ],
               ),
-              Expanded(
-                flex: 4,
-                child: ListView.builder(
-                    itemCount: applicants.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return ListTile(
-                        leading: Expanded(
-                          child: applicants[index]['image'] == null
-                              ? Image.asset('assets/images/profile_test.png')
-                              : Image.memory(Uint8List.fromList(
-                                  utf8.encode(applicants[index]['image']))),
-                        ),
-                        title: Text(applicants[index]['name']),
-                        subtitle: Text(applicants[index]['gender']),
-                        trailing: Text('${applicants[index]['rating']}'),
-                        onTap: () async {
-                          await ApplicationApi.accept(
-                            requirementId,
-                            applicants[index]['id'],
-                          ).then((bool result) {
-                            if (result == true) {
-                              context.go(RouterPath.myRequirement);
-                            }
-                          });
-                        },
-                      );
-                    }),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  bool result =
-                      await RequirementApi.cancelMyRequirement(requirementId);
-                  if (result == false) return;
-                  await goBack();
-                },
-                child: const Text('cancel'),
-              ),
-            ],
-          );
+            );
+          });
         },
       ),
     );
+  }
+
+  ListView buildApplicantsList(List<dynamic> applicants) {
+    return ListView.builder(
+        itemCount: applicants.length,
+        itemBuilder: (BuildContext context, int index) {
+          if (applicants.isEmpty) {
+            return const Center(child: Text('현재 신청자가 없습니다'));
+          }
+
+          dynamic image = applicants[index]['image'] == null
+              ? const AssetImage('assets/images/profile_test.png')
+              : MemoryImage(
+                  Uint8List.fromList(
+                    utf8.encode(applicants[index]['image']),
+                  ),
+                );
+
+          return customListTile(
+            leading: CircleAvatar(
+              radius: 30,
+              backgroundImage: image,
+            ),
+            title: Text(applicants[index]['name']),
+            subtitle: Text(applicants[index]['gender']),
+            trailing: RatingBarIndicator(
+              rating: applicants[index]['rating'],
+              itemBuilder: (context, index) {
+                return const Icon(Icons.star, color: Colors.amber);
+              },
+              itemCount: 5,
+              itemSize: 30.0,
+              direction: Axis.horizontal,
+            ),
+            onTap: () async {
+              await ApplicationApi.accept(
+                requirementId,
+                applicants[index]['id'],
+              ).then((bool result) {
+                if (result == true) {
+                  context.go(RouterPath.myRequirement);
+                }
+              });
+            },
+          );
+        });
   }
 }
 
@@ -206,60 +238,75 @@ class SelectDogInRequirementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('select dog'),
-      ),
+      appBar: AppBar(title: const Text('선택 화면')),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Center(
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(
                 child: Text(
-              '어느 아이를 부탁하시겠어요?',
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
+                  '어느 아이를 부탁하시겠어요?',
+                  style: TextStyle(fontSize: 30),
+                ),
               ),
-            )),
-            context.watch<UserInfo>().ownDogList.isEmpty
-                ? const Center(
-                    child:
-                        Text('        키우는 반려견이 없으신가요?\n가족같은 나의 반려견을 등록해보세요 ^^'),
-                  )
-                : Expanded(
-                    child: ListView.builder(
-                      itemCount: context.watch<UserInfo>().ownDogList.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return ListTile(
-                          leading: context.watch<UserInfo>().ownDogList[index]
-                                      ['dogImage'] ==
-                                  null
-                              ? Image.asset('assets/images/profile_test.png')
-                              : Image.memory(context
-                                  .watch<UserInfo>()
-                                  .ownDogList[index]['dogImage']),
-                          title: Text(context
-                              .watch<UserInfo>()
-                              .ownDogList[index]["name"]),
-                          trailing: ElevatedButton(
-                            onPressed: () {
-                              context.go(
-                                RouterPath.myRequirementForm,
-                                extra: {
-                                  'dogId': context
-                                      .read<UserInfo>()
-                                      .ownDogList[index]["id"],
-                                },
-                              );
-                            },
-                            child: const Text('select'),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: ListView.builder(
+                  itemCount: context.watch<UserInfo>().ownDogList.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    if (context.watch<UserInfo>().ownDogList.isEmpty) {
+                      return const Center(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('반려동물이 없으신가요?'),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('가족같은 나의 반려견을 등록해보세요'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    dynamic image = context.watch<UserInfo>().ownDogList[index]
+                                ['dogImage'] ==
+                            null
+                        ? const AssetImage('assets/images/profile_test.png')
+                        : MemoryImage(context
+                            .watch<UserInfo>()
+                            .ownDogList[index]['dogImage']);
+                    String name =
+                        context.watch<UserInfo>().ownDogList[index]["name"];
+                    String breed =
+                        context.watch<UserInfo>().ownDogList[index]["breed"];
+                    int dogId =
+                        context.read<UserInfo>().ownDogList[index]["id"];
+
+                    return customListTile(
+                      leading: CircleAvatar(radius: 30, backgroundImage: image),
+                      title: Text(name),
+                      subtitle: Text(breed),
+                      trailing: ElevatedButton(
+                        onPressed: () {
+                          context.go(
+                            RouterPath.myRequirementForm,
+                            extra: {'dogId': dogId},
+                          );
+                        },
+                        child: const Icon(Icons.arrow_forward),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -318,69 +365,126 @@ class _RequestRegistrationFormPageState
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("request registration form page")),
+      appBar: AppBar(title: const Text("등록 양식")),
       body: SingleChildScrollView(
-        child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ElevatedButton(
-                onPressed: () async => await _selectDate(),
-                child: const Text('select date'),
-              ),
-              ElevatedButton(
-                onPressed: () async => await _selectTime(),
-                child: const Text('select start time'),
-              ),
-              TextField(
-                controller: timeController,
-                decoration: const InputDecoration(labelText: 'how long?'),
-                keyboardType: TextInputType.number,
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: ElevatedButton(
+                      onPressed: () async => await _selectDate(),
+                      child: const Text('날짜 선택'),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: TextField(
+                        readOnly: true,
+                        controller: TextEditingController(
+                          text: _selectedDate == null
+                              ? ''
+                              : _selectedDate!.toString().split(' ').first,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
               ),
               Row(
                 children: [
-                  const Spacer(),
-                  const Text('요청사항'),
-                  const Spacer(),
-                  DropdownButton<String>(
-                    value: _selectedCare,
-                    onChanged: (String? value) {
-                      setState(() => _selectedCare = value!);
-                    },
-                    items: const [
-                      DropdownMenuItem<String>(
-                        value: CareType.boarding,
-                        child: Text(CareType.boarding),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: CareType.etc,
-                        child: Text(CareType.etc),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: CareType.grooming,
-                        child: Text(CareType.grooming),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: CareType.playtime,
-                        child: Text(CareType.playtime),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: CareType.walking,
-                        child: Text(CareType.walking),
-                      ),
-                    ],
+                  Expanded(
+                    flex: 1,
+                    child: ElevatedButton(
+                      onPressed: () async => await _selectTime(),
+                      child: const Text('시작 시간'),
+                    ),
                   ),
-                  const Spacer(),
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: TextField(
+                        readOnly: true,
+                        controller: TextEditingController(
+                          text: _selectedTime == null
+                              ? ''
+                              : _selectedTime!.format(context),
+                        ),
+                      ),
+                    ),
+                  )
                 ],
               ),
               TextField(
-                controller: rewardController,
-                decoration: const InputDecoration(labelText: '보상'),
+                controller: timeController,
+                decoration: const InputDecoration(labelText: '얼마동안 돌봐드릴까요?'),
                 keyboardType: TextInputType.number,
               ),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: '설명'),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                child: Row(
+                  children: [
+                    const Text('요청사항'),
+                    const Spacer(),
+                    DropdownButton<String>(
+                      value: _selectedCare,
+                      onChanged: (String? value) {
+                        setState(() => _selectedCare = value!);
+                      },
+                      items: const [
+                        DropdownMenuItem<String>(
+                          value: CareType.walking,
+                          child: Text('산책'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: CareType.boarding,
+                          child: Text('이동'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: CareType.grooming,
+                          child: Text('미용/단장'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: CareType.playtime,
+                          child: Text('훈련/놀아주기'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: CareType.etc,
+                          child: Text('기타'),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: rewardController,
+                  decoration: const InputDecoration(labelText: '보상'),
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: customTextField(
+                  child: TextField(
+                    controller: descriptionController,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: '설명',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
               ),
               ElevatedButton(
                   onPressed: () async {
@@ -403,7 +507,7 @@ class _RequestRegistrationFormPageState
                       _showResult(context, result);
                     });
                   },
-                  child: const Text('request')),
+                  child: const Text('요청 등록하기')),
             ],
           ),
         ),

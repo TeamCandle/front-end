@@ -121,7 +121,7 @@ class _HomePageState extends State<HomePage> {
             ),
             cunstomHomeMenu(
               onTap: () => context.go(RouterPath.myRequirement),
-              child: const Center(child: Text("regist my request")),
+              child: const Center(child: Text("돌보기 요청")),
             ),
             cunstomHomeMenu(child: const Center(child: Text("premium"))),
             cunstomHomeMenu(child: const Center(child: Text("community"))),

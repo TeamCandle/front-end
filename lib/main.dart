@@ -106,6 +106,7 @@ class _DogUberAppState extends State<DogUberApp> {
           textTheme: GoogleFonts.notoSansKrTextTheme(),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ButtonStyle(
+              elevation: WidgetStatePropertyAll<double?>(4),
               textStyle: WidgetStatePropertyAll<TextStyle>(
                 GoogleFonts.notoSansKr(
                   fontWeight: FontWeight.w600,
