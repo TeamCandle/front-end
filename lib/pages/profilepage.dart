@@ -446,27 +446,246 @@ class DogModifyPage extends StatefulWidget {
 }
 
 class _DogModifyPageState extends State<DogModifyPage> {
-  //TODO: UI랑 같이 만들기
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController ageController = TextEditingController();
+  final TextEditingController breedController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
+  XFile? _dogImage;
+  bool? _isNeutered;
+  String? _isGender;
+  final List<bool> _isSizeSelected = [false, false, false];
+
+  void goBack(BuildContext context) async {
+    await context.read<UserInfo>().updateMyProfile().then((_) {
+      context.go(RouterPath.myProfile);
+    });
+  }
+
+  void pickImage() async {
+    try {
+      XFile? pickedFile =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) {
+        return;
+      }
+      setState(() => _dogImage = pickedFile);
+    } catch (e) {
+      debugPrint("!!! Error picking image: $e");
+      return;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    nameController.text = widget.dogInfo.dogName;
+    ageController.text = widget.dogInfo.age.toString();
+    breedController.text = widget.dogInfo.breed;
+    _isNeutered = widget.dogInfo.neutered;
+    descriptionController.text =
+        widget.dogInfo.description == null ? "" : widget.dogInfo.description!;
+    _isGender = widget.dogInfo.dogGender;
+    switch (widget.dogInfo.size) {
+      case '소형':
+        _isSizeSelected[0] = true;
+        break;
+      case '중형':
+        _isSizeSelected[1] = true;
+        break;
+      case '대형':
+        _isSizeSelected[2] = true;
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            ElevatedButton(
-              onPressed: () async {
-                widget.dogInfo.dogName = 'changed';
-                final ImagePicker _imagePicker = ImagePicker();
-                XFile? file =
-                    await _imagePicker.pickImage(source: ImageSource.gallery);
-                widget.dogInfo.dogImage = await file!.readAsBytes();
-                await DogProfileApi.modifyDogProfile(doginfo: widget.dogInfo);
-              },
-              child: const Text('modify : name to changed'),
+      appBar: AppBar(title: const Text('강아지 정보 수정')),
+      body: LayoutBuilder(builder: (context, constraints) {
+        double width = constraints.maxWidth;
+        Image displayedImage;
+
+        if (_dogImage != null) {
+          displayedImage = Image.file(
+            File(_dogImage!.path),
+            height: width / 2,
+          );
+        } else if (_dogImage == null && widget.dogInfo.dogImage != null) {
+          displayedImage = Image.memory(
+            widget.dogInfo.dogImage!,
+            height: width / 2,
+          );
+        } else {
+          displayedImage = Image.asset(
+            'assets/images/empty_image.png',
+            height: width / 2,
+          );
+        }
+
+        return Container(
+          margin: const EdgeInsets.all(10.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                GestureDetector(
+                  onTap: pickImage,
+                  child: displayedImage,
+                ),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: '이름'),
+                ),
+                Row(
+                  children: [
+                    const Expanded(child: Text('성별')),
+                    Expanded(
+                      flex: 2,
+                      child: ListTile(
+                        title: const Text('남자'),
+                        leading: Radio<String>(
+                          value: 'male',
+                          groupValue: _isGender,
+                          onChanged: (String? value) {
+                            setState(() => _isGender = value!);
+                          },
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: ListTile(
+                        title: const Text('여자'),
+                        leading: Radio<String>(
+                          value: 'female',
+                          groupValue: _isGender,
+                          onChanged: (String? value) {
+                            setState(() => _isGender = value!);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                TextField(
+                  controller: ageController,
+                  decoration: const InputDecoration(labelText: '나이'),
+                  keyboardType: TextInputType.number,
+                ),
+                TextField(
+                  controller: breedController,
+                  decoration: const InputDecoration(labelText: '종'),
+                ),
+                Row(
+                  children: [
+                    const Expanded(child: Text('중성화 여부')),
+                    Expanded(
+                      flex: 2,
+                      child: ListTile(
+                        title: const Text('완료'),
+                        leading: Radio<bool>(
+                          value: true,
+                          groupValue: _isNeutered,
+                          onChanged: (bool? value) {
+                            setState(() => _isNeutered = value!);
+                          },
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: ListTile(
+                        title: const Text('안함'),
+                        leading: Radio<bool>(
+                          value: false,
+                          groupValue: _isNeutered,
+                          onChanged: (bool? value) {
+                            setState(() => _isNeutered = value!);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                LayoutBuilder(builder: (context, constraints) {
+                  return ToggleButtons(
+                    isSelected: _isSizeSelected,
+                    constraints: BoxConstraints.expand(
+                        width: (constraints.maxWidth - 10) / 3),
+                    onPressed: (int index) {
+                      setState(() {
+                        for (int i = 0; i < _isSizeSelected.length; i++) {
+                          if (i == index) {
+                            _isSizeSelected[i] = true;
+                          } else {
+                            _isSizeSelected[i] = false;
+                          }
+                        }
+                      });
+                    },
+                    children: const <Widget>[
+                      Text('소형'),
+                      Text('중형'),
+                      Text('대형'),
+                    ],
+                  );
+                }),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: '설명'),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () async {
+                    Uint8List? imagedata;
+                    if (_dogImage != null) {
+                      imagedata = await _dogImage!.readAsBytes();
+                    }
+                    if (_isGender == null) {
+                      return;
+                    }
+                    if (_isNeutered == null) {
+                      return;
+                    }
+                    String size;
+                    if (_isSizeSelected[0] == true) {
+                      size = DogSize.small;
+                    } else if (_isSizeSelected[1] == true) {
+                      size = DogSize.medium;
+                    } else if (_isSizeSelected[2] == true) {
+                      size = DogSize.large;
+                    } else {
+                      return;
+                    }
+                    DogInfo _dogInfo = DogInfo(
+                      widget.dogInfo.dogId,
+                      nameController.text,
+                      _isGender!,
+                      imagedata,
+                      widget.dogInfo.ownerId,
+                      _isNeutered!,
+                      int.parse(ageController.text),
+                      size,
+                      breedController.text,
+                      descriptionController.text,
+                    );
+                    await DogProfileApi.modifyDogProfile(doginfo: _dogInfo)
+                        .then(
+                      (bool result) {
+                        goBack(context);
+                      },
+                    );
+                  },
+                  child: const Text('수정 완료'),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 }
@@ -492,190 +711,204 @@ class _DogRegistrationPageState extends State<DogRegistrationPage> {
   String? _isGender;
   final List<bool> _isSizeSelected = [false, false, false];
 
+  void goBack(BuildContext context) async {
+    await context.read<UserInfo>().updateMyProfile().then((_) {
+      context.go(RouterPath.myProfile);
+    });
+  }
+
+  void pickImage() async {
+    try {
+      XFile? pickedFile =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) {
+        return;
+      }
+      setState(() => _dogImage = pickedFile);
+    } catch (e) {
+      debugPrint("!!! Error picking image: $e");
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    void goBack() async {
-      await context.read<UserInfo>().updateMyProfile().then((_) {
-        context.go(RouterPath.myProfile);
-      });
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text('프로필 등록')),
-      body: Container(
-        margin: const EdgeInsets.all(10.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ElevatedButton(
+      body: LayoutBuilder(builder: (context, constraints) {
+        double width = constraints.maxWidth;
+        var image = _dogImage == null
+            ? Image.asset(
+                'assets/images/empty_image.png',
+                height: width / 2,
+              )
+            : Image.file(
+                File(_dogImage!.path),
+                height: width / 2,
+              );
+
+        return Container(
+          margin: const EdgeInsets.all(10.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                GestureDetector(
+                  onTap: pickImage,
+                  child: image,
+                ),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: '이름'),
+                ),
+                Row(
+                  children: [
+                    const Expanded(child: Text('성별')),
+                    Expanded(
+                      flex: 2,
+                      child: ListTile(
+                        title: const Text('남자'),
+                        leading: Radio<String>(
+                          value: 'male',
+                          groupValue: _isGender,
+                          onChanged: (String? value) {
+                            setState(() => _isGender = value!);
+                          },
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: ListTile(
+                        title: const Text('여자'),
+                        leading: Radio<String>(
+                          value: 'female',
+                          groupValue: _isGender,
+                          onChanged: (String? value) {
+                            setState(() => _isGender = value!);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                TextField(
+                  controller: ageController,
+                  decoration: const InputDecoration(labelText: '나이'),
+                  keyboardType: TextInputType.number,
+                ),
+                TextField(
+                  controller: breedController,
+                  decoration: const InputDecoration(labelText: '종'),
+                ),
+                Row(
+                  children: [
+                    const Expanded(child: Text('중성화 여부')),
+                    Expanded(
+                      flex: 2,
+                      child: ListTile(
+                        title: const Text('완료'),
+                        leading: Radio<bool>(
+                          value: true,
+                          groupValue: _isNeutered,
+                          onChanged: (bool? value) {
+                            setState(() => _isNeutered = value!);
+                          },
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: ListTile(
+                        title: const Text('안함'),
+                        leading: Radio<bool>(
+                          value: false,
+                          groupValue: _isNeutered,
+                          onChanged: (bool? value) {
+                            setState(() => _isNeutered = value!);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                LayoutBuilder(builder: (context, constraints) {
+                  return ToggleButtons(
+                    isSelected: _isSizeSelected,
+                    constraints: BoxConstraints.expand(
+                        width: (constraints.maxWidth - 10) / 3),
+                    onPressed: (int index) {
+                      setState(() {
+                        for (int i = 0; i < _isSizeSelected.length; i++) {
+                          if (i == index) {
+                            _isSizeSelected[i] = true;
+                          } else {
+                            _isSizeSelected[i] = false;
+                          }
+                        }
+                      });
+                    },
+                    children: const <Widget>[
+                      Text('소형'),
+                      Text('중형'),
+                      Text('대형'),
+                    ],
+                  );
+                }),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: '설명'),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16.0),
+                ElevatedButton(
                   onPressed: () async {
-                    try {
-                      XFile? pickedFile = await _imagePicker.pickImage(
-                          source: ImageSource.gallery);
-                      if (pickedFile == null) {
-                        return;
-                      }
-                      _dogImage = pickedFile;
-                    } catch (e) {
-                      // 에러 발생 시 처리
-                      print("Error picking image: $e");
+                    Uint8List? imagedata;
+                    if (_dogImage != null) {
+                      imagedata = await _dogImage!.readAsBytes();
+                    }
+                    if (_isGender == null) {
                       return;
                     }
+                    if (_isNeutered == null) {
+                      return;
+                    }
+                    String size;
+                    if (_isSizeSelected[0] == true) {
+                      size = DogSize.small;
+                    } else if (_isSizeSelected[1] == true) {
+                      size = DogSize.medium;
+                    } else if (_isSizeSelected[2] == true) {
+                      size = DogSize.large;
+                    } else {
+                      return;
+                    }
+                    _dogInfo = DogInfo(
+                      null,
+                      nameController.text,
+                      _isGender!,
+                      imagedata,
+                      null, //owner id. must be empty
+                      _isNeutered!, //불리안 선택
+                      int.parse(ageController.text), //숫자만  가능한 필드로
+                      size,
+                      breedController.text,
+                      descriptionController.text,
+                    );
+                    await DogProfileApi.registDogProfile(doginfo: _dogInfo)
+                        .then(
+                      (bool result) {
+                        goBack(context);
+                      },
+                    );
                   },
-                  child: const Text('select image')),
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: '이름'),
-              ),
-              Row(
-                children: [
-                  const Expanded(child: Text('성별')),
-                  Expanded(
-                    flex: 2,
-                    child: ListTile(
-                      title: const Text('남자'),
-                      leading: Radio<String>(
-                        value: 'male',
-                        groupValue: _isGender,
-                        onChanged: (String? value) {
-                          setState(() => _isGender = value!);
-                        },
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: ListTile(
-                      title: const Text('여자'),
-                      leading: Radio<String>(
-                        value: 'female',
-                        groupValue: _isGender,
-                        onChanged: (String? value) {
-                          setState(() => _isGender = value!);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              TextField(
-                controller: ageController,
-                decoration: const InputDecoration(labelText: '나이'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: breedController,
-                decoration: const InputDecoration(labelText: '종'),
-              ),
-              Row(
-                children: [
-                  const Expanded(child: Text('중성화 여부')),
-                  Expanded(
-                    flex: 2,
-                    child: ListTile(
-                      title: const Text('완료'),
-                      leading: Radio<bool>(
-                        value: true,
-                        groupValue: _isNeutered,
-                        onChanged: (bool? value) {
-                          setState(() => _isNeutered = value!);
-                        },
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: ListTile(
-                      title: const Text('안함'),
-                      leading: Radio<bool>(
-                        value: false,
-                        groupValue: _isNeutered,
-                        onChanged: (bool? value) {
-                          setState(() => _isNeutered = value!);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              LayoutBuilder(builder: (context, constraints) {
-                return ToggleButtons(
-                  isSelected: _isSizeSelected,
-                  constraints: BoxConstraints.expand(
-                      width: (constraints.maxWidth - 10) / 3),
-                  onPressed: (int index) {
-                    setState(() {
-                      for (int i = 0; i < _isSizeSelected.length; i++) {
-                        if (i == index) {
-                          _isSizeSelected[i] = true;
-                        } else {
-                          _isSizeSelected[i] = false;
-                        }
-                      }
-                    });
-                  },
-                  children: const <Widget>[
-                    Text('소형'),
-                    Text('중형'),
-                    Text('대형'),
-                  ],
-                );
-              }),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: '설명'),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () async {
-                  Uint8List? imagedata;
-                  if (_dogImage != null) {
-                    imagedata = await _dogImage!.readAsBytes();
-                  }
-                  if (_isGender == null) {
-                    return;
-                  }
-                  if (_isNeutered == null) {
-                    return;
-                  }
-                  String size;
-                  if (_isSizeSelected[0] == true) {
-                    size = DogSize.small;
-                  } else if (_isSizeSelected[1] == true) {
-                    size = DogSize.medium;
-                  } else if (_isSizeSelected[2] == true) {
-                    size = DogSize.large;
-                  } else {
-                    return;
-                  }
-                  _dogInfo = DogInfo(
-                    null,
-                    nameController.text,
-                    _isGender!,
-                    imagedata,
-                    null, //owner id. must be empty
-                    _isNeutered!, //불리안 선택
-                    int.parse(ageController.text), //숫자만  가능한 필드로
-                    size,
-                    breedController.text,
-                    descriptionController.text,
-                  );
-                  bool result =
-                      await DogProfileApi.registDogProfile(doginfo: _dogInfo);
-                  if (result == false) {
-                    debugPrint('[!!!] regist dog profile failed');
-                    return;
-                  }
-                  goBack();
-                },
-                child: const Text('등록하기'),
-              ),
-            ],
+                  child: const Text('등록하기'),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }

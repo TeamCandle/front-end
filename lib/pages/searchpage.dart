@@ -269,7 +269,9 @@ class _RequirementDetailPageState extends State<RequirementDetailPage> {
                                 ),
                                 onPressed: () {
                                   context.push(
-                                      '${RouterPath.dogProfile}?dogId=$dogId&detailId=${widget.requirementId}');
+                                    RouterPath.dogProfile,
+                                    extra: {'dogId': dogId},
+                                  );
                                 },
                                 child: const Padding(
                                   padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
