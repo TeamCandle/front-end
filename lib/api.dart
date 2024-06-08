@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:localstorage/localstorage.dart';
 import 'package:provider/provider.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -42,6 +43,7 @@ class AuthApi {
     //token을 저장한다.
     _accessToken = tokens['accessToken'];
     _refreshToken = tokens['refreshToken'];
+    localStorage.setItem('accessToken', _accessToken!);
     debugPrint('!!! access token : $_accessToken');
     debugPrint('!!! refresh token : $_refreshToken');
 
@@ -71,7 +73,7 @@ class AuthApi {
       'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json',
     };
-    var body = {"token": "${FcmNotification.fcmToken}"};
+    var body = {"token": "${CombinedNotificationService.fcmToken}"};
 
     http.Response? response = await HttpMethod.tryPost(
       title: "regist fcm token",
@@ -649,8 +651,9 @@ class RequirementApi {
   //요구 등록
   static Future<bool> registRequirement({
     required int dogId,
-    required DateTime dateTime,
-    required int duration,
+    required DateTime startTime,
+    required DateTime endTime,
+    required LatLng location,
     required String careType,
     required int reward,
     required String description,
@@ -665,11 +668,11 @@ class RequirementApi {
     var body = {
       "dogId": dogId,
       "careType": careType,
-      "startTime": dateTime.toIso8601String(),
-      "endTime": dateTime.toIso8601String(),
+      "startTime": startTime.toIso8601String(),
+      "endTime": endTime.toIso8601String(),
       "careLocation": {
-        "x": myMap.myLocation!.longitude,
-        "y": myMap.myLocation!.latitude,
+        "x": location.longitude,
+        "y": location.latitude,
       },
       "reward": reward,
       "description": description,
@@ -685,6 +688,7 @@ class RequirementApi {
       debugPrint('[!!!] regist requirement fail');
       return false;
     }
+    debugPrint('[!!!] request success, $body');
     return true;
   }
 

@@ -1,13 +1,17 @@
 //dependencies
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_doguber_frontend/firebase_options.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:provider/provider.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:google_fonts/google_fonts.dart';
 //files
+import 'mymap.dart';
+import 'pages/profilepage.dart';
 import 'router.dart';
 import 'datamodels.dart';
 import 'notification.dart';
@@ -24,9 +28,11 @@ Future<void> main() async {
   //init flutter engine
   WidgetsFlutterBinding.ensureInitialized();
 
-  //init fcm
+  //init firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FcmNotification.initFcmNotification();
+
+  //init my notification
+  await CombinedNotificationService.initialize();
 
   //init kakao login sdk
   KakaoSdk.init(
@@ -36,6 +42,8 @@ Future<void> main() async {
 
   //init local storage
   await initLocalStorage();
+
+  await CombinedNotificationService.checkNotiLaunch();
 
   //run app
   runApp(const DogUberApp());
@@ -50,16 +58,8 @@ class DogUberApp extends StatefulWidget {
 
 class _DogUberAppState extends State<DogUberApp> {
   @override
-  void initState() {
-    super.initState();
-    FcmNotification.setFcmListenerInBackground(context);
-    FcmNotification.setFcmListenerInForeground();
-  }
-
-  @override
   Widget build(BuildContext context) {
     //provider 등록
-    //router.dart파일의 화면 트리로 이동.
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<UserInfo>(
@@ -71,8 +71,12 @@ class _DogUberAppState extends State<DogUberApp> {
         ChangeNotifierProvider<ChatData>(
           create: (context) => ChatData(),
         ),
+        ChangeNotifierProvider<LocationInfo>(
+          create: (context) => LocationInfo(),
+        ),
       ],
       child: MaterialApp.router(
+        //router.dart파일의 화면 트리로 이동.
         routerConfig: NewRoot,
         theme: ThemeData(
           //Color(0xFFa2e1a6)

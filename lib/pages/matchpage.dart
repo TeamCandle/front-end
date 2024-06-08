@@ -105,7 +105,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
 
   Future<bool> initDetailPage() async {
     //이 페이지에서 쓸 맵 컨트롤러를 초기화한다.
-    bool result = await _mapController.initMapOnRequestDetail();
+    bool result = await _mapController.initialize();
     if (result == false) return false;
 
     //요청 세부사항을 가져온다.

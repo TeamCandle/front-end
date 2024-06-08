@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_doguber_frontend/api.dart';
 import 'package:flutter_doguber_frontend/customwidgets.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
+import 'package:flutter_doguber_frontend/test.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -88,7 +89,7 @@ class MyRequirementListPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.go(RouterPath.myRequirementSelect);
+          context.go(RouterPath.myRequirementSelectDog);
         },
         child: const Text(
           '+',
@@ -278,8 +279,8 @@ class MyRequirementDetailPage extends StatelessWidget {
 }
 
 //requirement regist sequence
-class SelectDogInRequirementPage extends StatelessWidget {
-  const SelectDogInRequirementPage({super.key});
+class SelectDogPage extends StatelessWidget {
+  const SelectDogPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -342,7 +343,7 @@ class SelectDogInRequirementPage extends StatelessWidget {
                       trailing: ElevatedButton(
                         onPressed: () {
                           context.go(
-                            RouterPath.myRequirementForm,
+                            RouterPath.myRequirementSelectLocation,
                             extra: {'dogId': dogId},
                           );
                         },
@@ -360,9 +361,103 @@ class SelectDogInRequirementPage extends StatelessWidget {
   }
 }
 
+class SelectLocationPage extends StatefulWidget {
+  final int dogId;
+  const SelectLocationPage({super.key, required this.dogId});
+
+  @override
+  State<SelectLocationPage> createState() => _SelectLocationPageState();
+}
+
+class _SelectLocationPageState extends State<SelectLocationPage> {
+  late final GoogleMapController _mapController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('수행 위치를 선택해주세요')),
+      body: FutureBuilder(
+        future: context.read<LocationInfo>().setMyLocation(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('Err'));
+          }
+
+          return GoogleMap(
+            onMapCreated: (GoogleMapController controller) {
+              _mapController = controller;
+            },
+            initialCameraPosition: CameraPosition(
+              target: context.watch<LocationInfo>().myLocation!,
+              zoom: 15,
+            ),
+            markers: context.watch<LocationInfo>().markers,
+            onTap: (LatLng argument) async {
+              context.read<LocationInfo>().targetLocation = argument;
+              context.read<LocationInfo>().setOnlySingleMarker(argument);
+              debugPrint(
+                '[log] marking on tap ${context.read<LocationInfo>().targetLocation}',
+              );
+              await _mapController
+                  .animateCamera(CameraUpdate.newLatLng(argument));
+            },
+          );
+        },
+      ),
+      bottomNavigationBar: Row(children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ElevatedButton(
+              onPressed: () async {
+                LatLng? location = context.read<LocationInfo>().myLocation;
+                if (location == null) return;
+                context.go(
+                  RouterPath.myRequirementRegistForm,
+                  extra: {
+                    'location': location,
+                    'dogId': widget.dogId,
+                  },
+                );
+              },
+              child: const Text('내 위치'),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ElevatedButton(
+              onPressed: () {
+                LatLng? location = context.read<LocationInfo>().targetLocation;
+                if (location == null) return;
+                context.go(
+                  RouterPath.myRequirementRegistForm,
+                  extra: {
+                    'location': location,
+                    'dogId': widget.dogId,
+                  },
+                );
+              },
+              child: const Text('선택한 위치'),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
 class RequestRegistrationFormPage extends StatefulWidget {
   final int dogId;
-  const RequestRegistrationFormPage({super.key, required this.dogId});
+  final LatLng location;
+  const RequestRegistrationFormPage({
+    super.key,
+    required this.dogId,
+    required this.location,
+  });
 
   @override
   State<RequestRegistrationFormPage> createState() =>
@@ -374,10 +469,9 @@ class _RequestRegistrationFormPageState
   final TextEditingController timeController = TextEditingController();
   final TextEditingController rewardController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  MyMap _mymap = MyMap();
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
-  String _selectedCare = CareType.boarding;
+  String _selectedCare = CareType.walking;
 
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
@@ -403,6 +497,7 @@ class _RequestRegistrationFormPageState
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('!!! received location : ${widget.location}');
     Future<void> goBack() async {
       context.read<InfiniteList>().releaseList();
       await context.read<InfiniteList>().updateMyRequestList().then((_) {
@@ -418,6 +513,27 @@ class _RequestRegistrationFormPageState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: FutureBuilder(
+                    future: context.read<LocationInfo>().getPlaceAddress(
+                          widget.location.latitude,
+                          widget.location.longitude,
+                        ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      } else if (snapshot.hasError || snapshot.data == null) {
+                        return Text('data null');
+                      }
+                      return TextField(
+                        readOnly: true,
+                        controller: TextEditingController(
+                          text: snapshot.data!,
+                        ),
+                      );
+                    }),
+              ),
               Row(
                 children: [
                   Expanded(
@@ -443,30 +559,33 @@ class _RequestRegistrationFormPageState
                   )
                 ],
               ),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: ElevatedButton(
-                      onPressed: () async => await _selectTime(),
-                      child: const Text('시작 시간'),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16),
-                      child: TextField(
-                        readOnly: true,
-                        controller: TextEditingController(
-                          text: _selectedTime == null
-                              ? ''
-                              : _selectedTime!.format(context),
-                        ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: ElevatedButton(
+                        onPressed: () async => await _selectTime(),
+                        child: const Text('시작 시간'),
                       ),
                     ),
-                  )
-                ],
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16),
+                        child: TextField(
+                          readOnly: true,
+                          controller: TextEditingController(
+                            text: _selectedTime == null
+                                ? ''
+                                : _selectedTime!.format(context),
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
               ),
               TextField(
                 controller: timeController,
@@ -474,12 +593,16 @@ class _RequestRegistrationFormPageState
                 keyboardType: TextInputType.number,
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                padding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
                 child: Row(
                   children: [
-                    const Text('요청사항'),
+                    const Text(
+                      '요청사항',
+                      style: TextStyle(fontSize: 20),
+                    ),
                     const Spacer(),
                     DropdownButton<String>(
+                      padding: const EdgeInsets.only(top: 8),
                       value: _selectedCare,
                       onChanged: (String? value) {
                         setState(() => _selectedCare = value!);
@@ -535,17 +658,27 @@ class _RequestRegistrationFormPageState
               ElevatedButton(
                   onPressed: () async {
                     if (_selectedDate == null || _selectedTime == null) return;
-                    final DateTime dateTime = DateTime(
+                    int? hour = int.tryParse(timeController.text);
+                    if (hour == null) return;
+                    final DateTime startTime = DateTime(
                       _selectedDate!.year,
                       _selectedDate!.month,
                       _selectedDate!.day,
                       _selectedTime!.hour,
                       _selectedTime!.minute,
                     );
+                    final DateTime endTime = DateTime(
+                      _selectedDate!.year,
+                      _selectedDate!.month,
+                      _selectedDate!.day,
+                      _selectedTime!.hour + hour,
+                      _selectedTime!.minute,
+                    );
                     await RequirementApi.registRequirement(
                       dogId: widget.dogId,
-                      dateTime: dateTime,
-                      duration: int.parse(timeController.text),
+                      startTime: startTime,
+                      endTime: endTime,
+                      location: widget.location,
                       careType: _selectedCare,
                       reward: int.parse(rewardController.text),
                       description: descriptionController.text,

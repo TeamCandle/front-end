@@ -234,7 +234,15 @@ class ChatData extends ChangeNotifier {
   }
 }
 
-class SettingData extends ChangeNotifier {}
+class SettingData extends ChangeNotifier {
+  /// 로그인 정보 저장 설정
+  static bool isSaveLoggedIn = true;
+
+  /// 알람 권한 설정
+  /// 지도 권한 설정
+  /// 로그아웃
+  ///
+}
 
 //data model
 class DogInfo {

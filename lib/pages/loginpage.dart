@@ -3,10 +3,13 @@
 //카카오톡으로 로그인 하기
 
 //dependencies
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_doguber_frontend/api.dart';
+import 'package:flutter_doguber_frontend/pages/profilepage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:localstorage/localstorage.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
@@ -16,38 +19,50 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 //files
 import '../datamodels.dart';
 import '../constants.dart';
+import '../notification.dart';
 import '../router.dart';
 
-class CheckLocalInfoPage extends StatelessWidget {
-  const CheckLocalInfoPage({super.key});
+class LogInPage extends StatefulWidget {
+  const LogInPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // 비동기 함수 호출하여 로컬 데이터 확인 후 리디렉션
-    _checkLocalInfo(context);
-    return Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-
-  Future<void> _checkLocalInfo(BuildContext context) async {
-    // 로컬 저장소에서 데이터 가져오기
-    await Future.delayed(Duration(seconds: 2)); // 비동기 작업 예제
-    final isLoggedIn = context.read<UserInfo>().isLoggedIn;
-
-    // 결과에 따라 리디렉션
-    if (isLoggedIn) {
-      context.go('/home');
-    } else {
-      context.go('/login');
-    }
-  }
+  State<LogInPage> createState() => _LogInPageState();
 }
 
-class LogInPage extends StatelessWidget {
-  const LogInPage({super.key});
+class _LogInPageState extends State<LogInPage> {
+  final AuthApi _auth = AuthApi();
+  @override
+  void initState() {
+    super.initState();
+    CombinedNotificationService.setFcmhandlerInForeground();
+    CombinedNotificationService.setNotificationHandler(context);
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      checkLocalInfo();
+    });
+  }
+
+  Future<void> checkLocalInfo() async {
+    String? tempToken = localStorage.getItem('accessToken');
+    if (tempToken == null) return;
+    _auth.setAccessToken(accessToken: tempToken);
+    await context.read<UserInfo>().updateMyProfile().then((bool result) {
+      if (result == false) return;
+      String? payload =
+          CombinedNotificationService.details?.notificationResponse?.payload;
+      //메시지에 메시지 유형 타입을 추가해달라고 부탁해서, show 시 아이디를 다르게 하자
+      //..response?.id로 notification id 받아올 수 있는듯
+      //아이디에 따라 switch로 context go 다르게 해보자
+      context.go(RouterPath.home);
+    });
+  }
+  // RemoteMessage? initialMessage =
+  //       await FirebaseMessaging.instance.getInitialMessage();
+  //   if (initialMessage != null) {
+  //     CombinedNotificationService.notiTapStream.add(
+  //       initialMessage.data['targetId'],
+  //     );
+  //   }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +78,7 @@ class LogInPage extends StatelessWidget {
                 margin: const EdgeInsets.all(20),
                 width: double.infinity,
                 child: InkWell(
-                  onTap: () => context.go(RouterPath.webView),
+                  onTap: () => context.push(RouterPath.webView),
                   child: Image.asset('assets/images/icon_kakao_login.png'),
                 ),
               ),

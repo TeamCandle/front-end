@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_doguber_frontend/pages/currentmatch.dart';
 import 'package:flutter_doguber_frontend/pages/otheruser.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 //files
 import 'datamodels.dart';
@@ -18,10 +19,8 @@ import 'constants.dart';
 //생략 항목(무시해도 됨) routes: <RouteBase>[...
 
 class RouterPath {
-  //log in sequence
-  // static const String logIn = '/login';
-  // static const String webView = '$logIn/web_view';
   static const String webView = '/web_view';
+
   //will pushed page
   static const String userProfile = '/user_profile';
   static const String reviewList = '/review_list';
@@ -40,9 +39,11 @@ class RouterPath {
 
   static const String myRequirement = '$home/my_requirement';
   static const String myRequirementDetail = '$myRequirement/detail';
-  static const String myRequirementSelect = '$myRequirement/select';
-  static const String myRequirementForm = '$myRequirementSelect/form';
-  static const String myRequirementResult = '$myRequirementForm/result';
+  static const String myRequirementSelectDog = '$myRequirement/select_dog';
+  static const String myRequirementSelectLocation =
+      '$myRequirementSelectDog/select_location';
+  static const String myRequirementRegistForm =
+      '$myRequirementSelectLocation/form';
 
   static const String matchLog = '$home/match_log';
   static const String matchLogDetail = '$matchLog/detail';
@@ -67,17 +68,6 @@ final GoRouter NewRoot = GoRouter(
           path: 'web_view',
           builder: (context, state) => WebViewPage(),
         ),
-        //log in sequence
-        // GoRoute(
-        //   path: 'login',
-        //   builder: (context, state) => LogInPage(),
-        //   routes: [
-        //     GoRoute(
-        //       path: 'web_view',
-        //       builder: (context, state) => WebViewPage(),
-        //     )
-        //   ],
-        // ),
         //must be pushed page
         GoRoute(
           path: 'user_profile',
@@ -176,24 +166,33 @@ final GoRouter NewRoot = GoRouter(
                   },
                 ),
                 GoRoute(
-                  path: 'select',
-                  builder: (context, state) => SelectDogInRequirementPage(),
+                  path: 'select_dog',
+                  builder: (context, state) => SelectDogPage(),
                   routes: [
                     GoRoute(
-                        path: 'form',
-                        builder: (context, state) {
-                          final Map<String, dynamic>? data =
-                              state.extra as Map<String, dynamic>?;
-                          final int dogId = data?['dogId'];
-                          return RequestRegistrationFormPage(dogId: dogId);
-                        },
-                        routes: [
-                          GoRoute(
-                            path: 'result',
-                            builder: (context, state) =>
-                                ErrorPage(err: 'empty'),
-                          ),
-                        ]),
+                      path: 'select_location',
+                      builder: (context, state) {
+                        final Map<String, dynamic>? data =
+                            state.extra as Map<String, dynamic>?;
+                        final int dogId = data?['dogId'];
+                        return SelectLocationPage(dogId: dogId);
+                      },
+                      routes: [
+                        GoRoute(
+                          path: 'form',
+                          builder: (context, state) {
+                            final Map<String, dynamic>? data =
+                                state.extra as Map<String, dynamic>?;
+                            final int dogId = data?['dogId'];
+                            final LatLng location = data?['location'];
+                            return RequestRegistrationFormPage(
+                              dogId: dogId,
+                              location: location,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ],

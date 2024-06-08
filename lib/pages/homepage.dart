@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_doguber_frontend/api.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +13,7 @@ import '../constants.dart';
 import '../customwidgets.dart';
 import '../datamodels.dart';
 import '../mymap.dart';
+import '../notification.dart';
 import '../router.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,6 +24,22 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    setFcmTerm();
+  }
+
+  Future<void> setFcmTerm() async {
+    RemoteMessage? initialMessage =
+        await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      CombinedNotificationService.notiTapStream.add(
+        initialMessage.data['targetId'],
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     dynamic settingImage = context.watch<UserInfo>().image == null
@@ -134,11 +152,26 @@ class _HomePageState extends State<HomePage> {
               child: const Center(child: Text("profile")),
             ),
             ElevatedButton(
-                onPressed: () {
-                  context.read<UserInfo>().logOut();
-                  context.go('/');
-                },
-                child: Text('log out')),
+              onPressed: () {
+                context.read<UserInfo>().logOut();
+                context.go('/');
+              },
+              child: Text('log out'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {});
+              },
+              child: Text('setState'),
+            ),
+            Text(
+              CombinedNotificationService.details!.notificationResponse == null
+                  ? "response null"
+                  : "response received",
+            ),
+            //payload : notification show 시 payload
+            Text(
+                '${CombinedNotificationService.details!.notificationResponse?.payload}'),
           ],
         ),
       ),
