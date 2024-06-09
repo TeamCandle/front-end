@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_doguber_frontend/api.dart';
 import 'package:flutter_doguber_frontend/pages/profilepage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
@@ -110,8 +111,12 @@ class CombinedNotificationService {
         android: AndroidInitializationSettings('app_icon'),
       ),
       onDidReceiveNotificationResponse: (NotificationResponse response) {
+        int? id = response.id;
+        String? payload = response.payload;
+        if (id == null || payload == null) return;
+        String payloadForStream = '$id $payload';
         //리스너 대기열(스트림)에 추가
-        notiTapStream.add(response.payload);
+        notiTapStream.add(payloadForStream);
         debugPrint('[log] notification tapped');
       },
       //onDidReceiveBackgroundNotificationResponse: interactNotiWithoutTap,
@@ -231,10 +236,41 @@ class CombinedNotificationService {
   }
 
   static void setNotificationHandler(BuildContext context) {
-    CombinedNotificationService.notiTapStream.stream
-        .listen((String? payload) async {
-      debugPrint('!!! setNotiListener launched');
-      context.go(RouterPath.myProfile);
-    });
+    CombinedNotificationService.notiTapStream.stream.listen(
+      (String? payloadForStream) async {
+        if (payloadForStream == null) return;
+
+        String id = payloadForStream.split(' ')[0];
+        String payload = payloadForStream.split(' ')[1];
+
+        int? notiId = int.tryParse(id);
+        int? detailId = int.tryParse(payload);
+        if (notiId == null || detailId == null) return;
+
+        debugPrint('!!! setNotiListener launched');
+        switch (notiId) {
+          case appliedNotiId:
+            context.go(
+              RouterPath.myRequirementDetail,
+              extra: {'detailId': detailId},
+            );
+            break;
+          case acceptedNotiId:
+            context.go(
+              RouterPath.matchLogDetail,
+              extra: {'detailId': detailId},
+            );
+            break;
+          case chatNotiId:
+            context.push(
+              RouterPath.chatting,
+              extra: {'matchId': detailId},
+            );
+            break;
+          default:
+            return;
+        }
+      },
+    );
   }
 }

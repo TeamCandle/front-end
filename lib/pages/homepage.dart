@@ -28,9 +28,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      //메시지에 메시지 유형 타입을 추가해달라고 부탁해서, show 시 아이디를 다르게 하자
-      //..response?.id로 notification id 받아올 수 있는듯
-      //아이디에 따라 switch로 context go 다르게 해보자
+      //terminated 상태에서 알람 클릭 시
       String? payload =
           CombinedNotificationService.details?.notificationResponse?.payload;
       int? id = CombinedNotificationService.details?.notificationResponse?.id;
