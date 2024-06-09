@@ -391,7 +391,6 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
   }
 }
 
-//TODO: 디자인
 class ChattingPage extends StatefulWidget {
   final int matchId;
   const ChattingPage({super.key, required this.matchId});
@@ -403,8 +402,9 @@ class ChattingPage extends StatefulWidget {
 class _ChattingPageState extends State<ChattingPage> {
   late StompClient stompClient;
   final TextEditingController _textController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
-  void callback(StompFrame frame) {
+  void _callbackReceivedStompMsg(StompFrame frame) {
     //List<dynamic>? result = json.decode(frame.body!);
     Map<String, dynamic> obj = json.decode(frame.body!);
     Map<String, dynamic> message = {
@@ -412,75 +412,100 @@ class _ChattingPageState extends State<ChattingPage> {
       'sender': obj['sender'],
     };
 
-    setState(() {
-      context.read<ChatData>().add(message);
+    context.read<ChatData>().add(message);
+    _scrollToBottom();
+  }
+
+  Future<bool> initChatting() async {
+    bool result = await ChattingApi.connect(
+      matchId: widget.matchId,
+      callback: _callbackReceivedStompMsg,
+    );
+    if (result == false) return false;
+    await context.read<ChatData>().initChatting(widget.matchId);
+    _scrollToBottom();
+    return true;
+  }
+
+  Future<void> sendMessage() async {
+    ChattingApi.send(_textController.text, widget.matchId);
+    context.read<ChatData>().update(
+          _textController.text,
+          context.read<UserInfo>().name,
+        );
+    _textController.clear();
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
     });
   }
 
   @override
   void dispose() {
     super.dispose();
-    ChattingApi.disconnect();
     _textController.dispose();
+    _scrollController.dispose();
+    ChattingApi.disconnect();
   }
 
   @override
   Widget build(BuildContext context) {
-    Future<bool> initChatting() async {
-      bool result = await ChattingApi.connect(
-        matchId: widget.matchId,
-        callback: callback,
-      );
-      if (result == false) return false;
-      return await context.read<ChatData>().initChatting(widget.matchId);
-    }
-
-    Future<void> sendMessage() async {
-      ChattingApi.send(_textController.text, widget.matchId);
-      context.read<ChatData>().update(
-            _textController.text,
-            context.read<UserInfo>().name,
-          );
-      _textController.clear();
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text('채팅')),
       body: FutureBuilder(
           future: initChatting(),
           builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: context.watch<ChatData>().messages.length,
-                    itemBuilder: (context, index) {
-                      if (context.read<ChatData>().messages[index]['sender'] ==
-                          context.read<UserInfo>().name) {
-                        return BubbleSpecialThree(
-                          text: context.watch<ChatData>().messages[index]
-                              ['message'],
-                          color: Color(0xFFa2e1a6),
-                        );
-                      } else {
-                        return BubbleSpecialThree(
-                          text: context.watch<ChatData>().messages[index]
-                              ['message'],
-                          color: Colors.white,
-                          isSender: false,
-                        );
-                      }
-                    },
+                  child: GestureDetector(
+                    onTap: () => FocusScope.of(context).unfocus(),
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount: context.watch<ChatData>().messages.length,
+                      itemBuilder: (context, index) {
+                        if (context.read<ChatData>().messages[index]
+                                ['sender'] ==
+                            context.read<UserInfo>().name) {
+                          return BubbleSpecialThree(
+                            text: context.watch<ChatData>().messages[index]
+                                ['message'],
+                            color: Color(0xFFa2e1a6),
+                          );
+                        } else {
+                          return BubbleSpecialThree(
+                            text: context.watch<ChatData>().messages[index]
+                                ['message'],
+                            color: Colors.white,
+                            isSender: false,
+                          );
+                        }
+                      },
+                    ),
                   ),
                 ),
                 Row(
                   children: [
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 10.0),
+                        padding: const EdgeInsets.only(left: 16.0),
                         child: customSearchField(
                           child: TextField(
+                            onTap: _scrollToBottom,
                             controller: _textController,
                             decoration: const InputDecoration(
                               border: InputBorder.none,
@@ -492,7 +517,7 @@ class _ChattingPageState extends State<ChattingPage> {
                     ),
                     // 전송 버튼
                     Padding(
-                      padding: EdgeInsets.all(8),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                       child: IconButton(
                         icon: const Icon(Icons.send),
                         style: const ButtonStyle(
