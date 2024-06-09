@@ -68,10 +68,6 @@ class CombinedNotificationService {
   static const String channelId = 'channelId'; //알림 채널 ID
   static const String streamId = 'streamId'; //알림스트림(리스너) ID
   static NotificationAppLaunchDetails? details;
-  static Future<void> checkNotiLaunch() async {
-    details = await notiController.getNotificationAppLaunchDetails();
-  }
-
   static String? _fcmToken;
 
   static String? get fcmToken => _fcmToken;
@@ -164,12 +160,14 @@ class CombinedNotificationService {
     _getPermissionOfNotification();
     _getPermissionOfFcm();
 
+    //when fcm msg received in background and terminated
     FirebaseMessaging.onBackgroundMessage(handleFcmInBackAndTerminated);
 
     return true;
   }
 
   ///////////////////////////////fcm function///////////////////////////////////
+  //when fcm msg received in foreground
   static Future<void> setFcmhandlerInForeground() async {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       debugPrint('[log] Got a message in the foreground');
@@ -199,6 +197,11 @@ class CombinedNotificationService {
   // }
 
   ////////////////////////////////Notification//////////////////////////////////
+  //종료 상태에서 local notificaion tap 시 리스너
+  static Future<void> listenNotiTapInTerminated() async {
+    details = await notiController.getNotificationAppLaunchDetails();
+  }
+
   //notification show function
   static Future<void> showNotification(RemoteMessage message) async {
     int id;
@@ -235,6 +238,10 @@ class CombinedNotificationService {
     );
   }
 
+  //handler in terminated
+  //initState in home page state
+
+  //handler in Foreground and background
   static void setNotificationHandler(BuildContext context) {
     CombinedNotificationService.notiTapStream.stream.listen(
       (String? payloadForStream) async {

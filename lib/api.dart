@@ -489,8 +489,9 @@ class DogProfileApi {
       'Content-Type': 'multipart/form-data'
     };
 
+    debugPrint('!!! receive dog info in modify api$doginfo');
     //전송 데이터 준비
-    var request = http.MultipartRequest('PATCH', url);
+    var request = http.MultipartRequest('PUT', url);
     request.headers.addAll(header);
     request.fields['id'] = doginfo.dogId.toString();
     request.fields['name'] = doginfo.dogName;

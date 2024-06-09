@@ -646,6 +646,7 @@ class _DogModifyPageState extends State<DogModifyPage> {
                 const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () async {
+                    debugPrint('!!! start data convert to modify dog');
                     Uint8List? imagedata;
                     if (_dogImage != null) {
                       imagedata = await _dogImage!.readAsBytes();
@@ -656,6 +657,7 @@ class _DogModifyPageState extends State<DogModifyPage> {
                     if (_isNeutered == null) {
                       return;
                     }
+
                     String size;
                     if (_isSizeSelected[0] == true) {
                       size = DogSize.small;
@@ -666,7 +668,9 @@ class _DogModifyPageState extends State<DogModifyPage> {
                     } else {
                       return;
                     }
-                    DogInfo _dogInfo = DogInfo(
+                    debugPrint('!!! size : $size');
+                    debugPrint('!!! all data is not null');
+                    DogInfo dogInfo = DogInfo(
                       widget.dogInfo.dogId,
                       nameController.text,
                       _isGender!,
@@ -678,8 +682,7 @@ class _DogModifyPageState extends State<DogModifyPage> {
                       breedController.text,
                       descriptionController.text,
                     );
-                    await DogProfileApi.modifyDogProfile(doginfo: _dogInfo)
-                        .then(
+                    await DogProfileApi.modifyDogProfile(doginfo: dogInfo).then(
                       (bool result) {
                         goBack(context);
                       },

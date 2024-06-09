@@ -46,7 +46,7 @@ Future<void> main() async {
   await initLocalStorage();
 
   //terminated 상태에서 notification을 tap해서 켰을 때 데이터 수신
-  await CombinedNotificationService.checkNotiLaunch();
+  await CombinedNotificationService.listenNotiTapInTerminated();
 
   //run app
   runApp(const DogUberApp());
