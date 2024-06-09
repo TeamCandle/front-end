@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -224,7 +225,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
                         child: isRequester
-                            ? requesterButtonSet(status, reward)
+                            ? requesterButtonSet(status)
                             : applicantButtonSet(status),
                       ),
                     ],
@@ -311,7 +312,12 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     switch (status) {
       case Status.completed:
         return ElevatedButton(
-          onPressed: () async {},
+          onPressed: () async {
+            context.go(
+              RouterPath.matchLogReviewDetail,
+              extra: {'matchId': widget.matchingId},
+            );
+          },
           child: const Text('받은 리뷰 보기'),
         );
       default:
@@ -322,53 +328,8 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     }
   }
 
-  Widget requesterButtonSet(String status, int reward) {
-    if (status == Status.waiting && reward == 0) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: ElevatedButton(
-              onPressed: () async {
-                await MatchingLogApi.complete(widget.matchingId)
-                    .then((bool result) {
-                  if (result == true) {
-                    _showResult(
-                      context,
-                      result,
-                      '매칭 완료',
-                      '매칭을 완료하였습니다. 리뷰를 작성하실 수 있어요',
-                    );
-                  } else {
-                    _showResult(context, result, 'fail', 'err');
-                  }
-                });
-              },
-              child: const Text('완료하기'),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await MatchingLogApi.cancel(widget.matchingId)
-                  .then((bool result) {
-                if (result == true) {
-                  _showResult(
-                    context,
-                    result,
-                    '매칭 취소',
-                    '매칭이 취소되었습니다.',
-                  );
-                } else {
-                  _showResult(context, result, 'fail', 'err');
-                }
-              });
-            },
-            child: const Text('매칭 취소'),
-          ),
-        ],
-      );
-    } else if (status == Status.waiting && reward != 0) {
+  Widget requesterButtonSet(String status) {
+    if (status == Status.waiting) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -431,7 +392,20 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
             ),
           ),
           ElevatedButton(
-            onPressed: () async {},
+            onPressed: () async {
+              await PaymentApi.refund(widget.matchingId).then((bool result) {
+                if (result == true) {
+                  _showResult(
+                    context,
+                    result,
+                    '환불 완료',
+                    '환불되었습니다',
+                  );
+                } else {
+                  _showResult(context, result, 'fail', 'err');
+                }
+              });
+            },
             child: const Text('결제 취소'),
           ),
         ],
@@ -444,7 +418,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
             extra: {'matchId': widget.matchingId},
           );
         },
-        child: const Text('리뷰 쓰기'),
+        child: const Text('리뷰'),
       );
     } else {
       return ElevatedButton(

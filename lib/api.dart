@@ -1095,6 +1095,23 @@ class PaymentApi {
   }
 
   //결제 취소 = 매칭이 NOT_COMPLETED 상태일 때 취소 동작
+  static Future<bool> refund(int matchId) async {
+    var url = Uri.parse(
+        '${ServerUrl.paymentUrl}/refund/alternative?matchId=$matchId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPatchWithoutBody(
+      title: "refund payment",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return false;
+    }
+    debugPrint('!!! payment refunded');
+    return true;
+  }
 }
 
 class ReviewApi {
@@ -1124,7 +1141,24 @@ class ReviewApi {
     return tempList;
   }
 
-  //특정 리뷰 조회 -> 필요 시 제작
+  //특정 리뷰 조회 -> applicants가 match log에서 조회 시
+  static Future<Map<String, dynamic>?> getReviewDetail(int matchId) async {
+    var url = Uri.parse('${ServerUrl.reviewUrl}?matchId=$matchId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get review detail",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    return tempMap;
+  }
 
   //리뷰 등록
   static Future<bool> regist({
@@ -1155,7 +1189,7 @@ class ReviewApi {
 
   //리뷰 삭제
   static Future<bool> delete(int reviewId) async {
-    var url = Uri.parse('${ServerUrl.reviewUrl}?id=$reviewId');
+    var url = Uri.parse('${ServerUrl.serverUrl}/review?id=$reviewId');
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
 
     bool result = await HttpMethod.tryDelete(

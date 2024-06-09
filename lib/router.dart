@@ -48,6 +48,7 @@ class RouterPath {
   static const String matchLog = '$home/match_log';
   static const String matchLogDetail = '$matchLog/detail';
   static const String matchLogRegistReview = '$matchLogDetail/regist_review';
+  static const String matchLogReviewDetail = '$matchLogDetail/review_detail';
   static const String paymentProcess = '$matchLogDetail/payment_process';
   static const String paymentResult = '$paymentProcess/payment_result';
 
@@ -217,7 +218,16 @@ final GoRouter NewRoot = GoRouter(
                         final Map<String, dynamic>? data =
                             state.extra as Map<String, dynamic>?;
                         final int matchId = data?['matchId'];
-                        return ReviewRegistFormPage(matchId: matchId);
+                        return ReviewForRequesterPage(matchId: matchId);
+                      },
+                    ),
+                    GoRoute(
+                      path: 'review_detail',
+                      builder: (context, state) {
+                        final Map<String, dynamic>? data =
+                            state.extra as Map<String, dynamic>?;
+                        final int matchId = data?['matchId'];
+                        return ReviewForApplicantPage(matchId: matchId);
                       },
                     ),
                     GoRoute(
