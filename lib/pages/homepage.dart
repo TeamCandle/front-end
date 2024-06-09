@@ -27,17 +27,39 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    setFcmTerm();
-  }
-
-  Future<void> setFcmTerm() async {
-    RemoteMessage? initialMessage =
-        await FirebaseMessaging.instance.getInitialMessage();
-    if (initialMessage != null) {
-      CombinedNotificationService.notiTapStream.add(
-        initialMessage.data['targetId'],
-      );
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      //메시지에 메시지 유형 타입을 추가해달라고 부탁해서, show 시 아이디를 다르게 하자
+      //..response?.id로 notification id 받아올 수 있는듯
+      //아이디에 따라 switch로 context go 다르게 해보자
+      String? payload =
+          CombinedNotificationService.details?.notificationResponse?.payload;
+      int? id = CombinedNotificationService.details?.notificationResponse?.id;
+      if (payload == null || id == null) return;
+      int? detailId = int.tryParse(payload);
+      if (detailId == null) return;
+      switch (id) {
+        case CombinedNotificationService.appliedNotiId:
+          context.go(
+            RouterPath.myRequirementDetail,
+            extra: {'detailId': detailId},
+          );
+          break;
+        case CombinedNotificationService.acceptedNotiId:
+          context.go(
+            RouterPath.matchLogDetail,
+            extra: {'detailId': detailId},
+          );
+          break;
+        case CombinedNotificationService.chatNotiId:
+          context.push(
+            RouterPath.chatting,
+            extra: {'matchId': detailId},
+          );
+          break;
+        default:
+          return;
+      }
+    });
   }
 
   @override

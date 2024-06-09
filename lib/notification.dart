@@ -42,7 +42,7 @@ import 'router.dart';
 // targetId : Match Id
 // 3. 채팅
 // title : sender 이름
-// message : 메시지 내용
+// body : 메시지 내용
 // targetId : Match Id
 
 @pragma('vm:entry-point')
@@ -61,9 +61,11 @@ class CombinedNotificationService {
   static late StreamController<String?> notiTapStream;
   static late AndroidNotificationChannel notiChannel;
 
-  static const int chatNotiId = 1;
-  static const String chatChannelId = 'chatCh'; //알림 채널 ID
-  static const String chatStreamId = 'chatStream'; //알림스트림(리스너) ID
+  static const int appliedNotiId = 1;
+  static const int acceptedNotiId = 2;
+  static const int chatNotiId = 3;
+  static const String channelId = 'channelId'; //알림 채널 ID
+  static const String streamId = 'streamId'; //알림스트림(리스너) ID
   static NotificationAppLaunchDetails? details;
   static Future<void> checkNotiLaunch() async {
     details = await notiController.getNotificationAppLaunchDetails();
@@ -96,8 +98,8 @@ class CombinedNotificationService {
     //init controllers
     notiTapStream = StreamController<String?>.broadcast(); //listener
     notiChannel = const AndroidNotificationChannel(
-      chatChannelId, // id
-      chatChannelId, // name
+      channelId, // id
+      channelId, // name
       description: 'chatting channel',
       importance: Importance.low,
     );
@@ -194,10 +196,25 @@ class CombinedNotificationService {
   ////////////////////////////////Notification//////////////////////////////////
   //notification show function
   static Future<void> showNotification(RemoteMessage message) async {
+    int id;
+    switch (message.data['type']) {
+      case 'applied':
+        id = appliedNotiId;
+        break;
+      case 'accepted':
+        id = acceptedNotiId;
+        break;
+      case 'chat':
+        id = chatNotiId;
+        break;
+      default:
+        id = 4;
+        break;
+    }
     var notiDetailForAnd = const AndroidNotificationDetails(
-      chatChannelId,
-      chatChannelId,
-      channelDescription: 'chatting channel',
+      channelId,
+      channelId,
+      channelDescription: 'android channel',
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'ticker',
@@ -205,11 +222,11 @@ class CombinedNotificationService {
     var notiDetail = NotificationDetails(android: notiDetailForAnd);
 
     await notiController.show(
-      chatNotiId,
+      id,
       message.data['title'],
       message.data['body'],
       notiDetail,
-      payload: message.data['body'],
+      payload: message.data['targetId'],
     );
   }
 

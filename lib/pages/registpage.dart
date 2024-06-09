@@ -522,7 +522,7 @@ class _RequestRegistrationFormPageState
                         ),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                        return LinearProgressIndicator();
                       } else if (snapshot.hasError || snapshot.data == null) {
                         return Text('data null');
                       }

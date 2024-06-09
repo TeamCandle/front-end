@@ -48,14 +48,20 @@ class _LogInPageState extends State<LogInPage> {
     _auth.setAccessToken(accessToken: tempToken);
     await context.read<UserInfo>().updateMyProfile().then((bool result) {
       if (result == false) return;
-      String? payload =
-          CombinedNotificationService.details?.notificationResponse?.payload;
-      //메시지에 메시지 유형 타입을 추가해달라고 부탁해서, show 시 아이디를 다르게 하자
-      //..response?.id로 notification id 받아올 수 있는듯
-      //아이디에 따라 switch로 context go 다르게 해보자
+      const snackBar = SnackBar(
+        content: Text('로그인 성공!'),
+        duration: Duration(milliseconds: 1000),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
       context.go(RouterPath.home);
     });
   }
+  // String? payload =
+  //     CombinedNotificationService.details?.notificationResponse?.payload;
+  // int id =
+  //메시지에 메시지 유형 타입을 추가해달라고 부탁해서, show 시 아이디를 다르게 하자
+  //..response?.id로 notification id 받아올 수 있는듯
+  //아이디에 따라 switch로 context go 다르게 해보자
   // RemoteMessage? initialMessage =
   //       await FirebaseMessaging.instance.getInitialMessage();
   //   if (initialMessage != null) {
@@ -157,6 +163,11 @@ class _WebViewPageState extends State<WebViewPage> {
         await context.read<UserInfo>().logIn(message).then(
           (bool result) {
             if (result == true) {
+              const snackBar = SnackBar(
+                content: Text('로그인 성공!'),
+                duration: Duration(milliseconds: 1000),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
               context.go(RouterPath.home);
             }
           },

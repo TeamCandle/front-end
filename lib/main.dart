@@ -23,6 +23,7 @@ import 'notification.dart';
 //전체적인 배경을 appBgColor(컬러그거에있음)으로 하고 요소들을 화이트로
 //모든 텍스트박스를 custom textbox로
 //0xFFC7F3D0
+//신청 수락 시 메시지 발신자 수정 요망
 
 Future<void> main() async {
   //init flutter engine
@@ -43,6 +44,7 @@ Future<void> main() async {
   //init local storage
   await initLocalStorage();
 
+  //terminated 상태에서 notification을 tap해서 켰을 때 데이터 수신
   await CombinedNotificationService.checkNotiLaunch();
 
   //run app
