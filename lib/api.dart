@@ -574,7 +574,7 @@ class RequirementApi {
   }
 
   // 특정 요구 조회
-  static Future<DetailInfo?> getRequirementDetail({required int id}) async {
+  static Future<DetailInfo?> getRequirementDetail(int id) async {
     var url = Uri.parse('${ServerUrl.requirementUrl}?id=$id');
     var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
 
@@ -664,8 +664,6 @@ class RequirementApi {
       'Authorization': 'Bearer ${_auth.accessToken}',
       'Content-Type': 'application/json',
     };
-    MyMap myMap = MyMap();
-    await myMap.getMyLocation();
     var body = {
       "dogId": dogId,
       "careType": careType,

@@ -209,7 +209,7 @@ final GoRouter NewRoot = GoRouter(
                     final Map<String, dynamic>? data =
                         state.extra as Map<String, dynamic>?;
                     final int detailId = data?['detailId'];
-                    return MatchingLogDetailPage(matchingId: detailId);
+                    return MatchingLogDetailPage(matchId: detailId);
                   },
                   routes: [
                     GoRoute(

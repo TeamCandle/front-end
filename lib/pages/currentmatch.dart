@@ -21,32 +21,15 @@ class CurrentMatchPage extends StatefulWidget {
 }
 
 class _CurrentMatchPageState extends State<CurrentMatchPage> {
-  final MyMap _mapController = MyMap();
   late DetailInfo? _matchingDetail;
-
-  Future<bool> initDetailPage() async {
-    //이 페이지에서 쓸 맵 컨트롤러를 초기화한다.
-    bool result = await _mapController.initialize();
-    if (result == false) return false;
-
-    //요청 세부사항을 가져온다.
-    _matchingDetail = await MatchingLogApi.getMatchingLogDetail(widget.matchId);
-    if (_matchingDetail == null) return false;
-
-    //요청자의 좌표를 표시한다.
-    _mapController.marking(
-      _matchingDetail!.careLoaction.latitude,
-      _matchingDetail!.careLoaction.longitude,
-    );
-    return true;
-  }
+  late final GoogleMapController _mapController;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("현재 진행 중인 매칭")),
       body: FutureBuilder(
-        future: initDetailPage(),
+        future: MatchingLogApi.getMatchingLogDetail(widget.matchId),
         builder: buildDetail,
       ),
     );
@@ -55,10 +38,11 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
   Widget buildDetail(BuildContext context, snapshot) {
     if (snapshot.connectionState == ConnectionState.waiting) {
       return const Center(child: CircularProgressIndicator());
-    } else if (snapshot.hasError || snapshot.data == false) {
+    } else if (snapshot.hasError || snapshot.data == null) {
       return Center(child: Text('Error: ${snapshot.error}'));
     }
 
+    _matchingDetail = snapshot.data;
     //TODO:리스트에서 이미지오류날때 이거쓰삼
     dynamic image = _matchingDetail!.dogImage == null
         ? const AssetImage('assets/images/profile_test.png')
@@ -70,6 +54,8 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
     int reward = _matchingDetail!.reward;
     String status = _matchingDetail!.status;
     bool isRequester = _matchingDetail!.requester!;
+    LatLng location = _matchingDetail!.careLoaction;
+    context.read<LocationInfo>().setOnlySingleMarker(location);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -80,7 +66,6 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
         Expanded(
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
-              double height = constraints.maxHeight;
               double width = constraints.maxWidth;
 
               return SingleChildScrollView(
@@ -111,14 +96,18 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
                               width: (width - 32) / 3,
                               color: Colors.grey[300],
                             ),
-                            Text('현재 $status'),
+                            Text(status),
                           ]),
                           buildInfoButton(context, userId, dogId, isRequester),
                         ],
                       ),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: buildAddress(context, location),
+                      ),
                       customCard(
                         width: width,
-                        height: (height / 3),
+                        height: (width / 4),
                         child: Text(description),
                       ),
                       Padding(
@@ -130,13 +119,13 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
                               extra: {'matchId': widget.matchId},
                             );
                           },
-                          child: const Text('chatting'),
+                          child: const Text('채팅'),
                         ),
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
                         child: isRequester
-                            ? requesterButtonSet(status, reward)
+                            ? requesterButtonSet(status)
                             : applicantButtonSet(status),
                       ),
                     ],
@@ -150,16 +139,32 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
     );
   }
 
+  FutureBuilder<String?> buildAddress(BuildContext context, LatLng location) {
+    return FutureBuilder(
+      future: context
+          .read<LocationInfo>()
+          .getPlaceAddress(location.latitude, location.longitude),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const LinearProgressIndicator();
+        } else if (snapshot.hasError || snapshot.data == null) {
+          return const Text('address null');
+        }
+        return Text(snapshot.data!);
+      },
+    );
+  }
+
   GoogleMap buildGoogleMap() {
     return GoogleMap(
       onMapCreated: (GoogleMapController controller) {
-        _mapController.setMapController(ctrl: controller);
+        _mapController = controller;
       },
       initialCameraPosition: CameraPosition(
         target: _matchingDetail!.careLoaction,
         zoom: 15,
       ),
-      markers: _mapController.markers,
+      markers: context.watch<LocationInfo>().markers,
     );
   }
 
@@ -223,8 +228,13 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
     switch (status) {
       case Status.completed:
         return ElevatedButton(
-          onPressed: () async {},
-          child: const Text('리뷰'),
+          onPressed: () async {
+            context.go(
+              RouterPath.matchLogReviewDetail,
+              extra: {'matchId': widget.matchId},
+            );
+          },
+          child: const Text('받은 리뷰 보기'),
         );
       default:
         return ElevatedButton(
@@ -234,60 +244,19 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
     }
   }
 
-  Widget requesterButtonSet(String status, int reward) {
-    if (status == Status.waiting && reward == 0) {
+  Widget requesterButtonSet(String status) {
+    if (status == Status.waiting) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: ElevatedButton(
-              onPressed: () async {
-                await MatchingLogApi.complete(widget.matchId)
-                    .then((bool result) {
-                  if (result == true) {
-                    _showResult(
-                      context,
-                      result,
-                      '매칭 완료',
-                      '매칭을 완료하였습니다. 리뷰를 작성하실 수 있어요',
-                    );
-                  } else {
-                    _showResult(context, result, 'fail', 'err');
-                  }
-                });
-              },
-              child: const Text('완료하기'),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await MatchingLogApi.cancel(widget.matchId).then((bool result) {
-                if (result == true) {
-                  _showResult(
-                    context,
-                    result,
-                    '매칭 취소',
-                    '매칭이 취소되었습니다.',
-                  );
-                } else {
-                  _showResult(context, result, 'fail', 'err');
-                }
-              });
-            },
-            child: const Text('매칭 취소'),
-          ),
-        ],
-      );
-    } else if (status == Status.waiting && reward != 0) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: ElevatedButton(
-              onPressed: () async {
-                await PaymentApi.pay(widget.matchId);
+              onPressed: () {
+                context.push(
+                  RouterPath.paymentProcess,
+                  extra: {'matchId': widget.matchId},
+                );
               },
               child: const Text('결제하기'),
             ),
@@ -296,14 +265,14 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
             onPressed: () async {
               await MatchingLogApi.cancel(widget.matchId).then((bool result) {
                 if (result == true) {
-                  _showResult(
+                  showResultDialog(
                     context,
                     result,
                     '매칭 취소',
                     '매칭이 취소되었습니다.',
                   );
                 } else {
-                  _showResult(context, result, 'fail', 'err');
+                  showResultDialog(context, result, 'fail', 'err');
                 }
               });
             },
@@ -322,14 +291,14 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
                 await MatchingLogApi.complete(widget.matchId).then(
                   (bool result) {
                     if (result == true) {
-                      _showResult(
+                      showResultDialog(
                         context,
                         result,
                         '매칭 완료',
                         '매칭을 완료하였습니다. 리뷰를 작성하실 수 있어요',
                       );
                     } else {
-                      _showResult(context, result, 'fail', 'err');
+                      showResultDialog(context, result, 'fail', 'err');
                     }
                   },
                 );
@@ -338,14 +307,32 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
             ),
           ),
           ElevatedButton(
-            onPressed: () async {},
+            onPressed: () async {
+              await PaymentApi.refund(widget.matchId).then((bool result) {
+                if (result == true) {
+                  showResultDialog(
+                    context,
+                    result,
+                    '환불 완료',
+                    '환불되었습니다',
+                  );
+                } else {
+                  showResultDialog(context, result, 'fail', 'err');
+                }
+              });
+            },
             child: const Text('결제 취소'),
           ),
         ],
       );
     } else if (status == Status.completed) {
       return ElevatedButton(
-        onPressed: () async {},
+        onPressed: () async {
+          context.push(
+            RouterPath.matchLogRegistReview,
+            extra: {'matchId': widget.matchId},
+          );
+        },
         child: const Text('리뷰'),
       );
     } else {
@@ -356,7 +343,7 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
     }
   }
 
-  Future<dynamic> _showResult(
+  Future<dynamic> showResultDialog(
     BuildContext context,
     bool result,
     String title,
@@ -370,19 +357,7 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
             content: Text(content),
             actions: [
               ElevatedButton(
-                onPressed: () async {
-                  if (result == true) {
-                    context.read<InfiniteList>().releaseList();
-                    await context
-                        .read<InfiniteList>()
-                        .updateMatchingLogList()
-                        .then((_) {
-                      context.go(RouterPath.matchLog);
-                    });
-                  } else {
-                    Navigator.of(context).pop();
-                  }
-                },
+                onPressed: () => context.pop(),
                 child: const Text("ok"),
               )
             ],

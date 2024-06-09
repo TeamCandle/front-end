@@ -41,7 +41,7 @@ class MyRequirementListPage extends StatelessWidget {
           }
 
           return Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: ListView.builder(
               itemCount: context.watch<InfiniteList>().myRequestList.length,
               itemBuilder: (BuildContext context, int index) {

@@ -42,7 +42,7 @@ class _MatchingLogPageState extends State<MatchingLogPage> {
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: ListView.builder(
           itemCount: context.watch<InfiniteList>().matchingLogList.length,
           itemBuilder: (BuildContext context, int index) {
@@ -93,41 +93,23 @@ class _MatchingLogPageState extends State<MatchingLogPage> {
 }
 
 class MatchingLogDetailPage extends StatefulWidget {
-  final int matchingId;
-  const MatchingLogDetailPage({super.key, required this.matchingId});
+  final int matchId;
+  const MatchingLogDetailPage({super.key, required this.matchId});
 
   @override
   State<MatchingLogDetailPage> createState() => _MatchingLogDetailPageState();
 }
 
 class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
-  final MyMap _mapController = MyMap();
   late DetailInfo? _matchingDetail;
-
-  Future<bool> initDetailPage() async {
-    //이 페이지에서 쓸 맵 컨트롤러를 초기화한다.
-    bool result = await _mapController.initialize();
-    if (result == false) return false;
-
-    //요청 세부사항을 가져온다.
-    _matchingDetail =
-        await MatchingLogApi.getMatchingLogDetail(widget.matchingId);
-    if (_matchingDetail == null) return false;
-
-    //요청자의 좌표를 표시한다.
-    _mapController.marking(
-      _matchingDetail!.careLoaction.latitude,
-      _matchingDetail!.careLoaction.longitude,
-    );
-    return true;
-  }
+  late final GoogleMapController _mapController;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("매칭 세부 정보")),
       body: FutureBuilder(
-        future: initDetailPage(),
+        future: MatchingLogApi.getMatchingLogDetail(widget.matchId),
         builder: buildDetail,
       ),
     );
@@ -140,6 +122,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
       return Center(child: Text('Error: ${snapshot.error}'));
     }
 
+    _matchingDetail = snapshot.data;
     //TODO:리스트에서 이미지오류날때 이거쓰삼
     dynamic image = _matchingDetail!.dogImage == null
         ? const AssetImage('assets/images/profile_test.png')
@@ -151,6 +134,8 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     int reward = _matchingDetail!.reward;
     String status = _matchingDetail!.status;
     bool isRequester = _matchingDetail!.requester!;
+    LatLng location = _matchingDetail!.careLoaction;
+    context.read<LocationInfo>().setOnlySingleMarker(location);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -161,7 +146,6 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
         Expanded(
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
-              double height = constraints.maxHeight;
               double width = constraints.maxWidth;
 
               return SingleChildScrollView(
@@ -197,7 +181,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                                   width: (width - 32) / 3,
                                   color: Colors.grey[300],
                                 ),
-                                Text('현재 $status'),
+                                Text(status),
                               ]),
                               buildInfoButton(
                                   context, userId, dogId, isRequester),
@@ -205,9 +189,13 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                           ),
                         ),
                       ),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: buildAddress(context, location),
+                      ),
                       customCard(
                         width: width,
-                        height: (height / 3),
+                        height: (width / 4),
                         child: Text(description),
                       ),
                       Padding(
@@ -216,7 +204,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                           onPressed: () {
                             context.push(
                               RouterPath.chatting,
-                              extra: {'matchId': widget.matchingId},
+                              extra: {'matchId': widget.matchId},
                             );
                           },
                           child: const Text('chatting'),
@@ -239,16 +227,33 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     );
   }
 
+  FutureBuilder<String?> buildAddress(BuildContext context, LatLng location) {
+    return FutureBuilder(
+      future: context
+          .read<LocationInfo>()
+          .getPlaceAddress(location.latitude, location.longitude),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const LinearProgressIndicator();
+        } else if (snapshot.hasError || snapshot.data == null) {
+          return const Text('address null');
+        }
+        return Text(snapshot.data!);
+      },
+    );
+  }
+
   GoogleMap buildGoogleMap() {
+    context.read<LocationInfo>().clearMarkers();
     return GoogleMap(
       onMapCreated: (GoogleMapController controller) {
-        _mapController.setMapController(ctrl: controller);
+        _mapController = controller;
       },
       initialCameraPosition: CameraPosition(
         target: _matchingDetail!.careLoaction,
         zoom: 15,
       ),
-      markers: _mapController.markers,
+      markers: context.watch<LocationInfo>().markers,
     );
   }
 
@@ -297,7 +302,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
           ),
           onPressed: () {
             context.push(
-                '${RouterPath.dogProfile}?dogId=$dogId&detailId=${widget.matchingId}');
+                '${RouterPath.dogProfile}?dogId=$dogId&detailId=${widget.matchId}');
           },
           child: const Padding(
             padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
@@ -315,7 +320,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
           onPressed: () async {
             context.go(
               RouterPath.matchLogReviewDetail,
-              extra: {'matchId': widget.matchingId},
+              extra: {'matchId': widget.matchId},
             );
           },
           child: const Text('받은 리뷰 보기'),
@@ -339,7 +344,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
               onPressed: () {
                 context.push(
                   RouterPath.paymentProcess,
-                  extra: {'matchId': widget.matchingId},
+                  extra: {'matchId': widget.matchId},
                 );
               },
               child: const Text('결제하기'),
@@ -347,8 +352,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
           ),
           ElevatedButton(
             onPressed: () async {
-              await MatchingLogApi.cancel(widget.matchingId)
-                  .then((bool result) {
+              await MatchingLogApi.cancel(widget.matchId).then((bool result) {
                 if (result == true) {
                   _showResult(
                     context,
@@ -373,7 +377,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
             padding: const EdgeInsets.only(bottom: 8),
             child: ElevatedButton(
               onPressed: () async {
-                await MatchingLogApi.complete(widget.matchingId).then(
+                await MatchingLogApi.complete(widget.matchId).then(
                   (bool result) {
                     if (result == true) {
                       _showResult(
@@ -393,7 +397,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
           ),
           ElevatedButton(
             onPressed: () async {
-              await PaymentApi.refund(widget.matchingId).then((bool result) {
+              await PaymentApi.refund(widget.matchId).then((bool result) {
                 if (result == true) {
                   _showResult(
                     context,
@@ -415,7 +419,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
         onPressed: () async {
           context.push(
             RouterPath.matchLogRegistReview,
-            extra: {'matchId': widget.matchingId},
+            extra: {'matchId': widget.matchId},
           );
         },
         child: const Text('리뷰'),
