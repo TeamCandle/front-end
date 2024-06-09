@@ -29,6 +29,7 @@ class MyRequirementListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.read<InfiniteList>().clearAllList;
     return Scaffold(
       appBar: AppBar(title: const Text("내 요청 목록")),
       body: FutureBuilder(
@@ -106,7 +107,7 @@ class MyRequirementDetailPage extends StatelessWidget {
   const MyRequirementDetailPage({super.key, required this.requirementId});
 
   Future<void> goBack(BuildContext context) async {
-    context.read<InfiniteList>().releaseList();
+    context.read<InfiniteList>().clearAllList();
     await context
         .read<InfiniteList>()
         .updateMyRequestList()
@@ -499,7 +500,7 @@ class _RequestRegistrationFormPageState
   Widget build(BuildContext context) {
     debugPrint('!!! received location : ${widget.location}');
     Future<void> goBack() async {
-      context.read<InfiniteList>().releaseList();
+      context.read<InfiniteList>().clearAllList();
       await context.read<InfiniteList>().updateMyRequestList().then((_) {
         context.go(RouterPath.myRequirement);
       });
@@ -714,7 +715,7 @@ class _RequestRegistrationFormPageState
               ElevatedButton(
                 onPressed: () async {
                   if (result == true) {
-                    context.read<InfiniteList>().releaseList();
+                    context.read<InfiniteList>().clearAllList();
                     await context
                         .read<InfiniteList>()
                         .updateMyRequestList()

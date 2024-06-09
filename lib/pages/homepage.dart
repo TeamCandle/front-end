@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    dynamic settingImage = context.watch<UserInfo>().image == null
+    dynamic profileImageOnDrawer = context.watch<UserInfo>().image == null
         ? const AssetImage('assets/images/profile_test.png')
         : MemoryImage(context.watch<UserInfo>().image!);
 
@@ -78,7 +78,7 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => Scaffold.of(context).openEndDrawer(),
                 child: CircleAvatar(
                   radius: 30,
-                  backgroundImage: settingImage,
+                  backgroundImage: profileImageOnDrawer,
                 ),
               ),
             ),
@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> {
               margin: const EdgeInsets.all(30),
               child: CircleAvatar(
                 radius: MediaQuery.of(context).size.width / 5,
-                backgroundImage: settingImage,
+                backgroundImage: profileImageOnDrawer,
               ),
             ),
             customContainer(child: Text('내 프로필')),
@@ -103,98 +103,149 @@ class _HomePageState extends State<HomePage> {
           ]),
         ),
       ),
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            FutureBuilder(
-                future: MatchingLogApi.getUpcoming(),
-                builder: (context, snapshot) {
-                  debugPrint(
-                      '!!! get upcoming of ${context.read<UserInfo>().name}, id : ${context.read<UserInfo>().id}');
+      body: LayoutBuilder(builder: (context, constraints) {
+        double width = constraints.maxWidth;
+        double boxHeight = constraints.maxWidth / 2;
 
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return cunstomHomeMenu(
-                      child: const Center(child: CircularProgressIndicator()),
-                    );
-                  } else if (snapshot.data == null) {
-                    return cunstomHomeMenu(
-                      child: const Center(
-                        child: Text('매칭정보 없음'),
-                      ),
-                    );
-                  }
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FutureBuilder(
+                  future: MatchingLogApi.getUpcoming(),
+                  builder: (context, snapshot) {
+                    debugPrint(
+                        '!!! get upcoming: ${context.read<UserInfo>().id}');
 
-                  int? matchId = snapshot.data!['id'];
-                  var image = snapshot.data!['image'] == null
-                      ? Image.asset('assets/images/empty_image.png')
-                      : Image.memory(base64Decode(snapshot.data!['image']));
-                  String breed = snapshot.data!['breed'];
-                  String careType = snapshot.data!['careType'];
-                  String time = snapshot.data!['time'];
-                  String status = snapshot.data!['status'];
-
-                  return cunstomHomeMenu(
-                    child: Center(
-                      child: Column(children: [
-                        const Text('현재 매칭 중인 정보가 있음'),
-                        Text('id : $matchId'),
-                        Text('breed : $breed'),
-                        Text('careType : $careType'),
-                        Text('time : $time'),
-                        Text('status : $status'),
-                      ]),
-                    ),
-                    onTap: () {
-                      context.go(
-                        RouterPath.currentDetail,
-                        extra: {'detailId': matchId},
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return customHomeMenu(
+                        child: const Center(child: CircularProgressIndicator()),
                       );
-                    },
-                  );
-                }),
-            cunstomHomeMenu(
-              onTap: () => context.go(RouterPath.allRequirement),
-              child: const Center(child: Text('탐색하기')),
+                    } else if (snapshot.data == null) {
+                      return customHomeMenu(
+                        child: const Center(
+                          child: Text('매칭정보 없음'),
+                        ),
+                      );
+                    }
+
+                    int? matchId = snapshot.data!['id'];
+                    var image = snapshot.data!['image'] == null
+                        ? Image.asset('assets/images/empty_image.png')
+                        : Image.memory(base64Decode(snapshot.data!['image']));
+                    String breed = snapshot.data!['breed'];
+                    String careType = snapshot.data!['careType'];
+                    String time = snapshot.data!['time'];
+                    String status = snapshot.data!['status'];
+
+                    return customHomeMenu(
+                      child: Center(
+                        child: Column(children: [
+                          const Text('현재 매칭 중인 정보가 있음'),
+                          Text('id : $matchId'),
+                          Text('breed : $breed'),
+                          Text('careType : $careType'),
+                          Text('time : $time'),
+                          Text('status : $status'),
+                        ]),
+                      ),
+                      onTap: () {
+                        context.go(
+                          RouterPath.currentDetail,
+                          extra: {'detailId': matchId},
+                        );
+                      },
+                    );
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                  child: GestureDetector(
+                    onTap: () => context.go(RouterPath.allRequirement),
+                    child: customImageHomeMenu(
+                      assetImagePath: 'assets/images/dog and people.jpeg',
+                      height: boxHeight,
+                      width: width,
+                      text: '탐색하기',
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                  child: GestureDetector(
+                    onTap: () => context.go(RouterPath.myRequirement),
+                    child: customImageHomeMenu(
+                      assetImagePath: 'assets/images/dog in bush.jpeg',
+                      height: boxHeight,
+                      width: width,
+                      text: '돌봄 요청하기',
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                  child: customImageHomeMenu(
+                    assetImagePath: 'assets/images/dog with a person.jpeg',
+                    height: boxHeight,
+                    width: width,
+                    text: '프리미엄 서비스 신청',
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                  child: customImageHomeMenu(
+                    assetImagePath: 'assets/images/dog in forest.jpeg',
+                    height: boxHeight,
+                    width: width,
+                    text: '커뮤니티에서 소통해보세요',
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                  child: GestureDetector(
+                    onTap: () => context.go(RouterPath.matchLog),
+                    child: customImageHomeMenu(
+                      assetImagePath:
+                          'assets/images/a person walking with dog.jpeg',
+                      height: boxHeight,
+                      width: width,
+                      text: '매칭 기록 열람하기',
+                    ),
+                  ),
+                ),
+                customHomeMenu(
+                  onTap: () => context.go(RouterPath.myProfile),
+                  child: const Center(child: Text("profile")),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<UserInfo>().logOut();
+                    context.go('/');
+                  },
+                  child: Text('log out'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {});
+                  },
+                  child: Text('setState'),
+                ),
+                Text(
+                  CombinedNotificationService.details!.notificationResponse ==
+                          null
+                      ? "response null"
+                      : "response received",
+                ),
+                //payload : notification show 시 payload
+                Text(
+                    '${CombinedNotificationService.details!.notificationResponse?.payload}'),
+              ],
             ),
-            cunstomHomeMenu(
-              onTap: () => context.go(RouterPath.myRequirement),
-              child: const Center(child: Text("돌봄 요청하기")),
-            ),
-            cunstomHomeMenu(child: const Center(child: Text("premium"))),
-            cunstomHomeMenu(child: const Center(child: Text("community"))),
-            cunstomHomeMenu(
-              onTap: () => context.go(RouterPath.matchLog),
-              child: const Center(child: Text("나의 매칭 기록")),
-            ),
-            cunstomHomeMenu(
-              onTap: () => context.go(RouterPath.myProfile),
-              child: const Center(child: Text("profile")),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                context.read<UserInfo>().logOut();
-                context.go('/');
-              },
-              child: Text('log out'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {});
-              },
-              child: Text('setState'),
-            ),
-            Text(
-              CombinedNotificationService.details!.notificationResponse == null
-                  ? "response null"
-                  : "response received",
-            ),
-            //payload : notification show 시 payload
-            Text(
-                '${CombinedNotificationService.details!.notificationResponse?.payload}'),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 }

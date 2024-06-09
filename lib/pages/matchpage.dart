@@ -25,6 +25,7 @@ class MatchingLogPage extends StatefulWidget {
 class _MatchingLogPageState extends State<MatchingLogPage> {
   @override
   Widget build(BuildContext context) {
+    context.read<InfiniteList>().clearAllList;
     return Scaffold(
       appBar: AppBar(title: const Text("매칭 기록")),
       body: FutureBuilder(
@@ -448,7 +449,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (result == true) {
-                    context.read<InfiniteList>().releaseList();
+                    context.read<InfiniteList>().clearAllList();
                     await context
                         .read<InfiniteList>()
                         .updateMatchingLogList()

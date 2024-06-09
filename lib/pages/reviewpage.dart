@@ -293,7 +293,7 @@ class _ReviewForRequesterPageState extends State<ReviewForRequesterPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (result == true) {
-                    context.read<InfiniteList>().releaseList();
+                    context.read<InfiniteList>().clearAllList();
                     await context
                         .read<InfiniteList>()
                         .updateMatchingLogList()

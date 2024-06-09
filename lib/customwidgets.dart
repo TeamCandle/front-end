@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
+import 'package:glassmorphism_ui/glassmorphism_ui.dart';
 
 Widget customListTile({
   double? height,
@@ -118,7 +121,7 @@ Widget customTextField({
   );
 }
 
-Widget cunstomHomeMenu({
+Widget customHomeMenu({
   double? height,
   double? width,
   Widget? child,
@@ -144,6 +147,78 @@ Widget cunstomHomeMenu({
         ],
       ),
       child: child,
+    ),
+  );
+}
+
+Widget customImageHomeMenu({
+  required double width,
+  required double height,
+  required String text,
+  required String assetImagePath,
+}) {
+  return Container(
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(15),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.2),
+          spreadRadius: 1,
+          blurRadius: 1,
+          offset: const Offset(1, 1),
+        ),
+      ],
+    ),
+    child: Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(15),
+          child: Image.asset(
+            assetImagePath,
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          child: Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 1,
+                      blurRadius: 1,
+                      offset: const Offset(1, 1),
+                    ),
+                  ],
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.0),
+                      Colors.white.withOpacity(1),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                width: width,
+                height: 20,
+              ),
+              Container(
+                decoration: BoxDecoration(color: Colors.white),
+                width: width,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(text),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     ),
   );
 }

@@ -185,7 +185,7 @@ class InfiniteList extends ChangeNotifier {
     }
   }
 
-  void releaseList() {
+  void clearAllList() {
     _allRequestOffset = 1;
     allRequestList = [];
     _myRequestOffset = 1;

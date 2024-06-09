@@ -29,12 +29,6 @@ class _AllRequestPageState extends State<AllRequestPage> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
-  void dispose() {
-    context.read<InfiniteList>().releaseList();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("모든 요청사항")),
@@ -375,8 +369,9 @@ class MyApplicationListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.read<InfiniteList>().clearAllList;
     return Scaffold(
-      appBar: AppBar(title: Text("내 신청 목록")),
+      appBar: AppBar(title: const Text("내 신청 목록")),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
         child: FutureBuilder(
