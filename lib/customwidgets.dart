@@ -205,7 +205,7 @@ Widget customImageHomeMenu({
                   ),
                 ),
                 width: width,
-                height: 20,
+                height: 30,
               ),
               Container(
                 decoration: BoxDecoration(color: Colors.white),

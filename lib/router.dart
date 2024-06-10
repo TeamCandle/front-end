@@ -34,6 +34,9 @@ class RouterPath {
   static const String allRequirement = '$home/all_requirement';
   static const String allRequirementDetail = '$allRequirement/detail';
 
+  static const String allRequirementFilter = '$allRequirement/filter';
+  static const String allRequirementFiltered = '$allRequirementFilter/filtered';
+
   static const String myApplication = '$allRequirement/my_application';
   static const String myApplicationDetail = '$myApplication/detail';
 
@@ -146,6 +149,29 @@ final GoRouter NewRoot = GoRouter(
                             state.extra as Map<String, dynamic>?;
                         final int detailId = data?['detailId'];
                         return MyApplicationDetailPage(applicationId: detailId);
+                      },
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'filter',
+                  builder: (context, state) => FilterPage(),
+                  routes: [
+                    GoRoute(
+                      path: 'filtered',
+                      builder: (context, state) {
+                        final Map<String, dynamic>? data =
+                            state.extra as Map<String, dynamic>?;
+                        final LatLng targetLocation = data?['targetLocation'];
+                        final int radius = data?['radius'];
+                        final String size = data?['size'];
+                        final String careType = data?['careType'];
+                        return FilteredListPage(
+                          targetLocation: targetLocation,
+                          radius: radius,
+                          size: size,
+                          careType: careType,
+                        );
                       },
                     ),
                   ],

@@ -372,37 +372,42 @@ class SelectLocationPage extends StatefulWidget {
 
 class _SelectLocationPageState extends State<SelectLocationPage> {
   late final GoogleMapController _mapController;
+  late LatLng myLocation;
+  LatLng? targetLocation;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('수행 위치를 선택해주세요')),
       body: FutureBuilder(
-        future: context.read<LocationInfo>().setMyLocation(),
+        future: context.read<LocationInfo>().getMyLocation(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
+          } else if (snapshot.hasError || snapshot.data == null) {
             return const Center(child: Text('Err'));
           }
+
+          myLocation = snapshot.data!;
+          context.watch<LocationInfo>().setOnlySingleMarker(myLocation);
 
           return GoogleMap(
             onMapCreated: (GoogleMapController controller) {
               _mapController = controller;
             },
             initialCameraPosition: CameraPosition(
-              target: context.watch<LocationInfo>().myLocation!,
+              target: myLocation,
               zoom: 15,
             ),
             markers: context.watch<LocationInfo>().markers,
             onTap: (LatLng argument) async {
-              context.read<LocationInfo>().targetLocation = argument;
-              context.read<LocationInfo>().setOnlySingleMarker(argument);
+              targetLocation = argument;
+              context.read<LocationInfo>().setOnlySingleMarker(targetLocation!);
               debugPrint(
-                '[log] marking on tap ${context.read<LocationInfo>().targetLocation}',
+                '[log] marking on tap $targetLocation',
               );
               await _mapController
-                  .animateCamera(CameraUpdate.newLatLng(argument));
+                  .animateCamera(CameraUpdate.newLatLng(targetLocation!));
             },
           );
         },
@@ -413,12 +418,10 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
             padding: const EdgeInsets.all(16),
             child: ElevatedButton(
               onPressed: () async {
-                LatLng? location = context.read<LocationInfo>().myLocation;
-                if (location == null) return;
                 context.go(
                   RouterPath.myRequirementRegistForm,
                   extra: {
-                    'location': location,
+                    'location': myLocation,
                     'dogId': widget.dogId,
                   },
                 );
@@ -432,12 +435,11 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
             padding: const EdgeInsets.all(16),
             child: ElevatedButton(
               onPressed: () {
-                LatLng? location = context.read<LocationInfo>().targetLocation;
-                if (location == null) return;
+                if (targetLocation == null) return;
                 context.go(
                   RouterPath.myRequirementRegistForm,
                   extra: {
-                    'location': location,
+                    'location': targetLocation,
                     'dogId': widget.dogId,
                   },
                 );

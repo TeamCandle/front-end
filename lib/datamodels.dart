@@ -2,12 +2,15 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:convert';
 //files
 import 'constants.dart';
 import 'api.dart';
+import 'mymap.dart';
 
 //data model with provider
 class UserInfo extends ChangeNotifier {
@@ -86,6 +89,9 @@ class InfiniteList extends ChangeNotifier {
   int _allRequestOffset = 1;
   List<dynamic> allRequestList = [];
 
+  int _filteredListOffset = 1;
+  List<dynamic> filteredList = [];
+
   int _myRequestOffset = 1;
   List<dynamic> myRequestList = [];
 
@@ -98,9 +104,11 @@ class InfiniteList extends ChangeNotifier {
   int _reviewOffset = 1;
   List<dynamic> reviewList = [];
 
-  Future<void> updateAllRequestList() async {
-    List<dynamic>? data =
-        await RequirementApi.getAllRequirementList(offset: _allRequestOffset);
+  Future<void> updateAllRequestList({LatLng? myLocation}) async {
+    List<dynamic>? data = await RequirementApi.getAllRequirementList(
+      offset: _allRequestOffset,
+      myLocation: myLocation,
+    );
     if (data == null) {
       debugPrint('[log] null from updateAllRequestList');
       return;
@@ -110,6 +118,33 @@ class InfiniteList extends ChangeNotifier {
     } else {
       allRequestList.addAll(data);
       ++_allRequestOffset;
+      notifyListeners();
+      return;
+    }
+  }
+
+  Future<void> updateFilteredList(
+    LatLng location,
+    int radius,
+    String dogSize,
+    String careType,
+  ) async {
+    List<dynamic>? data = await RequirementApi.getFilteredList(
+      offset: _filteredListOffset,
+      location: location,
+      radius: radius,
+      dogSize: dogSize,
+      careType: careType,
+    );
+    if (data == null) {
+      debugPrint('[log] null from updateFilteredList');
+      return;
+    } else if (data.isEmpty) {
+      debugPrint('[log] empty from updateFilteredList');
+      return;
+    } else {
+      filteredList.addAll(data);
+      ++_filteredListOffset;
       notifyListeners();
       return;
     }
@@ -188,6 +223,8 @@ class InfiniteList extends ChangeNotifier {
   void clearAllList() {
     _allRequestOffset = 1;
     allRequestList = [];
+    _filteredListOffset = 1;
+    filteredList = [];
     _myRequestOffset = 1;
     myRequestList = [];
     _myApplicationOffset = 1;
@@ -196,6 +233,7 @@ class InfiniteList extends ChangeNotifier {
     matchingLogList = [];
     _reviewOffset = 1;
     reviewList = [];
+
     notifyListeners();
     return;
   }

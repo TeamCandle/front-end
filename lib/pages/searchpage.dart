@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_doguber_frontend/datamodels.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:provider/provider.dart';
 //files
 import '../constants.dart';
@@ -26,44 +27,46 @@ class AllRequestPage extends StatefulWidget {
 }
 
 class _AllRequestPageState extends State<AllRequestPage> {
-  final TextEditingController _searchController = TextEditingController();
+  Future<bool> initialize() async {
+    await context
+        .read<LocationInfo>()
+        .getMyLocation()
+        .then((LatLng? myLocation) async {
+      if (myLocation == null) return false;
+      await context.read<InfiniteList>().updateAllRequestList();
+      //TODO: 여기에 myLocation 넣어서 마무리
+    });
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("모든 요청사항")),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(children: [
-              Expanded(
-                child: customSearchField(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter Text',
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                style: const ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(Color(0xFFa2e1a6)),
-                ),
-                icon: const Icon(Icons.filter_list_rounded),
-              ),
-            ]),
-            Expanded(
-              child: FutureBuilder(
-                future: context.read<InfiniteList>().updateAllRequestList(),
-                builder: buildAllRequirementList,
-              ),
+      appBar: AppBar(
+        title: const Text("모든 요청사항"),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            child: ElevatedButton(
+              onPressed: () => context.go(RouterPath.allRequirementFilter),
+              child: const Icon(Icons.filter_list_rounded),
             ),
-          ],
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: FutureBuilder(
+          future: initialize(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return const Center(child: Text('error!'));
+            }
+
+            return buildAllRequirementList(context);
+          },
         ),
       ),
       floatingActionButton: Padding(
@@ -81,35 +84,343 @@ class _AllRequestPageState extends State<AllRequestPage> {
     );
   }
 
-  Widget buildAllRequirementList(BuildContext context, AsyncSnapshot snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (snapshot.hasError) {
-      return const Center(child: Text('error!'));
-    }
+  Widget buildAllRequirementList(BuildContext context) {
+    var allRequestList = context.watch<InfiniteList>().allRequestList;
 
     return ListView.builder(
-      itemCount: context.watch<InfiniteList>().allRequestList.length,
+      itemCount: allRequestList.length,
       itemBuilder: (BuildContext context, int index) {
-        if (index == context.watch<InfiniteList>().allRequestList.length - 3) {
-          context.read<InfiniteList>().updateAllRequestList();
+        // if (index == allRequestList.length - 3) {
+        //   context.read<InfiniteList>().updateAllRequestList();
+        // }
+
+        dynamic image = allRequestList[index]['image'] == null
+            ? const AssetImage('assets/images/empty_image.png')
+            : MemoryImage(base64Decode(allRequestList[index]['image']));
+        int id = allRequestList[index]['id'];
+        String careType = allRequestList[index]['careType'];
+        String time = allRequestList[index]['time'];
+        String breed = allRequestList[index]['breed'];
+        String status = allRequestList[index]['status'];
+
+        return customListTile(
+          leading: CircleAvatar(
+            radius: 30,
+            backgroundImage: image,
+          ),
+          title: Text('$breed\t$careType'),
+          subtitle: Text(time),
+          trailing: Text(status),
+          onTap: () {
+            context.go(
+              RouterPath.allRequirementDetail,
+              extra: {'detailId': id},
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+//filter page
+class FilterPage extends StatefulWidget {
+  const FilterPage({super.key});
+
+  @override
+  State<FilterPage> createState() => _FilterPageState();
+}
+
+class _FilterPageState extends State<FilterPage> {
+  late GoogleMapController _mapController;
+  LatLng? _targetLocation;
+  LatLng? _myLocation;
+  int _sliderValue = 5;
+  final List<bool> _sizeValues = [false, false, false];
+  String _careValue = CareType.walking;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('필터 설정')),
+      body: FutureBuilder(
+        future: context.read<LocationInfo>().getMyLocation(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError || snapshot.data == null) {
+            return const Center(child: Text('err'));
+          }
+
+          _myLocation = snapshot.data!;
+          context.read<LocationInfo>().clearMarkers;
+          return Column(children: [
+            Expanded(
+              child: GoogleMap(
+                onMapCreated: (GoogleMapController controller) {
+                  _mapController = controller;
+                },
+                initialCameraPosition: CameraPosition(
+                  target: _myLocation!,
+                  zoom: 15,
+                ),
+                onTap: (argument) async {
+                  _targetLocation = argument;
+                  context
+                      .read<LocationInfo>()
+                      .setOnlySingleMarker(_targetLocation!);
+                  await _mapController
+                      .animateCamera(CameraUpdate.newLatLng(_targetLocation!));
+                },
+                markers: context.watch<LocationInfo>().markers,
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: buildAddress(context),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: buildRangeSlider(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: buildSizeToggle(context),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: buildCareDropdown(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          LatLng? location = _targetLocation ?? _myLocation;
+                          String size;
+                          if (_sizeValues[0] == true) {
+                            size = DogSize.small;
+                          } else if (_sizeValues[1] == true) {
+                            size = DogSize.medium;
+                          } else if (_sizeValues[2] == true) {
+                            size = DogSize.large;
+                          } else {
+                            return;
+                          }
+
+                          context.go(
+                            RouterPath.allRequirementFiltered,
+                            extra: {
+                              'targetLocation': location,
+                              'radius': _sliderValue,
+                              'size': size,
+                              'careType': _careValue,
+                            },
+                          );
+                        },
+                        child: const Text('설정 완료'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ]);
+        },
+      ),
+    );
+  }
+
+  Widget buildAddress(BuildContext context) {
+    if (_targetLocation == null) {
+      return customContainer(child: Text(''));
+    }
+    return customContainer(
+      child: FutureBuilder(
+        future: context.read<LocationInfo>().getPlaceAddress(
+              _targetLocation!.latitude,
+              _targetLocation!.longitude,
+            ),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Text('');
+          } else if (snapshot.hasError || snapshot.data == null) {
+            return const Text('something wrong..');
+          }
+          return Text(snapshot.data!);
+        },
+      ),
+    );
+  }
+
+  Widget buildCareDropdown() {
+    return customContainer(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          const Text('유형'),
+          DropdownButton<String>(
+            value: _careValue,
+            onChanged: (String? value) {
+              setState(() => _careValue = value!);
+            },
+            items: const [
+              DropdownMenuItem<String>(
+                value: CareType.walking,
+                child: Text('산책'),
+              ),
+              DropdownMenuItem<String>(
+                value: CareType.boarding,
+                child: Text('이동'),
+              ),
+              DropdownMenuItem<String>(
+                value: CareType.grooming,
+                child: Text('미용/단장'),
+              ),
+              DropdownMenuItem<String>(
+                value: CareType.playtime,
+                child: Text('훈련/놀아주기'),
+              ),
+              DropdownMenuItem<String>(
+                value: CareType.etc,
+                child: Text('기타'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildSizeToggle(BuildContext context) {
+    return customContainer(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text('크기'),
+          ToggleButtons(
+            isSelected: _sizeValues,
+            constraints: BoxConstraints.expand(
+                width: MediaQuery.of(context).size.width / 5),
+            onPressed: (int index) {
+              setState(() {
+                for (int i = 0; i < _sizeValues.length; i++) {
+                  if (i == index) {
+                    _sizeValues[i] = true;
+                  } else {
+                    _sizeValues[i] = false;
+                  }
+                }
+              });
+            },
+            children: const <Widget>[
+              Text('소형'),
+              Text('중형'),
+              Text('대형'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildRangeSlider() {
+    return customContainer(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text('범위   $_sliderValue'),
+          Expanded(
+            child: Slider(
+              value: _sliderValue.toDouble(),
+              min: 5,
+              max: 10,
+              divisions: 5,
+              label: _sliderValue.toString(),
+              onChanged: (double value) {
+                setState(() => _sliderValue = value.round());
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FilteredListPage extends StatefulWidget {
+  final LatLng targetLocation;
+  final int radius;
+  final String size;
+  final String careType;
+
+  const FilteredListPage({
+    super.key,
+    required this.targetLocation,
+    required this.radius,
+    required this.size,
+    required this.careType,
+  });
+
+  @override
+  State<FilteredListPage> createState() => _FilteredListPageState();
+}
+
+class _FilteredListPageState extends State<FilteredListPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("필터링 결과")),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: FutureBuilder(
+          future: context.read<InfiniteList>().updateFilteredList(
+                widget.targetLocation,
+                widget.radius,
+                widget.size,
+                widget.careType,
+              ),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return const Center(child: Text('error!'));
+            }
+
+            return buildList(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget buildList(BuildContext context) {
+    var filteredList = context.watch<InfiniteList>().filteredList;
+
+    return ListView.builder(
+      itemCount: filteredList.length,
+      itemBuilder: (BuildContext context, int index) {
+        if (index == filteredList.length - 3) {
+          context.read<InfiniteList>().updateFilteredList(
+                widget.targetLocation,
+                widget.radius,
+                widget.size,
+                widget.careType,
+              );
         }
 
-        dynamic image = context.watch<InfiniteList>().allRequestList[index]
-                    ['image'] ==
-                null
+        dynamic image = filteredList[index]['image'] == null
             ? const AssetImage('assets/images/empty_image.png')
-            : MemoryImage(base64Decode(
-                context.read<InfiniteList>().allRequestList[index]['image']));
-        int id = context.read<InfiniteList>().allRequestList[index]['id'];
-        String careType =
-            context.watch<InfiniteList>().allRequestList[index]['careType'];
-        String time =
-            context.watch<InfiniteList>().allRequestList[index]['time'];
-        String breed =
-            context.watch<InfiniteList>().allRequestList[index]['breed'];
-        String status =
-            context.watch<InfiniteList>().allRequestList[index]['status'];
+            : MemoryImage(base64Decode(filteredList[index]['image']));
+        int id = filteredList[index]['id'];
+        String careType = filteredList[index]['careType'];
+        String time = filteredList[index]['time'];
+        String breed = filteredList[index]['breed'];
+        String status = filteredList[index]['status'];
 
         return customListTile(
           leading: CircleAvatar(

@@ -88,7 +88,7 @@ class _HomePageState extends State<HomePage> {
       ),
       endDrawer: Drawer(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
           child: ListView(children: [
             Container(
               margin: const EdgeInsets.all(30),
@@ -97,9 +97,18 @@ class _HomePageState extends State<HomePage> {
                 backgroundImage: profileImageOnDrawer,
               ),
             ),
-            customContainer(child: Text('내 프로필')),
-            customContainer(child: Text('로그아웃')),
-            customContainer(child: Text('설정')),
+            customHomeMenu(
+              onTap: () => context.go(RouterPath.myProfile),
+              child: Text('내 프로필'),
+            ),
+            customHomeMenu(
+              onTap: () {
+                context.read<UserInfo>().logOut();
+                context.go('/');
+              },
+              child: Text('로그아웃'),
+            ),
+            customHomeMenu(child: Text('설정')),
           ]),
         ),
       ),
@@ -140,23 +149,42 @@ class _HomePageState extends State<HomePage> {
                     String time = snapshot.data!['time'];
                     String status = snapshot.data!['status'];
 
-                    return customHomeMenu(
-                      child: Center(
-                        child: Column(children: [
-                          const Text('현재 매칭 중인 정보가 있음'),
-                          Text('id : $matchId'),
-                          Text('breed : $breed'),
-                          Text('careType : $careType'),
-                          Text('time : $time'),
-                          Text('status : $status'),
-                        ]),
+                    return Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFFa2e1a6).withOpacity(0.5),
+                              offset: Offset(0, -5),
+                              spreadRadius: 0,
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: customHomeMenu(
+                          child: Center(
+                            child: Column(children: [
+                              const Text(
+                                '현재 진행 중인 매칭 정보입니다',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text('$breed\t$careType'),
+                              Text('$time자 건'),
+                              Text('$status입니다'),
+                            ]),
+                          ),
+                          onTap: () {
+                            context.go(
+                              RouterPath.currentDetail,
+                              extra: {'detailId': matchId},
+                            );
+                          },
+                        ),
                       ),
-                      onTap: () {
-                        context.go(
-                          RouterPath.currentDetail,
-                          extra: {'detailId': matchId},
-                        );
-                      },
                     );
                   },
                 ),
@@ -215,32 +243,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                customHomeMenu(
-                  onTap: () => context.go(RouterPath.myProfile),
-                  child: const Center(child: Text("profile")),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<UserInfo>().logOut();
-                    context.go('/');
-                  },
-                  child: Text('log out'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {});
-                  },
-                  child: Text('setState'),
-                ),
-                Text(
-                  CombinedNotificationService.details!.notificationResponse ==
-                          null
-                      ? "response null"
-                      : "response received",
-                ),
-                //payload : notification show 시 payload
-                Text(
-                    '${CombinedNotificationService.details!.notificationResponse?.payload}'),
               ],
             ),
           ),

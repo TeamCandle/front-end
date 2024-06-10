@@ -538,17 +538,26 @@ class RequirementApi {
   static final AuthApi _auth = AuthApi();
 
   // 전체 요구 리스트 조회
-  static Future<List<dynamic>?> getAllRequirementList(
-      {required int offset}) async {
+  static Future<List<dynamic>?> getAllRequirementList({
+    required int offset,
+    LatLng? myLocation,
+  }) async {
     //데이터 준비
     var url = Uri.parse('${ServerUrl.requirementListUrl}?offset=$offset');
     var header = {
       'Authorization': 'Bearer ${_auth.accessToken}',
       'Content-Type': 'application/json',
     };
-    var body = {
-      'location': {"x": 128.3936, "y": 36.1461}
-    };
+    dynamic body;
+    if (myLocation == null) {
+      body = {
+        'location': {"x": 128.3936, "y": 36.1461}
+      };
+    } else {
+      body = {
+        'location': {"x": myLocation.longitude, "y": myLocation.latitude},
+      };
+    }
 
     //연결
     var response = await HttpMethod.tryPost(
@@ -629,6 +638,50 @@ class RequirementApi {
 
     Map<String, dynamic> tempMap = jsonDecode(response.body);
     List<dynamic> tempList = tempMap['requirements'];
+    return tempList;
+  }
+
+  //필터링 리스트 조회
+  static Future<List<dynamic>?> getFilteredList({
+    required int offset,
+    required LatLng location,
+    required int radius, //5~10
+    required String dogSize,
+    required String careType,
+  }) async {
+    //데이터 준비
+    var url = Uri.parse('${ServerUrl.requirementListUrl}?offset=$offset');
+    var header = {
+      'Authorization': 'Bearer ${_auth.accessToken}',
+      'Content-Type': 'application/json',
+    };
+    var body = {
+      'location': {"x": location!.longitude, "y": location.latitude},
+      'radius': radius,
+      'dogSize': dogSize,
+      'careType': careType,
+    };
+
+    //연결
+    var response = await HttpMethod.tryPost(
+      title: "all requirement list",
+      url: url,
+      header: header,
+      body: body,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    debugPrint('start decode');
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    debugPrint('end decode');
+    debugPrint('start get list');
+    List<dynamic> tempList = tempMap['requirements'];
+    debugPrint('end get list');
+    debugPrint('print all item');
+
     return tempList;
   }
 

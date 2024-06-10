@@ -6,7 +6,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 class LocationInfo extends ChangeNotifier {
-  LatLng? targetLocation;
   LatLng? myLocation;
   Set<Marker> markers = {};
 
@@ -38,20 +37,29 @@ class LocationInfo extends ChangeNotifier {
   }
 
   // location function
-  Future<void> setMyLocation() async {
+  Future<LatLng?> getMyLocation() async {
     //geolocator의 실행 조건을 모두 검사
     bool locationService = await _checkLocationServiceCanUse();
-    if (locationService == false) return;
+    if (locationService == false) return null;
 
     Position location = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    myLocation = LatLng(location.latitude, location.longitude);
-    notifyListeners();
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    return LatLng(location.latitude, location.longitude);
   }
 
-  void setTargetLocation(LatLng location) {
-    targetLocation = location;
-    notifyListeners();
+  Future<bool> setMyLocation() async {
+    //geolocator의 실행 조건을 모두 검사
+    bool locationService = await _checkLocationServiceCanUse();
+    if (locationService == false) return false;
+
+    Position location = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    myLocation = LatLng(location.latitude, location.longitude);
+    return true;
   }
 
   //marker function
@@ -60,7 +68,7 @@ class LocationInfo extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _setMarker(LatLng location) {
+  void setMarker(LatLng location) {
     Marker marker = Marker(
       markerId: MarkerId(DateTime.now().toString()),
       position: location,
@@ -68,12 +76,6 @@ class LocationInfo extends ChangeNotifier {
     );
     markers.add(marker);
     debugPrint('[log] marked at $location');
-    notifyListeners();
-  }
-
-  Future<void> setMarkersAtMyLocation() async {
-    await setMyLocation();
-    _setMarker(myLocation!);
     notifyListeners();
   }
 

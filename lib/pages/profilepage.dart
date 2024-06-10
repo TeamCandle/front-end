@@ -165,131 +165,132 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
   final ImagePicker _imagePicker = ImagePicker();
   XFile? pickedFile;
 
-  @override
-  Widget build(BuildContext context) {
-    //define function
-    void goBack() async {
-      await context.read<UserInfo>().updateMyProfile().then((_) {
-        context.go(RouterPath.myProfile);
-      });
-    }
+  void goBack() async {
+    await context.read<UserInfo>().updateMyProfile().then((_) {
+      context.go(RouterPath.myProfile);
+    });
+  }
 
-    Future<bool> modifyMyImage() async {
-      if (pickedFile == null) {
-        debugPrint("[!!!] image empty");
-        return true;
-      }
-      return await ProfileApi.modifyMyImageAtServer(image: pickedFile!);
-    }
-
-    void pickImageFromGallery() async {
-      XFile? tempPickedFile;
-      try {
-        tempPickedFile =
-            await _imagePicker.pickImage(source: ImageSource.gallery);
-        if (tempPickedFile == null) {
-          return;
-        }
-      } catch (e) {
-        debugPrint("[!!!] Error picking image: $e");
+  void pickImageFromGallery() async {
+    XFile? tempPickedFile;
+    try {
+      tempPickedFile =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (tempPickedFile == null) {
         return;
       }
-      setState(() {
-        pickedFile = tempPickedFile;
-      });
+    } catch (e) {
+      debugPrint("[!!!] Error picking image: $e");
+      return;
     }
+    setState(() {
+      pickedFile = tempPickedFile;
+    });
+  }
 
-    Future<bool> modifyMyDescription() async {
-      if (_descriptionCtrl.text == "") {
-        debugPrint('[!!!] text empty');
-        return true;
-      }
-      return await ProfileApi.modifyMyDescriptionAtServer(
-          description: _descriptionCtrl.text);
+  Future<bool> modifyMyImage() async {
+    if (pickedFile == null) {
+      debugPrint("[!!!] image empty");
+      return true;
     }
+    return await ProfileApi.modifyMyImageAtServer(image: pickedFile!);
+  }
 
-    //build UI
-    return Scaffold(
-      appBar: AppBar(title: const Text('내 정보 수정')),
-      body: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          double width = constraints.maxWidth;
-          dynamic image = context.read<UserInfo>().image == null
-              ? const AssetImage('assets/images/profile_test.png')
-              : MemoryImage(context.read<UserInfo>().image!);
-          String name = context.read<UserInfo>().name;
-          String gender =
-              context.read<UserInfo>().gender == "male" ? "남성" : "여성";
-          String age = context.read<UserInfo>().age.toString();
+  Future<bool> modifyMyDescription() async {
+    if (_descriptionCtrl.text == "") {
+      debugPrint('[!!!] text empty');
+      return true;
+    }
+    return await ProfileApi.modifyMyDescriptionAtServer(
+        description: _descriptionCtrl.text);
+  }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                GestureDetector(
-                  onTap: pickImageFromGallery,
-                  child: CircleAvatar(
-                    radius: width / 4,
-                    backgroundImage: pickedFile == null
-                        ? image
-                        : FileImage(File(pickedFile!.path)),
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(title: const Text('내 정보 수정')),
+        body: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            double width = constraints.maxWidth;
+            dynamic image = context.read<UserInfo>().image == null
+                ? const AssetImage('assets/images/profile_test.png')
+                : MemoryImage(context.read<UserInfo>().image!);
+            String name = context.read<UserInfo>().name;
+            String gender =
+                context.read<UserInfo>().gender == "male" ? "남성" : "여성";
+            String age = context.read<UserInfo>().age.toString();
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  GestureDetector(
+                    onTap: pickImageFromGallery,
+                    child: CircleAvatar(
+                      radius: width / 4,
+                      backgroundImage: pickedFile == null
+                          ? image
+                          : FileImage(File(pickedFile!.path)),
                     ),
                   ),
-                ),
-                Center(
-                  child: Text(
-                    '$gender\t\t\t$age세',
-                    style: const TextStyle(fontSize: 20.0),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
-                  child: customTextField(
-                    child: TextField(
-                      controller: _descriptionCtrl,
+                  Center(
+                    child: Text(
+                      name,
                       style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
-                        height: 1.2,
-                      ),
-                      maxLines: 4,
-                      minLines: 4,
-                      decoration: const InputDecoration(
-                        hintText: '자기소개를 입력해주세요',
-                        border: InputBorder.none,
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    bool result = await modifyMyImage();
-                    if (result == false) {
-                      debugPrint('log modify image fail');
-                      return;
-                    }
-                    result = await modifyMyDescription();
-                    if (result == false) {
-                      debugPrint('log modify description fail');
-                      return;
-                    }
-                    goBack();
-                  },
-                  child: const Text('수정하기'),
-                ),
-              ],
-            ),
-          );
-        },
+                  Center(
+                    child: Text(
+                      '$gender\t\t\t$age세',
+                      style: const TextStyle(fontSize: 20.0),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+                    child: customTextField(
+                      child: TextField(
+                        controller: _descriptionCtrl,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
+                          height: 1.2,
+                        ),
+                        maxLines: 4,
+                        minLines: 4,
+                        decoration: const InputDecoration(
+                          hintText: '자기소개를 입력해주세요',
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      bool result = await modifyMyImage();
+                      if (result == false) {
+                        debugPrint('log modify image fail');
+                        return;
+                      }
+                      result = await modifyMyDescription();
+                      if (result == false) {
+                        debugPrint('log modify description fail');
+                        return;
+                      }
+                      goBack();
+                    },
+                    child: const Text('수정하기'),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

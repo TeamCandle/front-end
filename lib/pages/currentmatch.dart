@@ -435,78 +435,78 @@ class _ChattingPageState extends State<ChattingPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('채팅')),
       body: FutureBuilder(
-          future: initChatting(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
+        future: initChatting(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => FocusScope.of(context).unfocus(),
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      itemCount: context.watch<ChatData>().messages.length,
-                      itemBuilder: (context, index) {
-                        if (context.read<ChatData>().messages[index]
-                                ['sender'] ==
-                            context.read<UserInfo>().name) {
-                          return BubbleSpecialThree(
-                            text: context.watch<ChatData>().messages[index]
-                                ['message'],
-                            color: Color(0xFFa2e1a6),
-                          );
-                        } else {
-                          return BubbleSpecialThree(
-                            text: context.watch<ChatData>().messages[index]
-                                ['message'],
-                            color: Colors.white,
-                            isSender: false,
-                          );
-                        }
-                      },
-                    ),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => FocusScope.of(context).unfocus(),
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: context.watch<ChatData>().messages.length,
+                    itemBuilder: (context, index) {
+                      if (context.read<ChatData>().messages[index]['sender'] ==
+                          context.read<UserInfo>().name) {
+                        return BubbleSpecialThree(
+                          text: context.watch<ChatData>().messages[index]
+                              ['message'],
+                          color: Color(0xFFa2e1a6),
+                        );
+                      } else {
+                        return BubbleSpecialThree(
+                          text: context.watch<ChatData>().messages[index]
+                              ['message'],
+                          color: Colors.white,
+                          isSender: false,
+                        );
+                      }
+                    },
                   ),
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 16.0),
-                        child: customSearchField(
-                          child: TextField(
-                            onTap: _scrollToBottom,
-                            controller: _textController,
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Enter your message',
-                            ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: customSearchField(
+                        child: TextField(
+                          onTap: _scrollToBottom,
+                          controller: _textController,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Enter your message',
                           ),
                         ),
                       ),
                     ),
-                    // 전송 버튼
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                      child: IconButton(
-                        icon: const Icon(Icons.send),
-                        style: const ButtonStyle(
-                          backgroundColor:
-                              WidgetStatePropertyAll(Color(0xFFa2e1a6)),
-                        ),
-                        onPressed: sendMessage,
+                  ),
+                  // 전송 버튼
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: IconButton(
+                      icon: const Icon(Icons.send),
+                      style: const ButtonStyle(
+                        backgroundColor:
+                            WidgetStatePropertyAll(Color(0xFFa2e1a6)),
                       ),
+                      onPressed: sendMessage,
                     ),
-                  ],
-                ),
-              ],
-            );
-          }),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

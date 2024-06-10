@@ -334,41 +334,47 @@ class ReviewForApplicantPage extends StatelessWidget {
             return const Center(child: Text('아직 받은 리뷰가 없습니다.'));
           }
 
-          return customContainer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-                  child: Row(
-                    children: [
-                      RatingBarIndicator(
-                        rating: snapshot.data!['rating'],
-                        itemBuilder: (context, index) {
-                          return const Icon(Icons.star, color: Colors.amber);
-                        },
-                        itemCount: 5,
-                        itemSize: 30.0,
-                        direction: Axis.horizontal,
-                      ),
-                      const Spacer(),
-                    ],
-                  ),
-                ),
-                customTextField(
-                  child: TextField(
-                    controller:
-                        TextEditingController(text: snapshot.data!['text']),
-                    style: const TextStyle(color: Colors.black),
-                    maxLines: 4,
-                    minLines: 4,
-                    enabled: false,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
+          double rating = double.parse(snapshot.data!['rating']);
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: customContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+                    child: Row(
+                      children: [
+                        RatingBarIndicator(
+                          rating: rating,
+                          itemBuilder: (context, index) {
+                            return const Icon(Icons.star, color: Colors.amber);
+                          },
+                          itemCount: 5,
+                          itemSize: 30.0,
+                          direction: Axis.horizontal,
+                        ),
+                        const Spacer(),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  customTextField(
+                    child: TextField(
+                      controller:
+                          TextEditingController(text: snapshot.data!['text']),
+                      style: const TextStyle(color: Colors.black),
+                      maxLines: 4,
+                      minLines: 4,
+                      enabled: false,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
