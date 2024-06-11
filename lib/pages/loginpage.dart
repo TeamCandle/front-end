@@ -110,18 +110,18 @@ class _LogInPageState extends State<LogInPage> {
             );
           }),
         ]),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            AuthApi api = AuthApi();
-            bool result = await api.getDummy();
-            if (result == false) return;
-            await context.read<UserInfo>().updateMyProfile().then((_) {
-              debugPrint('[log] login success!');
-              context.go('/home');
-            });
-          },
-          child: const Text('dummy'),
-        ),
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () async {
+        //     AuthApi api = AuthApi();
+        //     bool result = await api.getDummy();
+        //     if (result == false) return;
+        //     await context.read<UserInfo>().updateMyProfile().then((_) {
+        //       debugPrint('[log] login success!');
+        //       context.go('/home');
+        //     });
+        //   },
+        //   child: const Text('dummy'),
+        // ),
       ),
     );
   }

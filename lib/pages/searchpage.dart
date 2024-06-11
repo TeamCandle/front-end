@@ -135,9 +135,14 @@ class _FilterPageState extends State<FilterPage> {
   late GoogleMapController _mapController;
   LatLng? _targetLocation;
   LatLng? _myLocation;
-  int _sliderValue = 5;
-  final List<bool> _sizeValues = [false, false, false];
-  String _careValue = CareType.walking;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    context.read<LocationInfo>().clearMarkers;
+    context.read<FilterData>().init();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +158,13 @@ class _FilterPageState extends State<FilterPage> {
           }
 
           _myLocation = snapshot.data!;
-          context.read<LocationInfo>().clearMarkers;
+
+          int sliderValue = context.watch<FilterData>().sliderValue;
+          List<bool> sizeValues = context.watch<FilterData>().sizeValues;
+          String? careValue = context.watch<FilterData>().careValue;
+          Set<Marker> markers = context.watch<LocationInfo>().markers;
+          String? address = context.watch<FilterData>().address;
+
           return Column(children: [
             Expanded(
               child: GoogleMap(
@@ -166,13 +177,24 @@ class _FilterPageState extends State<FilterPage> {
                 ),
                 onTap: (argument) async {
                   _targetLocation = argument;
-                  context
+                  context.read<LocationInfo>().setOnlySingleMarker(
+                        _targetLocation!,
+                      );
+                  await context
                       .read<LocationInfo>()
-                      .setOnlySingleMarker(_targetLocation!);
-                  await _mapController
-                      .animateCamera(CameraUpdate.newLatLng(_targetLocation!));
+                      .getPlaceAddress(
+                        _targetLocation!.latitude,
+                        _targetLocation!.longitude,
+                      )
+                      .then((str) {
+                    if (str == null) return;
+                    context.read<FilterData>().setAddress(str);
+                  });
+                  await _mapController.animateCamera(CameraUpdate.newLatLng(
+                    _targetLocation!,
+                  ));
                 },
-                markers: context.watch<LocationInfo>().markers,
+                markers: markers,
               ),
             ),
             Expanded(
@@ -182,19 +204,19 @@ class _FilterPageState extends State<FilterPage> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: buildAddress(context),
+                      child: customContainer(child: Text(address ?? "")),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                      child: buildRangeSlider(),
+                      child: buildRangeSlider(sliderValue),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                      child: buildSizeToggle(context),
+                      child: buildSizeToggle(context, sizeValues),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                      child: buildCareDropdown(),
+                      child: buildCareDropdown(careValue),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -202,11 +224,11 @@ class _FilterPageState extends State<FilterPage> {
                         onPressed: () {
                           LatLng? location = _targetLocation ?? _myLocation;
                           String size;
-                          if (_sizeValues[0] == true) {
+                          if (sizeValues[0] == true) {
                             size = DogSize.small;
-                          } else if (_sizeValues[1] == true) {
+                          } else if (sizeValues[1] == true) {
                             size = DogSize.medium;
-                          } else if (_sizeValues[2] == true) {
+                          } else if (sizeValues[2] == true) {
                             size = DogSize.large;
                           } else {
                             return;
@@ -216,9 +238,9 @@ class _FilterPageState extends State<FilterPage> {
                             RouterPath.allRequirementFiltered,
                             extra: {
                               'targetLocation': location,
-                              'radius': _sliderValue,
+                              'radius': sliderValue,
                               'size': size,
-                              'careType': _careValue,
+                              'careType': careValue,
                             },
                           );
                         },
@@ -235,38 +257,16 @@ class _FilterPageState extends State<FilterPage> {
     );
   }
 
-  Widget buildAddress(BuildContext context) {
-    if (_targetLocation == null) {
-      return customContainer(child: Text(''));
-    }
-    return customContainer(
-      child: FutureBuilder(
-        future: context.read<LocationInfo>().getPlaceAddress(
-              _targetLocation!.latitude,
-              _targetLocation!.longitude,
-            ),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Text('');
-          } else if (snapshot.hasError || snapshot.data == null) {
-            return const Text('something wrong..');
-          }
-          return Text(snapshot.data!);
-        },
-      ),
-    );
-  }
-
-  Widget buildCareDropdown() {
+  Widget buildCareDropdown(String? careValue) {
     return customContainer(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           const Text('유형'),
           DropdownButton<String>(
-            value: _careValue,
+            value: careValue,
             onChanged: (String? value) {
-              setState(() => _careValue = value!);
+              context.read<FilterData>().setCareValue(value);
             },
             items: const [
               DropdownMenuItem<String>(
@@ -296,26 +296,18 @@ class _FilterPageState extends State<FilterPage> {
     );
   }
 
-  Widget buildSizeToggle(BuildContext context) {
+  Widget buildSizeToggle(BuildContext context, List<bool> sizeValues) {
     return customContainer(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text('크기'),
+          const Text('크기'),
           ToggleButtons(
-            isSelected: _sizeValues,
+            isSelected: sizeValues,
             constraints: BoxConstraints.expand(
                 width: MediaQuery.of(context).size.width / 5),
             onPressed: (int index) {
-              setState(() {
-                for (int i = 0; i < _sizeValues.length; i++) {
-                  if (i == index) {
-                    _sizeValues[i] = true;
-                  } else {
-                    _sizeValues[i] = false;
-                  }
-                }
-              });
+              context.read<FilterData>().setSizeValues(index);
             },
             children: const <Widget>[
               Text('소형'),
@@ -328,21 +320,21 @@ class _FilterPageState extends State<FilterPage> {
     );
   }
 
-  Widget buildRangeSlider() {
+  Widget buildRangeSlider(int sliderValue) {
     return customContainer(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text('범위   $_sliderValue'),
+          Text('범위   $sliderValue'),
           Expanded(
             child: Slider(
-              value: _sliderValue.toDouble(),
+              value: sliderValue.toDouble(),
               min: 5,
               max: 10,
               divisions: 5,
-              label: _sliderValue.toString(),
+              label: sliderValue.toString(),
               onChanged: (double value) {
-                setState(() => _sliderValue = value.round());
+                context.read<FilterData>().setSliderValue(value.round());
               },
             ),
           ),

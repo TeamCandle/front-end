@@ -77,10 +77,14 @@ class _DogUberAppState extends State<DogUberApp> {
         ChangeNotifierProvider<LocationInfo>(
           create: (context) => LocationInfo(),
         ),
+        ChangeNotifierProvider<FilterData>(
+          create: (context) => FilterData(),
+        ),
       ],
       child: MaterialApp.router(
         //router.dart파일의 화면 트리로 이동.
         routerConfig: NewRoot,
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           //Color(0xFFa2e1a6)
           //Colors.black

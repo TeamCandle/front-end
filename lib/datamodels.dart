@@ -282,6 +282,49 @@ class SettingData extends ChangeNotifier {
   ///
 }
 
+class FilterData extends ChangeNotifier {
+  // 필터링 페이지에 setState를 썻더니 futurebuilder로딩이 수시로 되서
+  //해당 프로바이딩 클래스에 저장 후 사용.
+  int sliderValue = 5; //5~10
+  List<bool> sizeValues = [false, false, false];
+  String? careValue = CareType.walking;
+  String? address;
+
+  void init() {
+    sliderValue = 5;
+    sizeValues = [false, false, false];
+    careValue = CareType.walking;
+    address = null;
+    notifyListeners();
+  }
+
+  void setSliderValue(int value) {
+    sliderValue = value;
+    notifyListeners();
+  }
+
+  void setSizeValues(int index) {
+    for (int i = 0; i < sizeValues.length; i++) {
+      if (i == index) {
+        sizeValues[i] = true;
+      } else {
+        sizeValues[i] = false;
+      }
+    }
+    notifyListeners();
+  }
+
+  void setCareValue(String? value) {
+    careValue = value;
+    notifyListeners();
+  }
+
+  void setAddress(String? str) {
+    address = str;
+    notifyListeners();
+  }
+}
+
 //data model
 class DogInfo {
   int? dogId; //최초 등록 시에만 null
