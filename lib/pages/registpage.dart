@@ -375,21 +375,27 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
   late LatLng myLocation;
   LatLng? targetLocation;
 
+  Future<void> initialize() async {
+    await context.read<LocationInfo>().getMyLocation().then((LatLng? location) {
+      if (location == null) return;
+      myLocation = location;
+      context.read<LocationInfo>().setOnlySingleMarker(myLocation);
+    });
+    return;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('수행 위치를 선택해주세요')),
       body: FutureBuilder(
-        future: context.read<LocationInfo>().getMyLocation(),
+        future: initialize(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError || snapshot.data == null) {
+          } else if (snapshot.hasError) {
             return const Center(child: Text('Err'));
           }
-
-          myLocation = snapshot.data!;
-          context.watch<LocationInfo>().setOnlySingleMarker(myLocation);
 
           return GoogleMap(
             onMapCreated: (GoogleMapController controller) {

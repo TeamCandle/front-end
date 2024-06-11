@@ -91,6 +91,18 @@ class LocationInfo extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> awaitSetOnlySingleMarker(LatLng location) async {
+    markers.clear();
+    Marker marker = Marker(
+      markerId: MarkerId(DateTime.now().toString()),
+      position: location,
+      icon: BitmapDescriptor.defaultMarker,
+    );
+    markers.add(marker);
+    debugPrint('[log] marked only one at $location');
+    notifyListeners();
+  }
+
   //address function
   Future<String?> getPlaceAddress(double lat, double lng) async {
     final url =
