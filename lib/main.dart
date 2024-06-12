@@ -15,16 +15,6 @@ import 'pages/profilepage.dart';
 import 'router.dart';
 import 'datamodels.dart';
 import 'notification.dart';
-//TODO: floatingActionButtonLocation:
-// FloatingActionButtonLocation.miniCenterDocked,
-
-//CarouselSlider
-//petItem으로 펫 슬라디잉
-//전체적인 배경을 appBgColor(컬러그거에있음)으로 하고 요소들을 화이트로
-//모든 텍스트박스를 custom textbox로
-//0xFFC7F3D0
-//~월 ~일자 건에 대한 신청이 도착했습니다
-//
 
 Future<void> main() async {
   //init flutter engine
