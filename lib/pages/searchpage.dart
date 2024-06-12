@@ -369,22 +369,40 @@ class _FilteredListPageState extends State<FilteredListPage> {
       appBar: AppBar(title: const Text("필터링 결과")),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: FutureBuilder(
-          future: context.read<InfiniteList>().updateFilteredList(
-                widget.targetLocation,
-                widget.radius,
-                widget.size,
-                widget.careType,
+        child: Column(
+          children: [
+            customContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('필터 정보'),
+                  Text('${widget.targetLocation}'),
+                  Text('${widget.radius}'),
+                  Text('${widget.size}'),
+                  Text('${widget.careType}'),
+                ],
               ),
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return const Center(child: Text('error!'));
-            }
+            ),
+            Expanded(
+              child: FutureBuilder(
+                future: context.read<InfiniteList>().updateFilteredList(
+                      widget.targetLocation,
+                      widget.radius,
+                      widget.size,
+                      widget.careType,
+                    ),
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return const Center(child: Text('error!'));
+                  }
 
-            return buildList(context);
-          },
+                  return buildList(context);
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

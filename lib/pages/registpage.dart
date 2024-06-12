@@ -516,67 +516,43 @@ class _RequestRegistrationFormPageState
 
     return Scaffold(
       appBar: AppBar(title: const Text("등록 양식")),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: FutureBuilder(
-                    future: context.read<LocationInfo>().getPlaceAddress(
-                          widget.location.latitude,
-                          widget.location.longitude,
-                        ),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return LinearProgressIndicator();
-                      } else if (snapshot.hasError || snapshot.data == null) {
-                        return Text('data null');
-                      }
-                      return TextField(
-                        readOnly: true,
-                        controller: TextEditingController(
-                          text: snapshot.data!,
-                        ),
-                      );
-                    }),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: ElevatedButton(
-                      onPressed: () async => await _selectDate(),
-                      child: const Text('날짜 선택'),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16),
-                      child: TextField(
-                        readOnly: true,
-                        controller: TextEditingController(
-                          text: _selectedDate == null
-                              ? ''
-                              : _selectedDate!.toString().split(' ').first,
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
-                child: Row(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: FutureBuilder(
+                      future: context.read<LocationInfo>().getPlaceAddress(
+                            widget.location.latitude,
+                            widget.location.longitude,
+                          ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return LinearProgressIndicator();
+                        } else if (snapshot.hasError || snapshot.data == null) {
+                          return Text('data null');
+                        }
+                        return TextField(
+                          readOnly: true,
+                          controller: TextEditingController(
+                            text: snapshot.data!,
+                          ),
+                        );
+                      }),
+                ),
+                Row(
                   children: [
                     Expanded(
                       flex: 1,
                       child: ElevatedButton(
-                        onPressed: () async => await _selectTime(),
-                        child: const Text('시작 시간'),
+                        onPressed: () async => await _selectDate(),
+                        child: const Text('날짜 선택'),
                       ),
                     ),
                     Expanded(
@@ -586,117 +562,146 @@ class _RequestRegistrationFormPageState
                         child: TextField(
                           readOnly: true,
                           controller: TextEditingController(
-                            text: _selectedTime == null
+                            text: _selectedDate == null
                                 ? ''
-                                : _selectedTime!.format(context),
+                                : _selectedDate!.toString().split(' ').first,
                           ),
                         ),
                       ),
                     )
                   ],
                 ),
-              ),
-              TextField(
-                controller: timeController,
-                decoration: const InputDecoration(labelText: '얼마동안 돌봐드릴까요?'),
-                keyboardType: TextInputType.number,
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
-                child: Row(
-                  children: [
-                    const Text(
-                      '요청사항',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    const Spacer(),
-                    DropdownButton<String>(
-                      padding: const EdgeInsets.only(top: 8),
-                      value: _selectedCare,
-                      onChanged: (String? value) {
-                        setState(() => _selectedCare = value!);
-                      },
-                      items: const [
-                        DropdownMenuItem<String>(
-                          value: CareType.walking,
-                          child: Text('산책'),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: ElevatedButton(
+                          onPressed: () async => await _selectTime(),
+                          child: const Text('시작 시간'),
                         ),
-                        DropdownMenuItem<String>(
-                          value: CareType.boarding,
-                          child: Text('이동'),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: TextField(
+                            readOnly: true,
+                            controller: TextEditingController(
+                              text: _selectedTime == null
+                                  ? ''
+                                  : _selectedTime!.format(context),
+                            ),
+                          ),
                         ),
-                        DropdownMenuItem<String>(
-                          value: CareType.grooming,
-                          child: Text('미용/단장'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: CareType.playtime,
-                          child: Text('훈련/놀아주기'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: CareType.etc,
-                          child: Text('기타'),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                  ],
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  controller: rewardController,
-                  decoration: const InputDecoration(labelText: '보상'),
+                TextField(
+                  controller: timeController,
+                  decoration: const InputDecoration(labelText: '얼마동안 돌봐드릴까요?'),
                   keyboardType: TextInputType.number,
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: customTextField(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
+                  child: Row(
+                    children: [
+                      const Text(
+                        '요청사항',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      const Spacer(),
+                      DropdownButton<String>(
+                        padding: const EdgeInsets.only(top: 8),
+                        value: _selectedCare,
+                        onChanged: (String? value) {
+                          setState(() => _selectedCare = value!);
+                        },
+                        items: const [
+                          DropdownMenuItem<String>(
+                            value: CareType.walking,
+                            child: Text('산책'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: CareType.boarding,
+                            child: Text('이동'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: CareType.grooming,
+                            child: Text('미용/단장'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: CareType.playtime,
+                            child: Text('훈련/놀아주기'),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: CareType.etc,
+                            child: Text('기타'),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: TextField(
-                    controller: descriptionController,
-                    maxLines: 4,
-                    decoration: const InputDecoration(
-                      labelText: '설명',
-                      border: InputBorder.none,
+                    controller: rewardController,
+                    decoration: const InputDecoration(labelText: '보상'),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: customTextField(
+                    child: TextField(
+                      controller: descriptionController,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        labelText: '설명',
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              ElevatedButton(
-                  onPressed: () async {
-                    if (_selectedDate == null || _selectedTime == null) return;
-                    int? hour = int.tryParse(timeController.text);
-                    if (hour == null) return;
-                    final DateTime startTime = DateTime(
-                      _selectedDate!.year,
-                      _selectedDate!.month,
-                      _selectedDate!.day,
-                      _selectedTime!.hour,
-                      _selectedTime!.minute,
-                    );
-                    final DateTime endTime = DateTime(
-                      _selectedDate!.year,
-                      _selectedDate!.month,
-                      _selectedDate!.day,
-                      _selectedTime!.hour + hour,
-                      _selectedTime!.minute,
-                    );
-                    await RequirementApi.registRequirement(
-                      dogId: widget.dogId,
-                      startTime: startTime,
-                      endTime: endTime,
-                      location: widget.location,
-                      careType: _selectedCare,
-                      reward: int.parse(rewardController.text),
-                      description: descriptionController.text,
-                    ).then((bool result) {
-                      _showResult(context, result);
-                    });
-                  },
-                  child: const Text('요청 등록하기')),
-            ],
+                ElevatedButton(
+                    onPressed: () async {
+                      if (_selectedDate == null || _selectedTime == null)
+                        return;
+                      int? hour = int.tryParse(timeController.text);
+                      if (hour == null) return;
+                      final DateTime startTime = DateTime(
+                        _selectedDate!.year,
+                        _selectedDate!.month,
+                        _selectedDate!.day,
+                        _selectedTime!.hour,
+                        _selectedTime!.minute,
+                      );
+                      final DateTime endTime = DateTime(
+                        _selectedDate!.year,
+                        _selectedDate!.month,
+                        _selectedDate!.day,
+                        _selectedTime!.hour + hour,
+                        _selectedTime!.minute,
+                      );
+                      await RequirementApi.registRequirement(
+                        dogId: widget.dogId,
+                        startTime: startTime,
+                        endTime: endTime,
+                        location: widget.location,
+                        careType: _selectedCare,
+                        reward: int.parse(rewardController.text),
+                        description: descriptionController.text,
+                      ).then((bool result) {
+                        _showResult(context, result);
+                      });
+                    },
+                    child: const Text('요청 등록하기')),
+              ],
+            ),
           ),
         ),
       ),
