@@ -2,21 +2,29 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_doguber_frontend/mymap.dart';
+import 'package:flutter_doguber_frontend/notification.dart';
 import 'package:flutter_doguber_frontend/pages/matchpage.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:localstorage/localstorage.dart';
+import 'package:provider/provider.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 //files
 import 'constants.dart';
-import 'providers.dart';
+import 'datamodels.dart';
 
 class AuthApi {
   String? _accessToken;
   String? _refreshToken;
-  bool _isLogined = false;
 
   //make class to singleton
   AuthApi._privateConstructor();
@@ -26,18 +34,28 @@ class AuthApi {
   //getter
   String? get accessToken => _accessToken;
   String? get refreshToken => _refreshToken;
-  bool get isLogined => _isLogined;
 
   //function
-  void logIn({required JavaScriptMessage message}) {
+  Future<bool> registToken(JavaScriptMessage message) async {
+    //userInfo로부터 webView로 반환받은 결과를 가져온다.
     Map<String, dynamic> tokens = jsonDecode(message.message);
+
+    //token을 저장한다.
     _accessToken = tokens['accessToken'];
     _refreshToken = tokens['refreshToken'];
-    _isLogined = true;
-    debugPrint('[log] got login');
-    debugPrint('[log] access token : $_accessToken');
-    debugPrint('[log] refresh token : $_refreshToken');
-    return;
+    localStorage.setItem('accessToken', _accessToken!);
+    debugPrint('!!! access token : $_accessToken');
+    debugPrint('!!! refresh token : $_refreshToken');
+
+    //서버에 fcm token을 등록한다(설치 등으로 바뀌는 케이스 있으므로 매 로그인마다 실행)
+    bool result = await _registFcmTokenToServer(tokens['accessToken']);
+    return result;
+  }
+
+  void cleanUpToken() {
+    _accessToken = null;
+    _refreshToken = null;
+    debugPrint('!!! logged out');
   }
 
   //setter
@@ -49,10 +67,27 @@ class AuthApi {
     _refreshToken = refreshToken;
   }
 
-  void cleanUp() {
-    _accessToken = null;
-    _refreshToken = null;
-    _isLogined = false;
+  Future<bool> _registFcmTokenToServer(String accessToken) async {
+    var url = Uri.parse('${ServerUrl.serverUrl}/fcm/token');
+    var header = {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    };
+    var body = {"token": "${CombinedNotificationService.fcmToken}"};
+
+    http.Response? response = await HttpMethod.tryPost(
+      title: "regist fcm token",
+      url: url,
+      header: header,
+      body: body,
+    );
+
+    if (response?.statusCode == 200) {
+      return true;
+    } else {
+      debugPrint('!!! fcm token regist fail');
+      return false;
+    }
   }
 
   Future<dynamic> reissuAccessToken() async {
@@ -64,14 +99,33 @@ class AuthApi {
       var response = await http.post(url, headers: header, body: body);
       if (response.statusCode != 200) {
         debugPrint(
-            "[log] reissue AccToken fail, code : ${response.statusCode}, ${response.body}");
+            "[!!!] reissue AccToken fail, code : ${response.statusCode}, ${response.body}");
         return null;
       }
-      debugPrint("[log] reissue AccToken success");
+      debugPrint("[!!!] reissue AccToken success");
       return response;
     } catch (e) {
-      debugPrint('[log] reissue AccToken error : $e');
+      debugPrint('[!!!] reissue AccToken error : $e');
       return null;
+    }
+  }
+
+  Future<bool> getDummy() async {
+    var url = Uri.parse('${ServerUrl.serverUrl}/user/dummy?id=5'); //1~50
+
+    try {
+      http.Response? response = await http.get(url);
+      if (response.statusCode != 200) {
+        debugPrint("[!!!] dummy fail : ${response.body}");
+        return false;
+      }
+      String token = response.body;
+      _accessToken = token;
+      await _registFcmTokenToServer(_accessToken!);
+      return true;
+    } catch (e) {
+      debugPrint('[!!!] dummy error ');
+      return false;
     }
   }
 }
@@ -82,19 +136,19 @@ class HttpMethod {
     required Uri url,
     required Map<String, String> header,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
       http.Response? response = await http.get(url, headers: header);
       if (response.statusCode != 200) {
-        debugPrint("[log] fail ${response.statusCode}");
-        debugPrint("[log] body ${response.body}");
+        debugPrint("[!!!] fail ${response.statusCode}");
+        debugPrint("[!!!] body ${response.body}");
         return null;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return response;
     } catch (e) {
-      debugPrint('[log] error $title: $e');
+      debugPrint('[!!!] error $title: $e');
       return null;
     }
   }
@@ -105,19 +159,42 @@ class HttpMethod {
     required Map<String, String> header,
     required Map<String, dynamic> body,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
-      var response = await http.post(url, headers: header, body: body);
+      var response =
+          await http.post(url, headers: header, body: jsonEncode(body));
       if (response.statusCode != 200) {
-        debugPrint("[log] fail code ${response.statusCode}");
-        debugPrint("[log] fail body ${response.body}");
+        debugPrint("[!!!] fail code ${response.statusCode}");
+        debugPrint("[!!!] fail body ${response.body}");
         return null;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return response;
     } catch (e) {
-      debugPrint('[log] error $title: $e');
+      debugPrint('[!!!] error $title: $e');
+      return null;
+    }
+  }
+
+  static Future<http.Response?> tryPostWithoutBody({
+    required String title,
+    required Uri url,
+    required Map<String, String> header,
+  }) async {
+    debugPrint("[!!!] start $title");
+
+    try {
+      var response = await http.post(url, headers: header);
+      if (response.statusCode != 200) {
+        debugPrint("[!!!] fail code ${response.statusCode}");
+        debugPrint("[!!!] fail body ${response.body}");
+        return null;
+      }
+      debugPrint("[!!!] success $title");
+      return response;
+    } catch (e) {
+      debugPrint('[!!!] error $title: $e');
       return null;
     }
   }
@@ -128,20 +205,42 @@ class HttpMethod {
     required Map<String, String> header,
     required Map<String, dynamic> body,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
       var response =
           await http.patch(url, headers: header, body: json.encode(body));
       if (response.statusCode != 200) {
-        debugPrint("[log] fail ${response.statusCode}");
-        debugPrint("[log] fail body ${response.body}");
+        debugPrint("[!!!] fail ${response.statusCode}");
+        debugPrint("[!!!] fail body ${response.body}");
         return null;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return response;
     } catch (e) {
-      debugPrint('[log] error $title: $e');
+      debugPrint('[!!!] error $title: $e');
+      return null;
+    }
+  }
+
+  static Future<http.Response?> tryPatchWithoutBody({
+    required String title,
+    required Uri url,
+    required Map<String, String> header,
+  }) async {
+    debugPrint("[!!!] start $title");
+
+    try {
+      var response = await http.patch(url, headers: header);
+      if (response.statusCode != 200) {
+        debugPrint("[!!!] fail ${response.statusCode}");
+        debugPrint("[!!!] fail body ${response.body}");
+        return null;
+      }
+      debugPrint("[!!!] success $title");
+      return response;
+    } catch (e) {
+      debugPrint('[!!!] error $title: $e');
       return null;
     }
   }
@@ -151,20 +250,42 @@ class HttpMethod {
     required Uri url,
     required Map<String, String> header,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
       http.Response? response = await http.delete(url, headers: header);
       if (response.statusCode != 200) {
-        debugPrint("[log] fail ${response.statusCode}");
-        debugPrint("[log] body ${response.body}");
+        debugPrint("[!!!] fail ${response.statusCode}");
+        debugPrint("[!!!] body ${response.body}");
         return false;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return true;
     } catch (e) {
-      debugPrint('[log] error $title: $e');
+      debugPrint('[!!!] error $title: $e');
       return false;
+    }
+  }
+
+  static Future<http.Response?> tryPut({
+    required String title,
+    required Uri url,
+    required Map<String, String> header,
+  }) async {
+    debugPrint("[!!!] start $title");
+
+    try {
+      http.Response? response = await http.put(url, headers: header);
+      if (response.statusCode != 200) {
+        debugPrint("[!!!] fail ${response.statusCode}");
+        debugPrint("[!!!] body ${response.body}");
+        return null;
+      }
+      debugPrint("[!!!] success $title");
+      return response;
+    } catch (e) {
+      debugPrint('[!!!] error $title: $e');
+      return null;
     }
   }
 
@@ -172,20 +293,20 @@ class HttpMethod {
     required String title,
     required http.MultipartRequest request,
   }) async {
-    debugPrint("[log] start $title");
+    debugPrint("[!!!] start $title");
 
     try {
       http.StreamedResponse response = await request.send();
       if (response.statusCode != 200) {
         final responseBody = await response.stream.bytesToString();
-        debugPrint('[log] fail ${response.statusCode}');
-        debugPrint('[log] fail body: $responseBody');
+        debugPrint('[!!!] fail ${response.statusCode}');
+        debugPrint('[!!!] fail body: $responseBody');
         return false;
       }
-      debugPrint("[log] success $title");
+      debugPrint("[!!!] success $title");
       return true;
     } catch (e) {
-      debugPrint('[log] error $title, $e');
+      debugPrint('[!!!] error $title, $e');
       return false;
     }
   }
@@ -205,7 +326,25 @@ class ProfileApi {
     );
 
     if (response == null) {
-      debugPrint('[log] get my profile from server error!');
+      debugPrint('[!!!] get my profile from server error!');
+      return null;
+    } else {
+      return jsonDecode(response.body);
+    }
+  }
+
+  static Future<Map<String, dynamic>?> getUserProfile(
+      {required int userId}) async {
+    var url = Uri.parse('${ServerUrl.userProfileUrl}?id=$userId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get user profile",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('!!! get user profile fail');
       return null;
     } else {
       return jsonDecode(response.body);
@@ -260,15 +399,6 @@ class ProfileApi {
       request: request,
     );
   }
-
-  // static Future<dynamic> getUserProfileFromServer(
-  //     {required String userName}) async {
-  //   var url = Uri.parse('${ServerUrl.userProfileUrl}?username=$userName');
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result = await HttpMethod.tryGet(
-  //       title: "get user profile", url: url, header: header);
-  //   if (result == null) return null;
-  // }
 }
 
 class DogProfileApi {
@@ -286,11 +416,11 @@ class DogProfileApi {
     );
 
     if (response == null) {
-      debugPrint('[log] get dog profile error');
+      debugPrint('[!!!] get dog profile error');
       return null;
     }
     var data = jsonDecode(response.body);
-    debugPrint('[log] json decode $data');
+    debugPrint('[!!!] json decode $data');
     DogInfo dogInfo;
     try {
       dogInfo = DogInfo(
@@ -299,17 +429,15 @@ class DogProfileApi {
         data['gender'],
         data['image'] == null ? null : base64Decode(data['image']),
         data['owner'],
-        true,
+        data['neutered'],
         data['age'],
-        //TODO: 고치기
-        1.1,
-        1.1,
+        data['size'],
         data['breed'],
         data['description'],
       );
       return dogInfo;
     } catch (e) {
-      debugPrint('[log] create doginfo fail');
+      debugPrint('[!!!] create doginfo fail');
       return null;
     }
   }
@@ -331,10 +459,9 @@ class DogProfileApi {
     request.fields['gender'] = doginfo.dogGender;
     request.fields['neutered'] = doginfo.neutered.toString();
     request.fields['age'] = doginfo.age.toString();
-    request.fields['size'] = doginfo.size.toString();
-    request.fields['weight'] = doginfo.weight.toString();
+    request.fields['size'] = doginfo.size;
     request.fields['breed'] = doginfo.breed;
-    request.fields['description'] = doginfo.description;
+    request.fields['description'] = doginfo.description!;
     if (doginfo.dogImage != null) {
       var multipartFile = http.MultipartFile.fromBytes(
         'image',
@@ -362,8 +489,9 @@ class DogProfileApi {
       'Content-Type': 'multipart/form-data'
     };
 
+    debugPrint('!!! receive dog info in modify api$doginfo');
     //전송 데이터 준비
-    var request = http.MultipartRequest('PATCH', url);
+    var request = http.MultipartRequest('PUT', url);
     request.headers.addAll(header);
     request.fields['id'] = doginfo.dogId.toString();
     request.fields['name'] = doginfo.dogName;
@@ -371,9 +499,8 @@ class DogProfileApi {
     request.fields['neutered'] = doginfo.neutered.toString();
     request.fields['age'] = doginfo.age.toString();
     request.fields['size'] = doginfo.size.toString();
-    request.fields['weight'] = doginfo.weight.toString();
     request.fields['breed'] = doginfo.breed;
-    request.fields['description'] = doginfo.description;
+    request.fields['description'] = doginfo.description!;
     if (doginfo.dogImage != null) {
       var multipartFile = http.MultipartFile.fromBytes(
         'image',
@@ -408,45 +535,720 @@ class DogProfileApi {
 }
 
 class RequirementApi {
-  // 내 요구 조회
-  // Future<dynamic> getMyRequirement({required String requirementId}) async {
-  //   var url = Uri.parse('${ServerUrl.requirementUrl}/me?id=$requirementId');
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result =
-  //       await _tryGet(title: "my requirement", url: url, header: header);
-  //   if (result == null) return null;
-  // }
+  static final AuthApi _auth = AuthApi();
 
-  //requirement function
-  // // 요구 등록
-  // Future<dynamic> registRequirement(
-  //     {required Map<String, dynamic> requirement}) async {
-  //   var url = Uri.parse(ServerUrl.requirementUrl);
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result = await _tryPost(
-  //       title: "regist requirement",
-  //       url: url,
-  //       header: header,
-  //       body: requirement);
-  //   if (result == null) return null;
-  // }
+  // 전체 요구 리스트 조회
+  static Future<List<dynamic>?> getAllRequirementList({
+    required int offset,
+    LatLng? myLocation,
+  }) async {
+    //데이터 준비
+    var url = Uri.parse('${ServerUrl.requirementListUrl}?offset=$offset');
+    var header = {
+      'Authorization': 'Bearer ${_auth.accessToken}',
+      'Content-Type': 'application/json',
+    };
+    dynamic body;
+    if (myLocation == null) {
+      body = {
+        'location': {"x": 128.3936, "y": 36.1461}
+      };
+    } else {
+      body = {
+        'location': {"x": myLocation.longitude, "y": myLocation.latitude},
+      };
+    }
 
-  // // 내 요구 리스트 조회
-  // Future<dynamic> getmyRequirementList() async {
-  //   var url = Uri.parse('${ServerUrl.requirementListUrl}/me');
-  //   var header = {'Authorization': 'Bearer ${_tokenManager.accessToken}'};
-  //   var result =
-  //       await _tryGet(title: "my requirement list", url: url, header: header);
-  //   if (result == null) return null;
-  // }
+    //연결
+    var response = await HttpMethod.tryPost(
+      title: "all requirement list",
+      url: url,
+      header: header,
+      body: body,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    debugPrint('start decode');
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    debugPrint('end decode');
+    debugPrint('start get list');
+    List<dynamic> tempList = tempMap['requirements'];
+    debugPrint('end get list');
+    debugPrint('print all item');
+
+    return tempList;
+  }
+
+  // 특정 요구 조회
+  static Future<DetailInfo?> getRequirementDetail(int id) async {
+    var url = Uri.parse('${ServerUrl.requirementUrl}?id=$id');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get request detail",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[!!!] get request detail error');
+      return null;
+    }
+
+    var data = jsonDecode(response.body);
+    debugPrint('$data');
+    DetailInfo requirementDetail;
+    try {
+      requirementDetail = DetailInfo(
+        data['id'],
+        data['image'] == null ? null : base64Decode(data['image']),
+        data['careType'],
+        data['startTime'].toString(),
+        data['endTime'].toString(),
+        LatLng(data['careLocation']['y'], data['careLocation']['x']),
+        data['description'],
+        data['userId'],
+        data['dogId'],
+        data['reward'],
+        data['status'],
+      );
+      return requirementDetail;
+    } catch (e) {
+      debugPrint('[!!!] decode requirement fail');
+      return null;
+    }
+  }
+
+  // 내 요구 리스트 조회
+  static Future<List<dynamic>?> getMyRequirementList(
+      {required int offset}) async {
+    var url = Uri.parse('${ServerUrl.requirementListUrl}/me?offset=$offset');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    http.Response? response = await HttpMethod.tryGet(
+      title: "my requirement list",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    List<dynamic> tempList = tempMap['requirements'];
+    return tempList;
+  }
+
+  //필터링 리스트 조회
+  static Future<List<dynamic>?> getFilteredList({
+    required int offset,
+    required LatLng location,
+    required int radius, //5~10
+    required String dogSize,
+    required String careType,
+  }) async {
+    //데이터 준비
+    var url = Uri.parse('${ServerUrl.requirementListUrl}?offset=$offset');
+    var header = {
+      'Authorization': 'Bearer ${_auth.accessToken}',
+      'Content-Type': 'application/json',
+    };
+    var body = {
+      'location': {"x": location!.longitude, "y": location.latitude},
+      'radius': radius,
+      'dogSize': dogSize,
+      'careType': careType,
+    };
+
+    //연결
+    var response = await HttpMethod.tryPost(
+      title: "all requirement list",
+      url: url,
+      header: header,
+      body: body,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    debugPrint('start decode');
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    debugPrint('end decode');
+    debugPrint('start get list');
+    List<dynamic> tempList = tempMap['requirements'];
+    debugPrint('end get list');
+    debugPrint('print all item');
+
+    return tempList;
+  }
+
+  // 내 요구 조회, 신청자 리스트가 동봉되어있으므로 detailInfo 사용 x
+  static Future<http.Response?> getMyRequirementDetail(
+      {required int requirementId}) async {
+    var url = Uri.parse('${ServerUrl.requirementUrl}/me?id=$requirementId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    http.Response? response = await HttpMethod.tryGet(
+      title: "my requirement",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return null;
+    }
+    return response;
+  }
+
+  //요구 등록
+  static Future<bool> registRequirement({
+    required int dogId,
+    required DateTime startTime,
+    required DateTime endTime,
+    required LatLng location,
+    required String careType,
+    required int reward,
+    required String description,
+  }) async {
+    var url = Uri.parse(ServerUrl.requirementUrl);
+    var header = {
+      'Authorization': 'Bearer ${_auth.accessToken}',
+      'Content-Type': 'application/json',
+    };
+    var body = {
+      "dogId": dogId,
+      "careType": careType,
+      "startTime": startTime.toIso8601String(),
+      "endTime": endTime.toIso8601String(),
+      "careLocation": {
+        "x": location.longitude,
+        "y": location.latitude,
+      },
+      "reward": reward,
+      "description": description,
+    };
+
+    http.Response? response = await HttpMethod.tryPost(
+      title: "regist requirement",
+      url: url,
+      header: header,
+      body: body,
+    );
+    if (response == null || response.body.isEmpty) {
+      debugPrint('[!!!] regist requirement fail');
+      return false;
+    }
+    debugPrint('[!!!] request success, $body');
+    return true;
+  }
+
+  // 요구 취소
+  static Future<bool> cancelMyRequirement(int requirementId) async {
+    var url = Uri.parse('${ServerUrl.requirementUrl}/cancel?id=$requirementId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    http.Response? response = await HttpMethod.tryPatchWithoutBody(
+      title: "my requirement",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return false;
+    }
+    return true;
+  }
 }
 
-class ApplicationApi {}
+class ApplicationApi {
+  static final AuthApi _auth = AuthApi();
 
-class MatchingLogApi {}
+  //내가 신청했던 리스트 조회
+  static Future<List<dynamic>?> getMyApplicationList(
+      {required int offset}) async {
+    var url = Uri.parse('${ServerUrl.applicationUrl}/list?offset=$offset');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get my application list",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
 
-class PaymentApi {}
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    List<dynamic> tempList = tempMap['applications'];
+    return tempList;
+  }
 
-class ChattingApi {}
+  //특정 신청 조회
+  static Future<DetailInfo?> getApplicationDetail(int applicationId) async {
+    var url = Uri.parse('${ServerUrl.applicationUrl}?id=$applicationId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get application detail",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return null;
+    }
 
-class ReviewApi {}
+    var data = jsonDecode(response.body);
+    debugPrint('$data');
+    DetailInfo applicationDetail;
+    try {
+      applicationDetail = DetailInfo(
+        data['id'],
+        data['image'] == null ? null : base64Decode(data['image']),
+        data['careType'],
+        data['startTime'].toString(),
+        data['endTime'].toString(),
+        LatLng(data['careLocation']['y'], data['careLocation']['x']),
+        data['description'],
+        data['userId'],
+        data['dogId'],
+        data['reward'],
+        data['status'],
+      );
+      return applicationDetail;
+    } catch (e) {
+      debugPrint('[!!!] decode application fail');
+      return null;
+    }
+  }
+
+  //탐색한 요구사항에 대한 신청
+  static Future<bool> apply(int requirementId) async {
+    var url =
+        Uri.parse('${ServerUrl.applicationUrl}?requirementId=$requirementId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPostWithoutBody(
+      title: "cancel my application",
+      url: url,
+      header: header,
+    );
+
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return false;
+    }
+    return true;
+  }
+
+  //그에 대한 취소
+  static Future<bool> cancel(int applicationId) async {
+    var url = Uri.parse('${ServerUrl.applicationUrl}/cancel?id=$applicationId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPut(
+      title: "cancel my application",
+      url: url,
+      header: header,
+    );
+
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return false;
+    }
+    return true;
+  }
+
+  //내가 등록한 요구사항에 들어온 신청 수락
+  static Future<bool> accept(int requirementId, int applicationId) async {
+    var url = Uri.parse(
+        '${ServerUrl.serverUrl}/match?requirementId=$requirementId&applicationId=$applicationId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPostWithoutBody(
+      title: "cancel my application",
+      url: url,
+      header: header,
+    );
+
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return false;
+    }
+    return true;
+  }
+}
+
+class MatchingLogApi {
+  static final AuthApi _auth = AuthApi();
+
+  static Future<Map<String, dynamic>?> getUpcoming() async {
+    var url = Uri.parse('${ServerUrl.matchUrl}/upcoming');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get match log list",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+
+    return tempMap;
+  }
+
+  //매칭 로그 조회
+  static Future<List<dynamic>?> getMatchingLogList(int offset) async {
+    var url = Uri.parse('${ServerUrl.matchUrl}/list?offset=$offset');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get match log list",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    List<dynamic> tempList = tempMap['matches'];
+    return tempList;
+  }
+
+  //특정 매칭 기록 조회
+  static Future<DetailInfo?> getMatchingLogDetail(int matingId) async {
+    //requester 여부는 upcoming에서확인하자
+    var url = Uri.parse('${ServerUrl.matchUrl}?id=$matingId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get matching log detail",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return null;
+    }
+
+    var data = jsonDecode(response.body);
+    debugPrint('$data');
+    DetailInfo matchingLogDetail;
+    try {
+      matchingLogDetail = DetailInfo(
+        data['details']['id'],
+        data['details']['image'] == null ? null : base64Decode(data['image']),
+        data['details']['careType'],
+        data['details']['startTime'].toString(),
+        data['details']['endTime'].toString(),
+        LatLng(
+          data['details']['careLocation']['y'],
+          data['details']['careLocation']['x'],
+        ),
+        data['details']['description'], //TODO: null 조심
+        data['details']['userId'],
+        data['details']['dogId'],
+        data['details']['reward'],
+        data['details']['status'],
+      );
+      matchingLogDetail.setRequester(data['requester']);
+      debugPrint('requester in api ${data['requester']}');
+      return matchingLogDetail;
+    } catch (e) {
+      debugPrint('[!!!] decode matching log fail');
+      return null;
+    }
+  }
+
+  //매칭 완료
+  static Future<bool> complete(int matchingId) async {
+    var url = Uri.parse('${ServerUrl.matchUrl}/complete?id=$matchingId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPatchWithoutBody(
+      title: "match completed",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return false;
+    }
+    return true;
+  }
+
+  //매칭 취소 = 매칭이 WAITING_PAYMENT 상태일 때 취소 동작
+  //테스트 완료
+  static Future<bool> cancel(int matchingId) async {
+    var url = Uri.parse('${ServerUrl.matchUrl}/cancel?id=$matchingId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPatchWithoutBody(
+      title: "cancel this matching",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return false;
+    }
+    return true;
+  }
+}
+
+//TODO: 맨위에 현재 매칭에서는 다음과 같이 할 것. 디테일 받아오고 상태 표시하고,
+//TODO: 지금 생각으로는 매칭 로그에는 리뷰 버튼만 맹글고 결제같은 로직은 현재 매칭에서 구현하면 될듯?
+
+class ChattingApi {
+  static final AuthApi _auth = AuthApi();
+  static const String _connectUrl = 'ws://13.209.220.187/ws';
+  static StompClient? _stompClient;
+
+  //채팅 연결
+  static Future<bool> connect({
+    required int matchId,
+    required void Function(StompFrame) callback,
+  }) async {
+    //webSocketConnectHeaders: {'Authorization': 'Bearer yourToken'},
+    var stompConnectHeaders = {'Authorization': 'Bearer ${_auth.accessToken}'};
+    String destination = '/exchange/chat.exchange/*.room.$matchId';
+
+    try {
+      _stompClient = StompClient(
+        config: StompConfig(
+          url: _connectUrl,
+          onConnect: (frame) {
+            debugPrint('!!! successfully connected');
+            _stompClient!.subscribe(
+              destination: destination,
+              callback: callback,
+            );
+            debugPrint('!!! subscribed to destination');
+          },
+          beforeConnect: () async {
+            debugPrint('!!! beforeConnect: starting connection');
+            debugPrint('!!! beforeConnect: headers: $stompConnectHeaders');
+            debugPrint('!!! beforeConnect: URL: $_connectUrl');
+            debugPrint('!!! beforeConnect: matchId: $matchId');
+            await Future.delayed(const Duration(milliseconds: 100));
+            debugPrint(
+                '!!! beforeConnect: delay finished, attempting to connect...');
+          },
+          onWebSocketError: (error) {
+            debugPrint('!!! connect error $error');
+          },
+          stompConnectHeaders: stompConnectHeaders,
+        ),
+      );
+
+      _stompClient!.activate();
+      debugPrint('!!! activated stomp client');
+      return true;
+    } catch (e) {
+      debugPrint('!!! activated error on stomp client');
+      return false;
+    }
+  }
+
+  static void disconnect() {
+    _stompClient!.deactivate();
+    debugPrint('!!! deactivate stomp client');
+  }
+
+  //채팅 내역 가져오기 (다시 들어갔을 때)
+  static Future<List<dynamic>?> getChattingLog(int matchId) async {
+    var url = Uri.parse('${ServerUrl.serverUrl}/chat/history?roomId=$matchId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get chat log",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return null;
+    }
+
+    var data = jsonDecode(response.body);
+    List<dynamic> chatList = data['messages'];
+    debugPrint('$chatList');
+    return chatList;
+  }
+
+  //메시지 보내기
+  static bool send(String message, int matchId) {
+    if (message.isEmpty) return false;
+
+    String destination = '/send/chat.talk.$matchId';
+    _stompClient!.send(destination: destination, body: message);
+    return true;
+  }
+}
+
+class PaymentApi {
+  static final AuthApi _auth = AuthApi();
+
+  //결제 요청
+  static Future<bool> pay(int matchId) async {
+    var url = Uri.parse('${ServerUrl.paymentUrl}/ready?matchId=$matchId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    debugPrint('!!! payment start');
+    debugPrint('!!! url : $url');
+    debugPrint('!!! header : $header');
+
+    // 1. 결제 url 받아오기
+    String? paymentUrl;
+    try {
+      http.Response? response = await http.get(url, headers: header);
+      debugPrint('!!! response : ${response.statusCode}');
+      debugPrint('!!! response : ${response.body}');
+      paymentUrl = response.body;
+    } catch (e) {
+      debugPrint('!!! payment error : $e');
+      return false;
+    }
+
+    //2. 해당 url로 redirect
+    Uri redirectUrl = Uri.parse(paymentUrl);
+    if (await canLaunchUrl(redirectUrl) == false) {
+      debugPrint('!!! can not launch url');
+      return false;
+    }
+    debugPrint('!!! url launched');
+    return await launchUrl(redirectUrl);
+  }
+
+  //결제 승인
+  static Future<bool> approve(int matchId) async {
+    var url = Uri.parse(
+        '${ServerUrl.paymentUrl}/approve/alternative?matchId=$matchId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPatchWithoutBody(
+      title: "approve payment",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return false;
+    }
+    debugPrint('!!! payment approved');
+    return true;
+  }
+
+  //결제 취소 = 매칭이 NOT_COMPLETED 상태일 때 취소 동작
+  static Future<bool> refund(int matchId) async {
+    var url = Uri.parse(
+        '${ServerUrl.paymentUrl}/refund/alternative?matchId=$matchId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryPatchWithoutBody(
+      title: "refund payment",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return false;
+    }
+    debugPrint('!!! payment refunded');
+    return true;
+  }
+}
+
+class ReviewApi {
+  static final AuthApi _auth = AuthApi();
+
+  //리뷰 내역 출력
+  static Future<List<dynamic>?> getReviewList({
+    required int userId,
+    required int offset,
+  }) async {
+    var url =
+        Uri.parse('${ServerUrl.reviewUrl}/list?userId=$userId&offset=$offset');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get review list",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    List<dynamic> tempList = tempMap['reviews'];
+    return tempList;
+  }
+
+  //특정 리뷰 조회 -> applicants가 match log에서 조회 시
+  static Future<Map<String, dynamic>?> getReviewDetail(int matchId) async {
+    var url = Uri.parse('${ServerUrl.reviewUrl}?matchId=$matchId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    http.Response? response = await HttpMethod.tryGet(
+      title: "get review detail",
+      url: url,
+      header: header,
+    );
+    if (response == null) {
+      debugPrint('response is null');
+      return null;
+    }
+
+    Map<String, dynamic> tempMap = jsonDecode(response.body);
+    return tempMap;
+  }
+
+  //리뷰 등록
+  static Future<bool> regist({
+    required int matchId,
+    required double rating,
+    required String text,
+  }) async {
+    var url = Uri.parse(ServerUrl.reviewUrl);
+    var header = {
+      'Authorization': 'Bearer ${_auth.accessToken}',
+      'Content-Type': 'application/json',
+    };
+    var body = {'matchId': matchId, 'rating': rating, 'text': text};
+
+    http.Response? response = await HttpMethod.tryPost(
+      title: "regist review",
+      url: url,
+      header: header,
+      body: body,
+    );
+
+    if (response == null) {
+      debugPrint('[!!!] response is null');
+      return false;
+    }
+    return true;
+  }
+
+  //리뷰 삭제
+  static Future<bool> delete(int reviewId) async {
+    var url = Uri.parse('${ServerUrl.serverUrl}/review?id=$reviewId');
+    var header = {'Authorization': 'Bearer ${_auth.accessToken}'};
+
+    bool result = await HttpMethod.tryDelete(
+      title: "delete review",
+      url: url,
+      header: header,
+    );
+
+    return result;
+  }
+}

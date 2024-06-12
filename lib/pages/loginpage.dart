@@ -3,9 +3,13 @@
 //카카오톡으로 로그인 하기
 
 //dependencies
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_doguber_frontend/api.dart';
+import 'package:flutter_doguber_frontend/pages/profilepage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:localstorage/localstorage.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
@@ -13,37 +17,111 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 //files
-import '../providers.dart';
+import '../datamodels.dart';
 import '../constants.dart';
+import '../notification.dart';
+import '../router.dart';
 
-class LogInPage extends StatelessWidget {
+class LogInPage extends StatefulWidget {
   const LogInPage({super.key});
 
   @override
+  State<LogInPage> createState() => _LogInPageState();
+}
+
+class _LogInPageState extends State<LogInPage> {
+  final AuthApi _auth = AuthApi();
+  @override
+  void initState() {
+    super.initState();
+    CombinedNotificationService.setFcmhandlerInForeground();
+    CombinedNotificationService.setNotificationHandler(context);
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      checkLocalInfo();
+    });
+  }
+
+  Future<void> checkLocalInfo() async {
+    String? tempToken = localStorage.getItem('accessToken');
+    if (tempToken == null) return;
+    _auth.setAccessToken(accessToken: tempToken);
+    await context.read<UserInfo>().updateMyProfile().then((bool result) {
+      if (result == false) return;
+      const snackBar = SnackBar(
+        content: Text('로그인 성공!'),
+        duration: Duration(milliseconds: 1000),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      context.go(RouterPath.home);
+    });
+  }
+  // String? payload =
+  //     CombinedNotificationService.details?.notificationResponse?.payload;
+  // int id =
+  //메시지에 메시지 유형 타입을 추가해달라고 부탁해서, show 시 아이디를 다르게 하자
+  //..response?.id로 notification id 받아올 수 있는듯
+  //아이디에 따라 switch로 context go 다르게 해보자
+  // RemoteMessage? initialMessage =
+  //       await FirebaseMessaging.instance.getInitialMessage();
+  //   if (initialMessage != null) {
+  //     CombinedNotificationService.notiTapStream.add(
+  //       initialMessage.data['targetId'],
+  //     );
+  //   }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.all(20),
-              margin: const EdgeInsets.all(20),
-              width: double.infinity,
-              child: InkWell(
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const WebViewPage()));
-                },
-                child: Image.asset('assets/images/icon_kakao_login.png'),
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: const Color(0xFF005f4d),
+        body: Stack(children: [
+          Center(
+            child: Column(children: [
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.all(20),
+                width: double.infinity,
+                child: InkWell(
+                  onTap: () => context.push(RouterPath.webView),
+                  child: Image.asset('assets/images/icon_kakao_login.png'),
+                ),
               ),
-            ),
-          ],
+            ]),
+          ),
+          LayoutBuilder(builder: (context, constraints) {
+            double radius = constraints.maxWidth / 3;
+            return Stack(
+              children: [
+                Center(
+                    child: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  radius: radius,
+                )),
+                Center(
+                  child: Image.asset(
+                    'assets/images/carrotBowLogo.png',
+                    width: radius,
+                    height: radius,
+                  ),
+                ),
+              ],
+            );
+          }),
+        ]),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            AuthApi api = AuthApi();
+            bool result = await api.getDummy();
+            if (result == false) return;
+            await context.read<UserInfo>().updateMyProfile().then((_) {
+              debugPrint('[log] login success!');
+              context.go('/home');
+            });
+          },
+          child: const Text('dev'),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => {context.go('/home')},
-        child: const Text('dev\nhome'),
       ),
     );
   }
@@ -58,7 +136,6 @@ class WebViewPage extends StatefulWidget {
 
 class _WebViewPageState extends State<WebViewPage> {
   late final WebViewController _webViewController;
-  final AuthApi _authApi = AuthApi();
 
   @override
   void initState() {
@@ -83,11 +160,18 @@ class _WebViewPageState extends State<WebViewPage> {
     _webViewController.addJavaScriptChannel(
       'tokenHandler',
       onMessageReceived: (JavaScriptMessage message) async {
-        _authApi.logIn(message: message);
-        await context.read<UserInfo>().updateMyProfile().then((_) {
-          debugPrint('[log] login success!');
-          context.go('/home');
-        });
+        await context.read<UserInfo>().logIn(message).then(
+          (bool result) {
+            if (result == true) {
+              const snackBar = SnackBar(
+                content: Text('로그인 성공!'),
+                duration: Duration(milliseconds: 1000),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+              context.go(RouterPath.home);
+            }
+          },
+        );
       },
     );
 
@@ -100,7 +184,7 @@ class _WebViewPageState extends State<WebViewPage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: WebViewWidget(controller: _webViewController),
+      home: SafeArea(child: WebViewWidget(controller: _webViewController)),
     );
   }
 }

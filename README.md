@@ -5,8 +5,8 @@
 예외플로우
 
 ## 요청사항 or 질문사항
-파이어베이스 통합 키? 암튼 같은 프로젝트를 여따 빌드하는거
-구글 맵 키는? 사실 그냥 임베딩해서 써도되는데 서버에서 받아오는것도 나쁘지않을듯? 완성도측면에서
+무조건 결제가 선행되어야 매칭을 완료할 수 있는가?
+
 
 ## 참고 링크
 - 플러터 참고 자료 모음
@@ -20,6 +20,15 @@ https://iqonic.design/product-category/mobile/page/3/
 
 - 기능 샘플 코드
 https://github.com/lkrcdd/flutter_google_map_demo.git
+https://github.com/lkrcdd/flutter_push_back_v3.git
+
+https://mookypoo.medium.com/flutter-fcm-%ED%91%B8%EC%89%AC-%EC%95%8C%EB%A6%BC-7e0699729462
+
+https://velog.io/@tygerhwang/FLUTTER-Local-Notifications3
+
+
+- ui
+https://github.com/sangvaleap/app-flutter-pet-adoption?ref=flutterawesome.com
 
 ## 사용 패키지 및 API
 화면 이동 : go_router  
@@ -36,6 +45,8 @@ https://github.com/lkrcdd/flutter_google_map_demo.git
 - constants.dart : 상수 파일. 링크, 텍스트스타일 등의 const변수 저장  
 - providers.dart : 데이터 파일. viewmodel역할
 - router.dart : 화면 이동 경로 지정
+
+
 
 ## setting
 #### 1. google map api setting
@@ -99,7 +110,7 @@ notiController
 #### 3. firebase setting
 1. install firebase cli (if not installed)
 2. firebase login
-3. firebase configure
+3. flutterfire configure
 4. set android package name
 
 #### 4. flutter_background_service setting 
@@ -129,6 +140,8 @@ android/app/src/main/AndroidManifest.xml에 permission 코드 추가
   ...
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 ...
+
+
 
 ## information
 #### provider 사용법
@@ -162,6 +175,46 @@ key - value 형태로 간단한 정보만 저장
 -> infowindow : 마커 클릭 시 표시되는 창 
 -> snippet : subtitle
 
+#### go router
+    H
+  A   B
+AA      BB
+route list에 선언. context.go-> context.pop 시 다른 말단노드로 이동하면 그 말단노드에 연결된 경로로 백됨.
+H -> A -> AA -> BB, 이 때 pop 시
+BB -> B -> H
+
+go -> GoRoute의 path속성에 지정된 값으로 이동
+goNamed -> GoRoute의 name속성에 지정된 값으로 이동
+=> 경로상으로 직접 연결되어있지 않은 AA -> BB 이동 후 Pop 시 경로를 따라 Pop됨.
+=> 경로 형성 시 부모 노드가 단 하나이므로 가능한 이동
+
+push, pushNamed : stack에 쌓음.
+H -> A -> B -> BB 처럼 이동했다면 (경로상으로 직접 연결되어있지 않은 A B 사이 이동이 일어남) pop 시 스택에 따라 지워짐.
+BB -> B -> A -> H
+
+pop
+popuntil
+
+route : 기본. 형성할 경로 리스트?
+redirect : 함수. 조건에 따른 이동
+
+#### 변수 선언 종류
+String, int ... : classic variable type
+
+- type free variable
+var : compile time variable -> must be init
+dynamic : run time variable
+
+- constants
+const : compile time constants
+final : run time constants(assign only one time)
+
+- scope
+static : global variable(class에 사용)
+
+- init time
+late : late init variable
+
 #### 스프링부트 파일 구조  
 my-spring-boot-project/  
 ├── src/  
@@ -189,24 +242,8 @@ my-spring-boot-project/
 - (_)의 의미  
 함수나 메서드의 매개변수로 _를 사용하면 해당 매개변수를 사용하지 않는다는 것을 나타냅니다  
 
-#### 변수 선언 종류
-String, int ... : classic variable type
 
-- type free variable
-var : compile time variable -> must be init
-dynamic : run time variable
-
-- constants
-const : compile time constants
-final : run time constants(assign only one time)
-
-- scope
-static : global variable(class에 사용)
-
-- init time
-late : late init variable
-
-## 오류 로그
+## Error log
 #### android 오류
 - net::ERR_CLEARTEXT_NOT_PERMITTED
 https://peterica.tistory.com/560  
@@ -228,6 +265,35 @@ defaultConfig{minSdkVersion 21}
 https://medium.com/nerd-for-tech/do-not-use-buildcontext-in-async-gaps-why-and-how-to-handle-flutter-context-correctly-870b924eb42e
 await ~ then ~  
 
+
+	
+<button type="button" 
+onclick="location.href=&#39;intent://kakaopay/pg?url=https://online-pay.kakao.com/pay/mockup/6f9c6c35fd3116e55dbcb6ee6579eee4f423882726ef689b42ee86cf163e51fe#Intent;scheme=kakaotalk;package=com.kakao.talk;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.kakao.talk;end&#39;" class="waiting-popup__notice-button">
+<span class="text">카카오페이가 실행되지 않거나 창을 닫으셨나요?</span> 
+<svg xmlns="http://www.w3.org/2000/svg" width="15"
+height="20" viewBox="0 0 15 20" class="icon">
+<path fill="none" fill-rule="evenodd" stroke="#0E1012" stroke-linecap="round" stroke-linejoin="round"
+d="M0 0L5 5 0 10" transform="translate(8 5)"></path>
+I/flutter ( 8053): 				</svg></button>
+I/flutter ( 8053): 			</div>
+I/flutter ( 8053): 		</div>
+I/flutter ( 8053): 		<div class="center_layer" style="display: none">
+I/flutter ( 8053): 			<div class="inner_layer">
+I/flutter ( 8053): 				<span role="text">
+I/flutter ( 8053): 					<p class="txt_pay"><span>카카오페이 결제를 위해</span><br><em class="emph_txt">다음</em> 버튼을 눌러주세요!</p>
+I/flutter ( 8053): 				</span>
+I/flutter ( 8053): 				<a href= "intent://kakaopay/pg?url=https://online-pay.kakao.com/pay/mockup/6f9c6c35fd3116e55dbcb6ee6579eee4f423882726ef689b42ee86cf163e51fe#Intent;scheme=kakaotalk;package=com.kakao.talk;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.kakao.talk;end" class="btn_pay">다음</a>
+I/flutter ( 8053): 			</div>
+I/flutter ( 8053): 		</div>
+I/flutter ( 8053): 		<form id="approvalPost" action="approval" method="post">
+I/flutter ( 8053): 		</form>
+I/flutter ( 8053): 	</div>
+I/flutter ( 8053): </body>
+I/flutter ( 8053): </html>
+I/flutter ( 8053): 
+
+talk.kakaopay.m.app
+com.kakao.talk
 
 ## 기타
 ThemeData 클래스의 공식 문서 -> 디자인

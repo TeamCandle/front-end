@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1006717290462",
+    "project_id": "carrotbow-fcc75",
+    "storage_bucket": "carrotbow-fcc75.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006717290462:android:0ba0b1be555a4ddd843f4f",
+        "android_client_info": {
+          "package_name": "com.example.flutter_doguber_frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAS6TsM59WaQiqyFL-IAzlwwN7ebK4ts8U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006717290462:android:bd7f2d06cf7d926c843f4f",
+        "android_client_info": {
+          "package_name": "com.example.untitled2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAS6TsM59WaQiqyFL-IAzlwwN7ebK4ts8U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

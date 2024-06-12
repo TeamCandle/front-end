@@ -1,114 +1,33 @@
-//dependency
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_doguber_frontend/api.dart';
+import 'package:flutter_doguber_frontend/constants.dart';
+import 'package:flutter_doguber_frontend/customwidgets.dart';
+import 'package:flutter_doguber_frontend/datamodels.dart';
+import 'package:flutter_doguber_frontend/mymap.dart';
+import 'package:flutter_doguber_frontend/router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
-//files
-import '../api.dart';
-import '../constants.dart';
-import '../customwidgets.dart';
-import '../datamodels.dart';
-import '../testdata.dart';
-import '../mymap.dart';
-import '../router.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
+import 'package:chat_bubbles/chat_bubbles.dart';
 
-class MatchingLogPage extends StatefulWidget {
-  const MatchingLogPage({super.key});
-
-  @override
-  State<MatchingLogPage> createState() => _MatchingLogPageState();
-}
-
-class _MatchingLogPageState extends State<MatchingLogPage> {
-  @override
-  Widget build(BuildContext context) {
-    context.read<InfiniteList>().clearAllList;
-    return Scaffold(
-      appBar: AppBar(title: const Text("매칭 기록")),
-      body: FutureBuilder(
-        future: context.read<InfiniteList>().updateMatchingLogList(),
-        builder: buildMatchingLogList,
-      ),
-    );
-  }
-
-  Widget buildMatchingLogList(BuildContext context, AsyncSnapshot snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (snapshot.hasError) {
-      return const Center(child: Text('error!'));
-    }
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: ListView.builder(
-          itemCount: context.watch<InfiniteList>().matchingLogList.length,
-          itemBuilder: (BuildContext context, int index) {
-            if (index ==
-                context.watch<InfiniteList>().matchingLogList.length - 3) {
-              context.read<InfiniteList>().updateMyApplicationList();
-            }
-
-            dynamic image = context.watch<InfiniteList>().matchingLogList[index]
-                        ['image'] ==
-                    null
-                ? const AssetImage('assets/images/empty_image.png')
-                : MemoryImage(
-                    base64Decode(
-                      context.read<InfiniteList>().matchingLogList[index]
-                          ['image'],
-                    ),
-                  );
-            int id = context.watch<InfiniteList>().matchingLogList[index]['id'];
-            String careType = context
-                .watch<InfiniteList>()
-                .matchingLogList[index]['careType'];
-            String time =
-                context.watch<InfiniteList>().matchingLogList[index]['time'];
-            String breed =
-                context.watch<InfiniteList>().matchingLogList[index]['breed'];
-            String status =
-                context.watch<InfiniteList>().matchingLogList[index]['status'];
-
-            return customListTile(
-              leading: CircleAvatar(
-                radius: 30,
-                backgroundImage: image,
-              ),
-              title: Text('$breed\t$careType'),
-              subtitle: Text(time),
-              trailing: Text(status),
-              onTap: () {
-                context.go(
-                  RouterPath.matchLogDetail,
-                  extra: {'detailId': id},
-                );
-              },
-            );
-          }),
-    );
-  }
-}
-
-class MatchingLogDetailPage extends StatefulWidget {
+class CurrentMatchPage extends StatefulWidget {
   final int matchId;
-  const MatchingLogDetailPage({super.key, required this.matchId});
+  const CurrentMatchPage({super.key, required this.matchId});
 
   @override
-  State<MatchingLogDetailPage> createState() => _MatchingLogDetailPageState();
+  State<CurrentMatchPage> createState() => _CurrentMatchPageState();
 }
 
-class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
+class _CurrentMatchPageState extends State<CurrentMatchPage> {
   late DetailInfo? _matchingDetail;
   late final GoogleMapController _mapController;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("매칭 세부 정보")),
+      appBar: AppBar(title: const Text("현재 진행 중인 매칭")),
       body: FutureBuilder(
         future: MatchingLogApi.getMatchingLogDetail(widget.matchId),
         builder: buildDetail,
@@ -119,7 +38,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
   Widget buildDetail(BuildContext context, snapshot) {
     if (snapshot.connectionState == ConnectionState.waiting) {
       return const Center(child: CircularProgressIndicator());
-    } else if (snapshot.hasError || snapshot.data == false) {
+    } else if (snapshot.hasError || snapshot.data == null) {
       return Center(child: Text('Error: ${snapshot.error}'));
     }
 
@@ -154,41 +73,33 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Container(
-                        width: width,
-                        padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-                        child: SizedBox(
-                          width: width,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              CircleAvatar(
-                                radius: (width / 10),
-                                backgroundImage: image,
-                              ),
-                              Column(children: [
-                                Text(careType),
-                                Container(
-                                  margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
-                                  height: 1,
-                                  width: (width - 32) / 3,
-                                  color: Colors.grey[300],
-                                ),
-                                Text('$reward 원'),
-                                Container(
-                                  margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
-                                  height: 1,
-                                  width: (width - 32) / 3,
-                                  color: Colors.grey[300],
-                                ),
-                                Text(status),
-                              ]),
-                              buildInfoButton(
-                                  context, userId, dogId, isRequester),
-                            ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            maxRadius: (width / 10),
+                            backgroundImage: image,
                           ),
-                        ),
+                          Column(children: [
+                            Text(careType),
+                            Container(
+                              margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                              height: 1,
+                              width: (width - 32) / 3,
+                              color: Colors.grey[300],
+                            ),
+                            Text('$reward 원'),
+                            Container(
+                              margin: EdgeInsets.fromLTRB(0, 4, 0, 4),
+                              height: 1,
+                              width: (width - 32) / 3,
+                              color: Colors.grey[300],
+                            ),
+                            Text(status),
+                          ]),
+                          buildInfoButton(context, userId, dogId, isRequester),
+                        ],
                       ),
                       Padding(
                         padding: const EdgeInsets.all(16),
@@ -208,7 +119,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                               extra: {'matchId': widget.matchId},
                             );
                           },
-                          child: const Text('chatting'),
+                          child: const Text('채팅'),
                         ),
                       ),
                       Padding(
@@ -245,7 +156,6 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
   }
 
   GoogleMap buildGoogleMap() {
-    context.read<LocationInfo>().clearMarkers();
     return GoogleMap(
       onMapCreated: (GoogleMapController controller) {
         _mapController = controller;
@@ -355,14 +265,14 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
             onPressed: () async {
               await MatchingLogApi.cancel(widget.matchId).then((bool result) {
                 if (result == true) {
-                  _showResult(
+                  showResultDialog(
                     context,
                     result,
                     '매칭 취소',
                     '매칭이 취소되었습니다.',
                   );
                 } else {
-                  _showResult(context, result, 'fail', 'err');
+                  showResultDialog(context, result, 'fail', 'err');
                 }
               });
             },
@@ -381,14 +291,14 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
                 await MatchingLogApi.complete(widget.matchId).then(
                   (bool result) {
                     if (result == true) {
-                      _showResult(
+                      showResultDialog(
                         context,
                         result,
                         '매칭 완료',
                         '매칭을 완료하였습니다. 리뷰를 작성하실 수 있어요',
                       );
                     } else {
-                      _showResult(context, result, 'fail', 'err');
+                      showResultDialog(context, result, 'fail', 'err');
                     }
                   },
                 );
@@ -400,14 +310,14 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
             onPressed: () async {
               await PaymentApi.refund(widget.matchId).then((bool result) {
                 if (result == true) {
-                  _showResult(
+                  showResultDialog(
                     context,
                     result,
                     '환불 완료',
                     '환불되었습니다',
                   );
                 } else {
-                  _showResult(context, result, 'fail', 'err');
+                  showResultDialog(context, result, 'fail', 'err');
                 }
               });
             },
@@ -433,7 +343,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
     }
   }
 
-  Future<dynamic> _showResult(
+  Future<dynamic> showResultDialog(
     BuildContext context,
     bool result,
     String title,
@@ -447,19 +357,7 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
             content: Text(content),
             actions: [
               ElevatedButton(
-                onPressed: () async {
-                  if (result == true) {
-                    context.read<InfiniteList>().clearAllList();
-                    await context
-                        .read<InfiniteList>()
-                        .updateMatchingLogList()
-                        .then((_) {
-                      context.go(RouterPath.matchLog);
-                    });
-                  } else {
-                    Navigator.of(context).pop();
-                  }
-                },
+                onPressed: () => context.pop(),
                 child: const Text("ok"),
               )
             ],
@@ -468,81 +366,144 @@ class _MatchingLogDetailPageState extends State<MatchingLogDetailPage> {
   }
 }
 
-class PaymentProcessPage extends StatelessWidget {
+class ChattingPage extends StatefulWidget {
   final int matchId;
-  const PaymentProcessPage({super.key, required this.matchId});
+  const ChattingPage({super.key, required this.matchId});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder(
-        future: PaymentApi.pay(matchId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError || snapshot.data == false) {
-            return const Center(child: Text('error!'));
-          }
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('결제 진행 중...', style: TextStyle(fontSize: 30)),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    context.push(
-                      RouterPath.paymentResult,
-                      extra: {'matchId': matchId},
-                    );
-                  },
-                  child: const Text('결제 완료 후 버튼을 눌러주세요'),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
+  State<ChattingPage> createState() => _ChattingPageState();
 }
 
-class PaymentResultPage extends StatelessWidget {
-  final int matchId;
-  const PaymentResultPage({super.key, required this.matchId});
+class _ChattingPageState extends State<ChattingPage> {
+  late StompClient stompClient;
+  final TextEditingController _textController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  void _callbackReceivedStompMsg(StompFrame frame) {
+    //List<dynamic>? result = json.decode(frame.body!);
+    Map<String, dynamic> obj = json.decode(frame.body!);
+    Map<String, dynamic> message = {
+      'message': obj['message'],
+      'sender': obj['sender'],
+    };
+
+    context.read<ChatData>().add(message);
+    _scrollToBottom();
+  }
+
+  Future<bool> initChatting() async {
+    bool result = await ChattingApi.connect(
+      matchId: widget.matchId,
+      callback: _callbackReceivedStompMsg,
+    );
+    if (result == false) return false;
+    await context.read<ChatData>().initChatting(widget.matchId);
+    _scrollToBottom();
+    return true;
+  }
+
+  Future<void> sendMessage() async {
+    ChattingApi.send(_textController.text, widget.matchId);
+    context.read<ChatData>().update(
+          _textController.text,
+          context.read<UserInfo>().name,
+        );
+    _textController.clear();
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _textController.dispose();
+    _scrollController.dispose();
+    ChattingApi.disconnect();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text('채팅')),
       body: FutureBuilder(
-        future: PaymentApi.approve(matchId),
+        future: initChatting(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError || snapshot.data == false) {
-            return const Center(child: Text('something wrong'));
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('임금 지불 완료!', style: TextStyle(fontSize: 30)),
-                Text(
-                  '해당 유저에게 솔직한 리뷰를 써 주세요!',
-                  style: TextStyle(fontSize: 20),
-                ),
-                ElevatedButton(
-                  onPressed: () => context.go(RouterPath.home),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
-                    child: Text('홈으로'),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => FocusScope.of(context).unfocus(),
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: context.watch<ChatData>().messages.length,
+                    itemBuilder: (context, index) {
+                      if (context.read<ChatData>().messages[index]['sender'] ==
+                          context.read<UserInfo>().name) {
+                        return BubbleSpecialThree(
+                          text: context.watch<ChatData>().messages[index]
+                              ['message'],
+                          color: Color(0xFFa2e1a6),
+                        );
+                      } else {
+                        return BubbleSpecialThree(
+                          text: context.watch<ChatData>().messages[index]
+                              ['message'],
+                          color: Colors.white,
+                          isSender: false,
+                        );
+                      }
+                    },
                   ),
-                )
-              ],
-            ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: customSearchField(
+                        child: TextField(
+                          onTap: _scrollToBottom,
+                          controller: _textController,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Enter your message',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // 전송 버튼
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: IconButton(
+                      icon: const Icon(Icons.send),
+                      style: const ButtonStyle(
+                        backgroundColor:
+                            WidgetStatePropertyAll(Color(0xFFa2e1a6)),
+                      ),
+                      onPressed: sendMessage,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           );
         },
       ),

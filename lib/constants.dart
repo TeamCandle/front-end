@@ -7,28 +7,10 @@ class ApiKeys {
   static const String googleApiKey = 'AIzaSyBTk9blgdCa4T8fARQha7o-AuF8WkK3byI';
 }
 
-class RouterPath {
-  static const String home = '/home';
-
-  //profile tree
-  static const String myProfile = '/home/my_profile';
-  static const String myReview = '/home/my_profile/my_review';
-  static const String myDogProfile = '/home/my_profile/dog_profile';
-  static const String myDogRegistraion = '/home/my_profile/dog_registration';
-  static const String profileModify = '/home/my_profile/modify_myprofile';
-
-  //match tree
-  static const String matching = '/home/matching';
-  static const String requestDetail = '/home/matching/request_detail';
-  static const String applySuccess =
-      '/home/matching/request_detail/apply_success';
-  static const String myRequestList = '/home/matching/my_request_list';
-  static const String requestRegistrationForm =
-      '/home/matching/my_request_list/form';
-  static const String myApplicationList = "/home/matching/my_application_list";
-  static const String matchLog = '/home/matching/match_log';
-  static const String chatting = '/home/matching/chatting';
-  static const String requestSearch = '/home/matching/request_search';
+class DogSize {
+  static const String small = "SMALL";
+  static const String medium = "MEDIUM";
+  static const String large = "LARGE";
 }
 
 class CareType {
@@ -39,24 +21,13 @@ class CareType {
   static const String etc = "ETC";
 }
 
-class RequirementStatus {
-  static const String matched = 'MATCHED';
-  static const String recruiting = 'RECRUITING';
-  static const String cancelled = 'CANCELLED';
-  static const String expired = 'EXPIRED';
-}
-
-class ApplicationStatus {
-  static const String matched = 'MATCHED';
-  static const String waiting = 'WAITING';
-  static const String rejected = 'REJECTED';
-  static const String cancelled = 'CANCELLED';
-}
-
-class MatchingStatus {
-  static const String completed = 'COMPLETED';
-  static const String inProgress = 'IN_PROGRESS';
-  static const String cancelled = 'CANCELLED';
+class Status {
+  static const String waiting = '결제 대기중';
+  static const String notCompleted = '미완료';
+  static const String completed = '완료';
+  static const String canceled = '취소됨';
+  static const String matched = '매칭 완료';
+  static const String notMatched = '매칭 실패';
 }
 
 class ServerUrl {
@@ -80,4 +51,13 @@ class ServerUrl {
   static const String requirementUrl = '$serverUrl/requirement'; //+me
   static const String requirementListUrl = '$serverUrl/requirement/list'; //+me
   static const String requirementCancelUrl = '$serverUrl/requirement/cancel';
+
+  //application url
+  static const String applicationUrl = '$serverUrl/application'; //+me
+
+  static const String matchUrl = '$serverUrl/match';
+
+  static const String paymentUrl = '$serverUrl/payment';
+
+  static const String reviewUrl = '$serverUrl/review';
 }
